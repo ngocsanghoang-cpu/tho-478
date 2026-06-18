@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ứng Dụng Thở 4-7-8</title>
+    <style>
+        /* Thiết lập giao diện màu sắc dịu nhẹ, giúp thư giãn */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #e0f2f1; 
+            color: #333;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 320px;
+        }
+        h1 {
+            font-size: 26px;
+            margin-bottom: 5px;
+            color: #00695c;
+        }
+        .round-info {
+            font-size: 16px;
+            color: #777;
+            margin-bottom: 20px;
+        }
+        .instruction {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            min-height: 40px;
+            color: #00796b;
+            transition: color 0.3s ease;
+        }
+        .timer {
+            font-size: 72px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #26a69a;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        button {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        #startPauseBtn {
+            background-color: #00897b;
+            color: white;
+        }
+        #startPauseBtn:hover {
+            background-color: #00695c;
+        }
+        #restartBtn {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        #restartBtn:hover {
+            background-color: #bdbdbd;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Thở 4-7-8</h1>
+        <div class="round-info">Vòng hiện tại: <span id="roundCount">1</span></div>
+        
+        <div class="instruction" id="instruction">Sẵn sàng</div>
+        <div class="timer" id="timerDisplay">4</div>
+
+        <div class="controls">
+            <button id="startPauseBtn" onclick="toggleStartPause()">Bắt đầu</button>
+            <button id="restartBtn" onclick="restartTimer()">Làm lại</button>
+        </div>
+    </div>
+
+    <script>
+        // Định nghĩa 3 giai đoạn của chu kỳ thở 4-7-8
+        const phases = [
+            { text: "Hít vào từ từ...", time: 4 },
+            { text: "Giữ hơi thở...", time: 7 },
+            { text: "Thở ra hoàn toàn...", time: 8 }
+        ];
+
+        let currentPhaseIndex = 0;
+        let timeLeft = phases[currentPhaseIndex].time;
+        let currentRound = 1;
+        let isRunning = false;
+        let timerInterval;
+
+        // Kết nối với các phần tử HTML
+        const instructionEl = document.getElementById('instruction');
+        const timerDisplayEl = document.getElementById('timerDisplay');
+        const roundCountEl = document.getElementById('roundCount');
+        const startPauseBtn = document.getElementById('startPauseBtn');
+
+        // Hàm cập nhật giao diện người dùng (UI)
+        function updateUI() {
+            // Nếu chưa bắt đầu lần nào thì hiện "Sẵn sàng"
+            if (!isRunning && currentRound === 1 && currentPhaseIndex === 0 && timeLeft === phases[0].time) {
+                instructionEl.innerText = "Sẵn sàng";
+            } else {
+                instructionEl.innerText = phases[currentPhaseIndex].text;
+            }
+            
+            timerDisplayEl.innerText = timeLeft;
+            roundCountEl.innerText = currentRound;
+            
+            // Thay đổi chữ trên nút Start/Pause
+            if (isRunning) {
+                startPauseBtn.innerText = "Tạm dừng";
+                startPauseBtn.style.backgroundColor = "#ff9800"; // Đổi màu cam khi Pause
+            } else {
+                startPauseBtn.innerText = (timeLeft === phases[0].time && currentPhaseIndex === 0 && currentRound === 1) ? "Bắt đầu" : "Tiếp tục";
+                startPauseBtn.style.backgroundColor = "#00897b"; // Màu xanh lam khi Play
+            }
+        }
+
+        // Hàm xử lý đếm ngược thời gian mỗi giây
+        function tick() {
+            timeLeft--;
+
+            if (timeLeft <= 0) {
+                currentPhaseIndex++;
+                
+                // Nếu đã qua đủ 3 giai đoạn (Hít -> Giữ -> Thở)
+                if (currentPhaseIndex >= phases.length) {
+                    currentPhaseIndex = 0;
+                    currentRound++; // Tăng số vòng đếm
+                }
+                
+                // Reset thời gian cho giai đoạn tiếp theo
+                timeLeft = phases[currentPhaseIndex].time;
+            }
+            updateUI();
+        }
+
+        // Hàm chuyển đổi giữa Bắt đầu (Start), Tạm dừng (Pause) và Tiếp tục (Resume)
+        function toggleStartPause() {
+            if (isRunning) {
+                // Nếu đang chạy -> Xóa interval để dừng đếm
+                clearInterval(timerInterval);
+                isRunning = false;
+            } else {
+                // Nếu đang dừng -> Bắt đầu đếm mỗi 1000ms (1 giây)
+                timerInterval = setInterval(tick, 1000);
+                isRunning = true;
+            }
+            updateUI();
+        }
+
+        // Hàm làm lại từ đầu
+        function restartTimer() {
+            clearInterval(timerInterval); // Dừng đồng hồ
+            isRunning = false;
+            currentPhaseIndex = 0; // Quay về Hít vào
+            currentRound = 1;      // Quay về Vòng 1
+            timeLeft = phases[currentPhaseIndex].time;
+            updateUI();
+        }
+
+        // Gọi UI lần đầu tiên để hiển thị khi trang vừa tải xong
+        updateUI();
+    </script>
+</body>
+</html>
