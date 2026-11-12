@@ -258,7 +258,7 @@ export function progressDots(total) {
   return wrap;
 }
 
-/** Nút phải giữ một lúc mới kích hoạt (khoá dành cho bố mẹ). */
+/** Nút phải giữ một lúc mới kích hoạt (khoá dành cho ba mẹ). */
 export function holdToActivate(el, ms, onDone, onShortTap) {
   let timer = null;
   let fired = false;

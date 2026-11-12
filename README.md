@@ -15,12 +15,12 @@ Repo này có hai ứng dụng web:
 
 ### Các phần học
 
-**🧒 Bé Tự Lập**
-- ☀️ **Việc buổi sáng** (7 việc) và 🌙 **việc buổi tối** (6 việc). Bé chạm vào từng việc để nghe hướng dẫn từng bước. Làm xong, bé bấm “Con làm xong rồi!” để nhận sao. Danh sách được làm mới mỗi ngày.
-- 🧼 **Rửa tay 8 bước**: tự chuyển bước theo giờ và đếm to “một, hai, ba…” để bé vừa rửa tay vừa tập đếm.
-- 🪥 **Đánh răng 2 phút**: đồng hồ đếm ngược, nhắc bé chải từng mặt răng.
-- 👕 **Tự mặc quần áo**: hướng dẫn từng bước.
-- 🧸 **Dọn đồ chơi**: trò chơi kéo thả, bé cất đồ chơi vào hộp, quần áo vào giỏ, sách bút lên giá.
+**🧒 Bé Tự Lập**: các việc trong ngày, chia theo buổi. Bé chạm vào từng việc để nghe hướng dẫn từng bước, làm xong thì bấm “Con làm xong rồi!” để nhận sao. Danh sách được làm mới mỗi ngày.
+- ☀️ **Buổi sáng**: tự đi vệ sinh, tự rửa mặt, tự cởi đồ ngủ, tự mặc đồ mới, nhờ ba mẹ làm tóc (tập nói lời nhờ và cảm ơn lễ phép), tự đeo túi, đi đến lớp.
+- 🌤️ **Buổi chiều**: tự mang giày dép, cởi giày dép và cất vào tủ, chơi xong cất đồ chơi đúng chỗ.
+- 🌙 **Buổi tối**: tự múc ăn, ăn một ít rau mỗi ngày, tự xếp gọn quần áo, tự leo lên giường ngủ.
+- 🌟 **Tập từng kỹ năng**: mặc quần áo, mang giày dép, xếp quần áo, rửa tay 8 bước (có đếm to), đánh răng 2 phút.
+- 🧸 **Trò dọn đồ**: bé kéo thả đồ chơi vào hộp, quần áo vào giỏ, sách bút lên giá, giày dép vào tủ giày.
 
 **✏️ Tập Viết**
 - Có 29 chữ thường, 29 chữ hoa (gồm ă, â, đ, ê, ô, ơ, ư) và 10 chữ số. Chữ hiện trên nền giấy ô ly với nét chấm để bé tô.
@@ -38,7 +38,7 @@ Repo này có hai ứng dụng web:
 
 **🎁 Phần thưởng**: cứ 5 ⭐ bé mở được 1 nhãn dán con vật mới, tổng cộng có 36 nhãn dán.
 
-**👨‍👩‍👧 Góc bố mẹ** (phải giữ nút 2 giây mới vào được)
+**👨‍👩‍👧 Góc ba mẹ** (phải giữ nút 2 giây mới vào được)
 - Nhập tên gọi ở nhà của bé, để Cú Mèo gọi tên khi khen.
 - Chọn giọng đọc, chỉnh tốc độ đọc, bật hoặc tắt âm thanh hiệu ứng.
 - **Nhắc nghỉ ngơi**: sau 10–45 phút, ứng dụng nhắc bé nghỉ mắt 1 phút rồi mới chơi tiếp.
@@ -84,7 +84,7 @@ be-vui-hoc/
     ├── selfcare.js       # Bé Tự Lập
     ├── writing.js        # Tập Viết
     ├── counting.js       # Học Đếm
-    └── parents.js        # Góc bố mẹ
+    └── parents.js        # Góc ba mẹ
 ```
 
 Ứng dụng không cần cài thư viện hay build, không thu thập dữ liệu. Mọi tiến độ chỉ lưu trên iPad của bé.

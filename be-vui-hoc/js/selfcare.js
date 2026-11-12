@@ -1,4 +1,4 @@
-// BÉ TỰ LẬP – thói quen buổi sáng/tối, hướng dẫn từng bước, trò chơi dọn đồ chơi
+// BÉ TỰ LẬP – việc buổi sáng/chiều/tối, hướng dẫn từng bước, trò chơi dọn đồ chơi
 import { register, go, h, say, live, sleep, giveStars, praise, celebrate, menuCard, progressDots, shuffle, rand, toast } from './ui.js';
 import { sfx } from './sound.js';
 import { routineDone, markRoutine } from './store.js';
@@ -7,33 +7,52 @@ import { numWord } from './vi.js';
 const THEME = 'var(--green)';
 
 /* ---------------- Dữ liệu ---------------- */
-const ROUTINES = {
+export const ROUTINES = {
   morning: {
-    title: 'Buổi sáng', emoji: '☀️',
-    intro: 'Chào buổi sáng! Mình cùng làm các việc buổi sáng nhé. Con chạm vào từng việc để nghe hướng dẫn.',
+    title: 'Buổi sáng', emoji: '☀️', color: 'yellow',
+    intro: 'Chào buổi sáng! Con dậy rồi, mình cùng tự làm các việc buổi sáng nhé. Con chạm vào từng việc để nghe hướng dẫn.',
     tasks: [
-      { id: 'bed', e: '🛏️', t: 'Gấp chăn gối', say: 'Con dậy rồi! Hãy tự gấp chăn và xếp gối gọn gàng nhé.', steps: ['Kéo chăn cho phẳng', 'Gấp đôi chăn lại', 'Đặt gối ngay ngắn ở đầu giường'] },
-      { id: 'toilet', e: '🚽', t: 'Đi vệ sinh', say: 'Con tự đi vệ sinh nhé.', steps: ['Đi vệ sinh', 'Nhớ xả nước', 'Rửa tay bằng xà phòng'] },
-      { id: 'teeth', e: '🪥', t: 'Đánh răng', guide: 'teeth' },
-      { id: 'face', e: '💦', t: 'Rửa mặt', say: 'Con tự rửa mặt cho sạch sẽ nhé.', steps: ['Vốc nước sạch lên mặt', 'Xoa nhẹ trán, hai má và cằm', 'Lau khô bằng khăn của con'] },
-      { id: 'clothes', e: '👕', t: 'Tự mặc quần áo', guide: 'dress' },
-      { id: 'breakfast', e: '🥣', t: 'Ăn sáng', say: 'Đến giờ ăn sáng rồi. Con tự xúc ăn nhé.', steps: ['Ngồi ngay ngắn vào bàn', 'Tự xúc ăn gọn gàng', 'Ăn xong mang bát vào bồn rửa'] },
-      { id: 'bag', e: '🎒', t: 'Đeo cặp, đi giày', say: 'Chuẩn bị đi học thôi!', steps: ['Kiểm tra cặp sách và bình nước', 'Tự đi giày', 'Chào bố mẹ trước khi đi'] },
+      { id: 'toilet', e: '🚽', t: 'Tự đi vệ sinh', say: 'Ngủ dậy rồi, con tự đi vệ sinh nhé.', steps: ['Tự đi vào nhà vệ sinh', 'Đi vệ sinh xong nhớ xả nước', 'Rửa tay bằng xà phòng cho sạch'] },
+      { id: 'face', e: '💦', t: 'Tự rửa mặt', say: 'Con tự rửa mặt cho sạch sẽ, tỉnh táo nhé.', steps: ['Vốc nước sạch lên mặt', 'Xoa nhẹ trán, hai má, mũi và cằm', 'Lau khô bằng khăn của con'] },
+      { id: 'undress', e: '🩳', t: 'Tự cởi đồ ngủ', guide: 'undress' },
+      { id: 'dress', e: '👕', t: 'Tự mặc đồ mới', guide: 'dress' },
+      { id: 'hair', e: '🎀', t: 'Nhờ ba mẹ làm tóc', say: 'Con mang lược đến nhờ ba mẹ làm tóc nhé. Nhớ nói lời nhờ thật lễ phép.', steps: ['Mang lược và dây buộc tóc đến cho ba mẹ', 'Nói: Ba mẹ ơi, làm tóc giúp con với ạ!', 'Ngồi yên để ba mẹ chải tóc', 'Nói: Con cảm ơn ba mẹ ạ!'] },
+      { id: 'bag', e: '🎒', t: 'Tự đeo túi', say: 'Con tự đeo túi đi học nhé.', steps: ['Xem trong túi có bình nước và khăn chưa', 'Kéo khoá túi lại', 'Tự đeo túi lên hai vai'] },
+      { id: 'school', e: '🏫', t: 'Đi đến lớp', say: 'Đến giờ đi học rồi! Con vui vẻ đến lớp nhé.', steps: ['Tự mang giày dép', 'Chào ba mẹ trước khi đi', 'Đến lớp chào cô và các bạn'] },
+    ],
+  },
+  afternoon: {
+    title: 'Buổi chiều', emoji: '🌤️', color: 'orange',
+    intro: 'Con đi học về rồi! Mình cùng tự làm các việc buổi chiều nhé.',
+    tasks: [
+      { id: 'shoesOn', e: '👟', t: 'Tự mang giày dép', guide: 'shoesOn' },
+      { id: 'shoesOff', e: '🗄️', t: 'Cởi giày dép, cất vào tủ', guide: 'shoesOff' },
+      { id: 'toys', e: '🧸', t: 'Chơi xong cất đồ chơi', game: 'tidy' },
     ],
   },
   evening: {
-    title: 'Buổi tối', emoji: '🌙',
-    intro: 'Buổi tối rồi! Mình cùng làm các việc buổi tối nhé.',
+    title: 'Buổi tối', emoji: '🌙', color: 'purple',
+    intro: 'Buổi tối rồi! Mình cùng tự làm các việc buổi tối nhé.',
     tasks: [
-      { id: 'toys', e: '🧸', t: 'Cất đồ chơi', game: 'tidy', say: 'Chơi xong con tự cất đồ chơi nhé.' },
-      { id: 'bath', e: '🛁', t: 'Tắm', say: 'Đến giờ tắm rồi.', steps: ['Cởi quần áo bỏ vào giỏ đồ bẩn', 'Tắm cùng bố mẹ, kỳ cọ sạch sẽ', 'Lau khô người và mặc đồ ngủ'] },
-      { id: 'dinner', e: '🍽️', t: 'Ăn tối, dọn bát', say: 'Ăn tối xong con giúp bố mẹ dọn bát nhé.', steps: ['Tự ăn hết phần cơm của mình', 'Mang bát đũa vào bồn rửa', 'Lau miệng và rửa tay'] },
-      { id: 'teeth', e: '🪥', t: 'Đánh răng', guide: 'teeth' },
-      { id: 'pack', e: '📚', t: 'Soạn cặp sách', say: 'Con tự soạn cặp cho ngày mai nhé.', steps: ['Xem ngày mai học gì', 'Cất sách vở vào cặp', 'Để cặp ở chỗ quen thuộc'] },
-      { id: 'sleep', e: '😴', t: 'Đi ngủ đúng giờ', say: 'Đến giờ đi ngủ rồi.', steps: ['Đi vệ sinh trước khi ngủ', 'Chúc bố mẹ ngủ ngon', 'Nằm ngay ngắn và nhắm mắt lại'] },
+      { id: 'eat', e: '🥄', t: 'Tự múc ăn', say: 'Đến giờ ăn rồi. Con tự cầm muỗng múc ăn nhé.', steps: ['Ngồi ngay ngắn vào bàn ăn', 'Tự cầm muỗng múc cơm', 'Ăn gọn gàng, không làm rơi vãi', 'Ăn xong mang chén vào bồn rửa'] },
+      { id: 'veggie', e: '🥦', t: 'Ăn một ít rau', say: 'Mỗi ngày con phải ăn một ít rau nhé. Rau giúp con khoẻ mạnh, mau lớn và đi vệ sinh dễ dàng.', steps: ['Tự múc một ít rau vào chén', 'Nhai thật kỹ rồi nuốt', 'Ăn hết phần rau của mình'] },
+      { id: 'fold', e: '🧺', t: 'Tự xếp gọn quần áo', guide: 'fold' },
+      { id: 'bed', e: '🛏️', t: 'Tự leo lên giường ngủ', say: 'Đến giờ đi ngủ rồi. Con tự leo lên giường nhé.', steps: ['Chúc ba mẹ ngủ ngon', 'Tự leo lên giường thật cẩn thận', 'Nằm ngay ngắn, đắp chăn', 'Nhắm mắt và ngủ ngoan'] },
     ],
   },
 };
+
+/** Số việc đã làm hôm nay (chỉ tính những việc có trong danh sách). */
+export function routineCount(kind) {
+  const ids = ROUTINES[kind].tasks.map((t) => t.id);
+  return routineDone(kind).filter((id) => ids.includes(id)).length;
+}
+
+/** Buổi phù hợp theo giờ hiện tại. */
+export function currentRoutine() {
+  const hr = new Date().getHours();
+  return hr < 11 ? 'morning' : hr < 17 ? 'afternoon' : 'evening';
+}
 
 const GUIDES = {
   hands: {
@@ -67,17 +86,66 @@ const GUIDES = {
     ],
   },
   dress: {
-    title: 'Tự mặc quần áo', emoji: '👕', auto: false,
-    intro: 'Con tự mặc quần áo nhé. Làm xong mỗi bước thì bấm nút Xong rồi.',
+    title: 'Tự mặc đồ mới', emoji: '👕', auto: false,
+    intro: 'Con tự mặc quần áo mới nhé. Làm xong mỗi bước thì bấm nút Xong rồi.',
     done: 'Con đã tự mặc quần áo rồi! Trông con thật gọn gàng!',
     steps: [
       { e: '👚', t: 'Tìm cổ áo và mặt trước của áo' },
       { e: '🙆', t: 'Chui đầu qua cổ áo' },
       { e: '💪', t: 'Xỏ từng tay vào ống tay áo' },
+      { e: '👕', t: 'Kéo áo xuống cho thẳng' },
       { e: '👖', t: 'Ngồi xuống, xỏ từng chân vào quần' },
       { e: '🧍', t: 'Đứng lên, kéo quần lên cao' },
-      { e: '🧦', t: 'Đi tất vào hai chân' },
       { e: '🪞', t: 'Soi gương xem đã gọn gàng chưa' },
+    ],
+  },
+  undress: {
+    title: 'Tự cởi đồ ngủ', emoji: '🩳', auto: false,
+    intro: 'Con tự cởi đồ ngủ nhé. Làm xong mỗi bước thì bấm nút Xong rồi.',
+    done: 'Con đã tự cởi đồ rồi! Giỏi quá!',
+    steps: [
+      { e: '🔘', t: 'Cởi nút áo, nếu áo có nút' },
+      { e: '🙆', t: 'Kéo áo lên qua đầu' },
+      { e: '💪', t: 'Rút từng tay ra khỏi ống tay áo' },
+      { e: '🪑', t: 'Ngồi xuống, kéo quần xuống' },
+      { e: '🦵', t: 'Rút từng chân ra khỏi ống quần' },
+      { e: '🧺', t: 'Bỏ đồ ngủ vào giỏ' },
+    ],
+  },
+  shoesOn: {
+    title: 'Tự mang giày dép', emoji: '👟', auto: false,
+    intro: 'Con tự mang giày dép nhé. Làm xong mỗi bước thì bấm nút Xong rồi.',
+    done: 'Con đã tự mang giày dép rồi! Giỏi quá!',
+    steps: [
+      { e: '🪑', t: 'Ngồi xuống ghế hoặc bậc thấp' },
+      { e: '👟', t: 'Đặt hai chiếc giày cạnh nhau, mũi giày quay ra ngoài là đúng chân' },
+      { e: '🦶', t: 'Xỏ chân vào, kéo gót giày lên' },
+      { e: '🩹', t: 'Dán quai hoặc cài khoá cho chặt' },
+      { e: '🚶', t: 'Đứng lên đi thử vài bước' },
+    ],
+  },
+  shoesOff: {
+    title: 'Cởi giày dép, cất vào tủ', emoji: '🗄️', auto: false,
+    intro: 'Về đến nhà rồi! Con tự cởi giày dép và cất vào tủ nhé.',
+    done: 'Giày dép đã nằm gọn trong tủ rồi! Giỏi quá!',
+    steps: [
+      { e: '🪑', t: 'Ngồi xuống ghế hoặc bậc thấp' },
+      { e: '🩹', t: 'Mở quai dán hoặc khoá giày' },
+      { e: '🦶', t: 'Rút từng chân ra' },
+      { e: '👟', t: 'Ghép hai chiếc giày thành một đôi' },
+      { e: '🗄️', t: 'Cất đôi giày vào tủ giày' },
+    ],
+  },
+  fold: {
+    title: 'Tự xếp gọn quần áo', emoji: '🧺', auto: false,
+    intro: 'Con tự xếp quần áo cho gọn gàng nhé. Làm xong mỗi bước thì bấm nút Xong rồi.',
+    done: 'Quần áo của con xếp thật gọn gàng! Giỏi quá!',
+    steps: [
+      { e: '👕', t: 'Trải áo thật phẳng, mặt trước úp xuống' },
+      { e: '↔️', t: 'Gấp hai tay áo vào giữa' },
+      { e: '⬆️', t: 'Gấp đôi áo từ dưới lên' },
+      { e: '👖', t: 'Gấp đôi quần theo chiều dọc, rồi gấp đôi lần nữa' },
+      { e: '🗄️', t: 'Cất quần áo vào đúng ngăn tủ' },
     ],
   },
 };
@@ -86,16 +154,21 @@ const GUIDES = {
 register('selfcare', {
   title: 'Bé Tự Lập', parent: 'home', theme: THEME,
   render(root) {
-    const m = routineDone('morning').length, e = routineDone('evening').length;
+    const card = (kind) => {
+      const R = ROUTINES[kind];
+      return menuCard({ emoji: R.emoji, label: R.title, sub: `${routineCount(kind)}/${R.tasks.length} việc`, color: R.color, badge: kind === currentRoutine() ? 'Bây giờ' : null, onClick: () => go('routine', { kind }) });
+    };
     root.append(h('div', { class: 'menu' },
       h('div', { class: 'menu-head' }, h('div', null, h('h2', { text: '🧒 Bé Tự Lập' }), h('p', { text: 'Con tự làm việc của mình nhé!' }))),
+      h('div', { class: 'cards three' }, card('morning'), card('afternoon'), card('evening')),
+      h('h3', { style: { fontSize: '28px', margin: '30px 0 16px' }, text: '🌟 Tập từng kỹ năng' }),
       h('div', { class: 'cards' },
-        menuCard({ emoji: '☀️', label: 'Buổi sáng', sub: `${m}/${ROUTINES.morning.tasks.length} việc`, color: 'yellow', onClick: () => go('routine', { kind: 'morning' }) }),
-        menuCard({ emoji: '🌙', label: 'Buổi tối', sub: `${e}/${ROUTINES.evening.tasks.length} việc`, color: 'purple', onClick: () => go('routine', { kind: 'evening' }) }),
-        menuCard({ emoji: '🧼', label: 'Rửa tay', sub: '8 bước sạch khuẩn', color: 'blue', onClick: () => go('guide', { id: 'hands' }) }),
-        menuCard({ emoji: '🪥', label: 'Đánh răng', sub: 'Hẹn giờ 2 phút', color: 'green', onClick: () => go('guide', { id: 'teeth' }) }),
         menuCard({ emoji: '👕', label: 'Mặc quần áo', sub: 'Từng bước một', color: 'pink', onClick: () => go('guide', { id: 'dress' }) }),
+        menuCard({ emoji: '👟', label: 'Mang giày dép', sub: 'Đúng chân trái, phải', color: 'blue', onClick: () => go('guide', { id: 'shoesOn' }) }),
+        menuCard({ emoji: '🧺', label: 'Xếp quần áo', sub: 'Gấp gọn, cất tủ', color: 'purple', onClick: () => go('guide', { id: 'fold' }) }),
         menuCard({ emoji: '🧸', label: 'Dọn đồ chơi', sub: 'Kéo đồ vào đúng chỗ', color: 'orange', onClick: () => go('tidy') }),
+        menuCard({ emoji: '🧼', label: 'Rửa tay', sub: '8 bước sạch khuẩn', color: 'green', onClick: () => go('guide', { id: 'hands' }) }),
+        menuCard({ emoji: '🪥', label: 'Đánh răng', sub: 'Hẹn giờ 2 phút', color: 'yellow', onClick: () => go('guide', { id: 'teeth' }) }),
       )));
     say('Bé tự lập. Hôm nay con muốn tự làm việc gì nào?');
   },
@@ -107,6 +180,7 @@ register('routine', {
   render(root, { kind }) {
     const R = ROUTINES[kind];
     const done = routineDone(kind);
+    const n = routineCount(kind);
     const bar = h('i');
     const tiles = R.tasks.map((t) => h('button', {
       class: 'tile' + (done.includes(t.id) ? ' done' : ''),
@@ -116,14 +190,14 @@ register('routine', {
       h('div', { class: 'menu-head' },
         h('div', { style: { flex: 1 } },
           h('h2', { text: `${R.emoji} ${R.title}` }),
-          h('p', { text: `Con đã làm ${done.length}/${R.tasks.length} việc` }),
+          h('p', { text: `Con đã làm ${n}/${R.tasks.length} việc` }),
           h('div', { class: 'progress-bar', style: { marginTop: '10px' } }, bar))),
       h('div', { class: 'routine-tiles' }, tiles)));
-    requestAnimationFrame(() => { bar.style.width = (100 * done.length / R.tasks.length) + '%'; });
+    requestAnimationFrame(() => { bar.style.width = (100 * n / R.tasks.length) + '%'; });
 
-    if (done.length === R.tasks.length) say(`Con đã làm xong hết các việc ${R.title.toLowerCase()} rồi. Giỏi quá!`);
-    else if (done.length === 0) say(R.intro);
-    else say(`Con còn ${numWord(R.tasks.length - done.length)} việc nữa thôi. Cố lên!`);
+    if (n === R.tasks.length) say(`Con đã làm xong hết các việc ${R.title.toLowerCase()} rồi. Giỏi quá!`);
+    else if (n === 0) say(R.intro);
+    else say(`Con còn ${numWord(R.tasks.length - n)} việc nữa thôi. Cố lên!`);
   },
 });
 
@@ -138,9 +212,9 @@ async function completeTask(kind, id, fromEl) {
   const fresh = markRoutine(kind, id);
   if (fresh) giveStars(1, fromEl);
   const R = ROUTINES[kind];
-  if (fresh && routineDone(kind).length === R.tasks.length) {
+  if (fresh && routineCount(kind) === R.tasks.length) {
     await celebrate({
-      emoji: R.emoji === '☀️' ? '🌞' : '🌟',
+      emoji: { morning: '🌞', afternoon: '🏅', evening: '🌟' }[kind],
       title: 'Xong hết rồi!',
       text: `Con đã tự làm tất cả việc ${R.title.toLowerCase()}!`,
       stars: 3,
@@ -288,6 +362,7 @@ const BINS = [
   { id: 'toy', e: '📦', t: 'Hộp đồ chơi' },
   { id: 'cloth', e: '🧺', t: 'Giỏ quần áo' },
   { id: 'book', e: '📚', t: 'Giá sách' },
+  { id: 'shoe', e: '🗄️', t: 'Tủ giày' },
 ];
 const THINGS = [
   { e: '🧸', n: 'gấu bông', bin: 'toy' }, { e: '🚗', n: 'ô tô đồ chơi', bin: 'toy' }, { e: '⚽', n: 'quả bóng', bin: 'toy' },
@@ -296,6 +371,8 @@ const THINGS = [
   { e: '🧢', n: 'cái mũ', bin: 'cloth' }, { e: '👗', n: 'cái váy', bin: 'cloth' },
   { e: '📕', n: 'quyển sách', bin: 'book' }, { e: '✏️', n: 'bút chì', bin: 'book' }, { e: '🖍️', n: 'bút sáp màu', bin: 'book' },
   { e: '📒', n: 'quyển vở', bin: 'book' },
+  { e: '👟', n: 'đôi giày', bin: 'shoe' }, { e: '🩴', n: 'đôi dép', bin: 'shoe' }, { e: '🥿', n: 'đôi giày búp bê', bin: 'shoe' },
+  { e: '🥾', n: 'đôi ủng', bin: 'shoe' },
 ];
 
 register('tidy', {
@@ -303,7 +380,7 @@ register('tidy', {
   render(root, params) {
     const life = live();
     const byBin = (id) => shuffle(THINGS.filter((t) => t.bin === id));
-    const items = shuffle([...byBin('toy').slice(0, 3), ...byBin('cloth').slice(0, 3), ...byBin('book').slice(0, 2)]);
+    const items = shuffle([...byBin('toy').slice(0, 3), ...byBin('cloth').slice(0, 2), ...byBin('book').slice(0, 2), ...byBin('shoe').slice(0, 2)]);
     let left = items.length;
 
     const room = h('div', { class: 'room' }, h('div', { class: 'win', text: '🪟' }));
@@ -317,7 +394,7 @@ register('tidy', {
     root.append(h('div', { class: 'tidy' }, room, h('div', { class: 'bins' }, binEls)));
 
     // Rải đồ lên sàn theo lưới có xáo trộn để không chồng lên nhau
-    const cols = 4, rows = 2;
+    const cols = 5, rows = 2;
     const cells = shuffle([...Array(cols * rows).keys()]);
     items.forEach((it, k) => {
       const c = cells[k];
@@ -332,7 +409,7 @@ register('tidy', {
     });
 
     say((params.kind ? 'Chơi xong rồi, mình cùng cất đồ nhé! ' : '') +
-      'Con hãy kéo từng đồ vật vào đúng chỗ: đồ chơi vào hộp, quần áo vào giỏ, sách bút lên giá sách.');
+      'Con hãy kéo từng đồ vật vào đúng chỗ: đồ chơi vào hộp, quần áo vào giỏ, sách bút lên giá sách, giày dép vào tủ giày.');
 
     function binAt(x, y) {
       return binEls.find((b) => {

@@ -239,11 +239,11 @@ body[data-screen="splash"] #app { top: 0; }
 }
 .room .win { position: absolute; top: 8%; left: 8%; font-size: 60px; opacity: .8; }
 .toy {
-  position: absolute; font-size: 74px; line-height: 1; cursor: grab; touch-action: none;
+  position: absolute; font-size: 68px; line-height: 1; cursor: grab; touch-action: none;
   filter: drop-shadow(0 6px 4px rgba(0,0,0,.18)); transition: transform .25s; z-index: 2;
 }
 .toy.drag { transition: none; z-index: 10; filter: drop-shadow(0 16px 10px rgba(0,0,0,.25)); }
-.bins { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.bins { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .bin {
   background: #fff; border-radius: 26px; box-shadow: 0 7px 0 var(--line); padding: 12px; text-align: center;
   display: flex; flex-direction: column; align-items: center; gap: 4px; transition: transform .15s, background .15s;

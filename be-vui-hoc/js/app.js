@@ -2,9 +2,9 @@
 import { register, go, back, h, $, say, repeatSay, updateStars, menuCard, holdToActivate, overlay, currentScreen, sleep } from './ui.js';
 import { initSpeech } from './speech.js';
 import { unlockAudio, setSoundEnabled, sfx } from './sound.js';
-import { store, STICKERS, STARS_PER_STICKER, unlockedCount, routineDone } from './store.js';
+import { store, STICKERS, STARS_PER_STICKER, unlockedCount } from './store.js';
 import { numWord } from './vi.js';
-import './selfcare.js';
+import { ROUTINES, routineCount, currentRoutine } from './selfcare.js';
 import './writing.js';
 import './counting.js';
 import './parents.js';
@@ -37,23 +37,23 @@ register('home', {
   title: 'Bé Vui Học',
   render(root, { first } = {}) {
     const name = (store.data.name || '').trim();
-    const hr = new Date().getHours();
-    const kind = hr < 12 ? 'morning' : 'evening';
-    const done = routineDone(kind).length;
-    const total = kind === 'morning' ? 7 : 6;
+    const kind = currentRoutine();
+    const R = ROUTINES[kind];
+    const done = routineCount(kind);
+    const total = R.tasks.length;
 
     const parentsBtn = h('button', { class: 'card white hold-ring' },
       h('span', { class: 'emo', text: '👨‍👩‍👧' }),
-      h('span', null, h('span', { class: 'lbl', text: 'Góc bố mẹ' }), h('br'), h('span', { class: 'sub', text: 'Giữ 2 giây để vào' })));
+      h('span', null, h('span', { class: 'lbl', text: 'Góc ba mẹ' }), h('br'), h('span', { class: 'sub', text: 'Giữ 2 giây để vào' })));
     holdToActivate(parentsBtn, 2000, () => { sfx.ding(); go('parents'); },
-      () => say('Đây là góc của bố mẹ. Bố mẹ giữ nút này hai giây để vào nhé.'));
+      () => say('Đây là góc của ba mẹ. Ba mẹ giữ nút này hai giây để vào nhé.'));
 
     root.append(h('div', { class: 'menu' },
       h('div', { class: 'home-hello' },
         h('span', { class: 'wave', text: '👋' }),
         h('div', null,
           h('h2', { text: `${greeting()}${name ? ', ' + name : ''}!` }),
-          h('p', { text: `Hôm nay: ${kind === 'morning' ? '☀️ việc buổi sáng' : '🌙 việc buổi tối'} ${done}/${total}` }))),
+          h('p', { text: `Hôm nay: ${R.emoji} việc ${R.title.toLowerCase()} ${done}/${total}` }))),
       h('div', { class: 'cards three' },
         menuCard({ emoji: '🧒', label: 'Bé Tự Lập', sub: 'Tự làm việc của mình', color: 'green', cls: 'tall', onClick: () => go('selfcare') }),
         menuCard({ emoji: '✏️', label: 'Tập Viết', sub: 'Tô chữ cái và chữ số', color: 'orange', cls: 'tall', onClick: () => go('writing') }),

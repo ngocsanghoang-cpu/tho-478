@@ -1,11 +1,12 @@
 // GÓC BỐ MẸ – cài đặt giọng đọc, tên bé, giờ nghỉ, xem tiến độ
 import { register, go, h, say, updateStars } from './ui.js';
-import { store, resetProgress, unlockedCount, STICKERS, routineDone } from './store.js';
+import { store, resetProgress, unlockedCount, STICKERS } from './store.js';
+import { ROUTINES, routineCount } from './selfcare.js';
 import { getVoices, hasVietnamese, configureSpeech, speechSupported, currentVoice } from './speech.js';
 import { setSoundEnabled } from './sound.js';
 
 register('parents', {
-  title: 'Góc bố mẹ', parent: 'home', theme: 'var(--purple)',
+  title: 'Góc ba mẹ', parent: 'home', theme: 'var(--purple)',
   render(root) {
     const d = store.data;
     const letters = Object.keys(d.letters);
@@ -97,7 +98,7 @@ register('parents', {
           stat(`${count('digits')}/10`, '✏️ Chữ số'),
           stat(d.stats.count, '🔢 Câu đếm đúng'),
           stat(d.stats.selfcare, '🧒 Việc tự lập'),
-          stat(`${routineDone('morning').length}/7 · ${routineDone('evening').length}/6`, '☀️/🌙 Hôm nay'))),
+          ...Object.keys(ROUTINES).map((k) => stat(`${routineCount(k)}/${ROUTINES[k].tasks.length}`, `${ROUTINES[k].emoji} ${ROUTINES[k].title} hôm nay`)))),
 
       h('div', { class: 'box' },
         h('h3', { text: '📱 Cài lên màn hình chính iPad' }),
