@@ -1,7 +1,7 @@
 // GÓC BA MẸ – ngôn ngữ, giọng đọc, tên bé, giờ nghỉ, xem tiến độ
 import { register, go, h, say, updateStars } from './ui.js';
 import { store, resetProgress, unlockedCount, STICKERS, adjustStars, todaysAsks, toggleAsk, isSchoolDay, setTodaySchool } from './store.js';
-import { EXERCISES, exerciseName, exerciseCount, maxHomework, TRACE_PER_EXERCISE } from './homework.js';
+import { EXERCISES, exerciseName, exerciseCount, maxHomework } from './homework.js';
 import { rewardName, ruleRows, maxPerWeek } from './rewards.js';
 import { L, lang, setLang } from './i18n.js';
 import { ROUTINES, routineCount, choreName, maxSelfcare } from './selfcare.js';
@@ -163,6 +163,11 @@ register('parents', {
     [0, 1, 2, 3, 4, 5].forEach((v) => hwCount.append(h('option', { value: v }, v ? L(`${v} bài`, `${v}`) : L('Không có bài tập', 'None'))));
     hwCount.value = String(d.hw.count);
     hwCount.addEventListener('change', () => { d.hw.count = +hwCount.value; store.save(); drawSummary(); drawGifts(); });
+    const hwMins = h('select');
+    [3, 5, 10, 15, 20].forEach((v) => hwMins.append(h('option', { value: v }, L(`${v} phút`, `${v} minutes`))));
+    if (![3, 5, 10, 15, 20].includes(+d.hw.minutes)) hwMins.append(h('option', { value: d.hw.minutes }, L(`${d.hw.minutes} phút`, `${d.hw.minutes} minutes`)));
+    hwMins.value = String(d.hw.minutes || 10);
+    hwMins.addEventListener('change', () => { d.hw.minutes = +hwMins.value; store.save(); });
     const hwMult = h('select');
     [1, 2, 3].forEach((v) => hwMult.append(h('option', { value: v }, v === 1 ? L('Bằng ngày đi học', 'Same as school days') : L(`Gấp ${v} lần`, `${v} times as many`))));
     hwMult.value = String(d.hw.offMult || 2);
@@ -246,8 +251,10 @@ register('parents', {
         dayChips,
         rulesBox,
         h('div', { class: 'rule-row' }, h('span', { class: 'rule-emo', text: '📝' }),
-          h('span', { class: 'rule-text', text: L(`Số bài tập mỗi ngày đi học (1 bài = trả lời đủ 5 câu, hoặc tô đạt ${TRACE_PER_EXERCISE} chữ). Chơi thêm ngoài bài tập không tính sao.`,
-            `Exercises per day (1 exercise = answer all 5 questions, or trace ${TRACE_PER_EXERCISE} well). Extra play earns no stars.`) }), hwCount),
+          h('span', { class: 'rule-text', text: L('Số bài tập mỗi ngày đi học. Chơi thêm ngoài bài tập không tính sao.', 'Exercises per school day. Extra play earns no stars.') }), hwCount),
+        h('div', { class: 'rule-row' }, h('span', { class: 'rule-emo', text: '⏱️' }),
+          h('span', { class: 'rule-text', text: L('Mỗi bài bé phải làm trong bao lâu (đồng hồ chỉ chạy khi bé đang làm, ngồi không quá 45 giây thì tạm dừng)',
+            'How long each exercise takes (the clock only runs while your child is working; it pauses after 45 idle seconds)') }), hwMins),
         h('div', { class: 'rule-row' }, h('span', { class: 'rule-emo', text: '🎈' }),
           h('span', { class: 'rule-text', text: L('Số bài tập vào ngày nghỉ', 'Exercises on days off') }), hwMult),
         h('p', { style: muted, text: L('Các loại bài được đưa vào bài tập (bấm để bật hoặc tắt):', 'Exercise types to include (tap to turn on or off):') }),

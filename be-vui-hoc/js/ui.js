@@ -45,6 +45,10 @@ let life = { alive: true };
 
 export function register(name, def) { screens[name] = def; }
 
+const navHooks = [];
+/** Gọi fn mỗi khi chuyển màn hình (trước khi màn hình mới hiện ra). */
+export function onNavigate(fn) { navHooks.push(fn); }
+
 /** Đối tượng "còn sống" của màn hình hiện tại – dùng để huỷ các tác vụ bất đồng bộ khi rời màn hình. */
 export const live = () => life;
 export const currentScreen = () => cur && cur.name;
@@ -57,6 +61,7 @@ export function go(name, params = {}) {
   stopSpeech();
   hideBubble();
   if (cur && cur.cleanup) { try { cur.cleanup(); } catch (e) { console.error(e); } }
+  navHooks.forEach((fn) => { try { fn(name, params); } catch (e) { console.error(e); } });
 
   const root = $('app');
   root.innerHTML = '';

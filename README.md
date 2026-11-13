@@ -53,28 +53,30 @@ Repo này có hai ứng dụng web:
 
 **📝 Bài tập hôm nay**: mỗi ngày ứng dụng chọn sẵn một số bài, đổi theo ngày và xoay vòng qua ba nhóm (viết, số, khám phá). Chỉ những bài này mới được sao.
 - Ngày đi học có 3 bài. Ngày nghỉ có gấp đôi, tức 6 bài.
-- Một bài viết = tô đạt 3 chữ. Một bài đố = trả lời đủ 5 câu.
-- Chơi thêm ngoài bài tập thì không tính sao, nên sao không bị “lạm phát”.
-- Ba mẹ chỉnh được số bài mỗi ngày (0–5), hệ số ngày nghỉ (1, 2 hoặc 3 lần) và bật, tắt từng loại bài.
+- **Mỗi bài làm 10 phút**, bằng khoảng thời gian bé tập trung được. Bé trả lời liên tục (hoặc tô liên tục các chữ kế tiếp) cho tới khi đủ giờ; trên màn hình có thanh thời gian.
+- Đồng hồ chỉ chạy khi bé đang làm: quá 45 giây không chạm màn hình thì tạm dừng và bạn Thỏ nhắc bé làm tiếp. Bé cũng phải làm đúng ít nhất 10 câu (hoặc tô đạt 10 chữ) thì bài mới tính xong.
+- Bé rời bài giữa chừng thì thời gian đã làm vẫn được giữ lại trong ngày.
+- Chơi thêm ngoài bài tập (vào thẳng Tập Viết, Học Đếm, Học Toán, Khám Phá) thì mỗi lượt vẫn là 5 câu và không tính sao, nên sao không bị “lạm phát”.
+- Ba mẹ chỉnh được số bài mỗi ngày (0–5), số phút mỗi bài (3–20), hệ số ngày nghỉ (1, 2 hoặc 3 lần) và bật, tắt từng loại bài.
 
-Có 14 loại bài tập:
+Có 14 loại bài tập, mỗi bài làm trong 10 phút:
 
 | Nhóm | Bài tập | Bé làm gì |
 |---|---|---|
-| Viết | Tô chữ thường | Tô đạt 3 chữ thường, ví dụ a, ă, â |
-| Viết | Tô chữ hoa | Tô đạt 3 chữ hoa |
-| Viết | Tô chữ số | Tô đạt 3 chữ số |
-| Số | Đếm và chọn | Đếm đồ vật rồi chọn số đúng, 5 câu |
-| Số | Nhiều hơn, ít hơn | Chọn bên có nhiều hơn hoặc ít hơn, 5 câu |
-| Số | Tìm số | Chạm vào bong bóng có số được đọc, 5 câu |
-| Số | Phép cộng | Cộng bằng hình, 5 câu |
-| Số | Phép trừ | Trừ bằng hình, 5 câu |
-| Số | Phép nhân | Đếm các nhóm bằng nhau, 5 câu |
-| Số | Phép chia | Chia đều cho các bạn, 5 câu |
-| Khám phá | Đố các ngày trong tuần | Trước, sau một ngày là ngày nào, 5 câu |
-| Khám phá | Đố các tháng trong năm | Trước, sau một tháng là tháng nào, 5 câu |
-| Khám phá | Đố ngày hay đêm | Việc này vào ban ngày hay ban đêm, 5 câu |
-| Khám phá | Đố trái hay phải | Bên trái hay bên phải, 5 câu |
+| Viết | Tô chữ thường | Tô lần lượt các chữ thường |
+| Viết | Tô chữ hoa | Tô lần lượt các chữ hoa |
+| Viết | Tô chữ số | Tô lần lượt các chữ số |
+| Số | Đếm và chọn | Đếm đồ vật rồi chọn số đúng |
+| Số | Nhiều hơn, ít hơn | Chọn bên có nhiều hơn hoặc ít hơn |
+| Số | Tìm số | Chạm vào bong bóng có số được đọc |
+| Số | Phép cộng | Cộng bằng hình |
+| Số | Phép trừ | Trừ bằng hình |
+| Số | Phép nhân | Đếm các nhóm bằng nhau |
+| Số | Phép chia | Chia đều cho các bạn |
+| Khám phá | Đố các ngày trong tuần | Trước, sau một ngày là ngày nào |
+| Khám phá | Đố các tháng trong năm | Trước, sau một tháng là tháng nào |
+| Khám phá | Đố ngày hay đêm | Việc này vào ban ngày hay ban đêm |
+| Khám phá | Đố trái hay phải | Bên trái hay bên phải |
 
 **✏️ Tập Viết**
 - Tiếng Việt: 29 chữ thường, 29 chữ hoa (gồm ă, â, đ, ê, ô, ơ, ư). Tiếng Anh: 26 chữ thường, 26 chữ hoa. Cả hai đều có 10 chữ số. Chữ hiện trên nền giấy ô ly với nét chấm để bé tô.
@@ -113,7 +115,7 @@ Luật nhận sao mặc định (ba mẹ chỉnh được từng mục, từ 0 �
 | 🏅 Làm hết việc của 1 buổi | +1 ⭐ thưởng |
 | 👕 Ba mẹ nhờ: phơi đồ | +2 ⭐ |
 | 🧺 Ba mẹ nhờ: gấp đồ | +2 ⭐ |
-| 📝 Làm xong 1 bài tập hôm nay | +1 ⭐ |
+| 📝 Làm xong 1 bài tập hôm nay (10 phút) | +1 ⭐ |
 | 🎓 Làm hết bài tập hôm nay | +1 ⭐ thưởng |
 
 Với luật mặc định:

@@ -4,7 +4,7 @@ import { sfx } from './sound.js';
 import { bump } from './store.js';
 import { L } from './i18n.js';
 import { numWord, cap } from './vi.js';
-import { ROUND, THEMES, many, unit, things, thereIs, level, levelName, levelChips, objectGrid, options, answerButtons, roundEnd } from './play.js';
+import { ROUND, THEMES, many, unit, things, thereIs, level, levelName, levelChips, objectGrid, options, answerButtons, roundEnd, roundDots } from './play.js';
 
 const THEME = 'var(--orange)';
 const levelLabels = () => [L('Dễ', 'Easy'), L('Vừa', 'Medium'), L('Khó', 'Hard')];
@@ -87,11 +87,11 @@ function makeQuestion(op, th) {
 /* ---------------- Màn một phép tính ---------------- */
 register('op', {
   title: (p) => opName(p.op), parent: 'math', theme: THEME, fixed: true,
-  render(root, { op }) {
+  render(root, { op, hw }) {
     const life = live();
     const O = OPS[op];
     let q = 0, grids = [], lastKey = '';
-    const dots = progressDots(ROUND);
+    const dots = roundDots(op, hw);
     const body = h('div', { class: 'play-body', style: { flexDirection: 'column', alignItems: 'center' } });
     let current = null;
     const hear = h('button', { class: 'btn ghost', onClick: () => current && say(current.ask) }, L('🔊 Nghe lại', '🔊 Hear again'));
@@ -105,7 +105,7 @@ register('op', {
       grids.forEach((g) => g.dispose());
       grids = [];
       dots.set(q);
-      if (q >= ROUND) { roundEnd(life, () => go('op', { op }), 'math', op); return; }
+      if (dots.over(q)) { roundEnd(life, () => go('op', { op }), 'math', op); return; }
       const th = pick(THEMES);
       let Q;
       do { Q = makeQuestion(op, th); } while (`${Q.a},${Q.b}` === lastKey);

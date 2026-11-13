@@ -1,13 +1,12 @@
-// BÀI TẬP HÔM NAY – mỗi ngày có một số bài cố định, chỉ những bài này mới được sao.
+// BÀI TẬP HÔM NAY – mỗi ngày có một số bài cố định, mỗi bài làm khoảng 10 phút; chỉ những bài này mới được sao.
 // Nhờ vậy việc học có thưởng rõ ràng mà sao không bị "lạm phát": chơi thêm bao nhiêu cũng không thêm sao.
-import { register, go, h, say, giveStars } from './ui.js';
+import { register, go, h, say, giveStars, onNavigate } from './ui.js';
 import { sfx } from './sound.js';
 import { store, todayKey, isSchoolDay } from './store.js';
 import { L } from './i18n.js';
 import { SETS } from './writing.js';
 
 const THEME = 'var(--purple)';
-export const TRACE_PER_EXERCISE = 3; // một bài tập viết = tô đạt 3 chữ
 
 // Các loại bài tập. cat: nhóm (viết, số, khám phá) – mỗi ngày lấy xoay vòng từ các nhóm.
 export const EXERCISES = [
@@ -33,12 +32,32 @@ const dayIndex = () => {
   return Math.floor(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() / 86400000);
 };
 
+/** Số phút bé phải làm cho mỗi bài tập (ba mẹ đặt, mặc định 10 phút: khoảng thời gian bé tập trung được). */
+export const exerciseMinutes = () => Math.max(0.05, +store.data.hw.minutes || 10);
+
 /** Trạng thái bài tập của hôm nay (tự làm mới khi sang ngày). */
 function state() {
   if (!store.data.homework || store.data.homework.date !== todayKey()) {
-    store.data.homework = { date: todayKey(), done: [], prog: {}, bonus: false };
+    store.data.homework = { date: todayKey(), done: [], prog: {}, time: {}, bonus: false };
   }
-  return store.data.homework;
+  const st = store.data.homework;
+  if (!st.time) st.time = {};
+  if (!st.prog) st.prog = {};
+  return st;
+}
+
+/**
+ * Tiến độ một bài: secs = số giây bé đã thật sự làm, target = số giây cần có,
+ * count = số câu đúng / số chữ tô đạt, need = số tối thiểu (để bé không ngồi chờ hết giờ).
+ * Bài xong khi đủ thời gian VÀ đủ số câu tối thiểu.
+ */
+export function exerciseStatus(id) {
+  const st = state();
+  const secs = st.time[id] || 0;
+  const target = Math.round(exerciseMinutes() * 60);
+  const count = st.prog[id] || 0;
+  const need = Math.max(1, Math.ceil(exerciseMinutes()));
+  return { secs, target, count, need, minsLeft: Math.max(1, Math.ceil((target - secs) / 60)), over: secs >= target && count >= need };
 }
 
 /** Số bài tập của một ngày: ngày nghỉ nhiều hơn ngày đi học (mặc định gấp đôi). */
@@ -66,13 +85,11 @@ export function todaysExercises() {
   }
   const st = state();
   return picked.map((x) => {
-    const ex = { ...x, name: exerciseName(x), done: st.done.includes(x.id) };
+    const ex = { ...x, name: exerciseName(x), done: st.done.includes(x.id), ...exerciseStatus(x.id) };
     if (x.cat === 'write') {
+      // Mỗi ngày bắt đầu từ một chữ khác; bé tô lần lượt các chữ kế tiếp cho tới khi đủ giờ
       const chars = SETS()[x.set].chars;
-      const start = (day * TRACE_PER_EXERCISE) % chars.length;
-      ex.chars = [...Array(TRACE_PER_EXERCISE)].map((_, i) => chars[(start + i) % chars.length]);
-      ex.got = (st.prog[x.id] || []).filter((c) => ex.chars.includes(c));
-      ex.name = `${ex.name}: ${ex.chars.join(', ')}`;
+      ex.nextIndex = (day * 3 + ex.count) % chars.length;
     }
     return ex;
   });
@@ -90,6 +107,68 @@ export function maxHomework(school) {
   return n ? n * r.exercise + r.allDone : 0;
 }
 
+/* ---------------- Phiên làm bài: đếm thời gian bé thật sự làm ---------------- */
+const IDLE_MS = 45000; // quá 45 giây không chạm màn hình thì đồng hồ tạm dừng
+let session = null;
+
+/** Bắt đầu tính giờ cho một bài tập hôm nay. Trả về null nếu bài không có hoặc đã xong. */
+export function startSession(id) {
+  stopSession();
+  if (!todaysExercises().some((x) => x.id === id && !x.done)) return null;
+  const st = state();
+  const me = { id, last: Date.now(), nudged: false, listeners: new Set() };
+  const touch = () => { me.last = Date.now(); me.nudged = false; };
+  document.addEventListener('pointerdown', touch, true);
+  me.off = () => document.removeEventListener('pointerdown', touch, true);
+  me.timer = setInterval(() => {
+    if (session !== me || document.hidden) return;
+    if (Date.now() - me.last > IDLE_MS) {
+      if (!me.nudged) { me.nudged = true; say(L('Con ơi, mình làm tiếp nào!', "Let's keep going!")); }
+      return;
+    }
+    st.time[id] = (st.time[id] || 0) + 1;
+    if (st.time[id] % 5 === 0) store.save();
+    me.listeners.forEach((fn) => fn());
+  }, 1000);
+  session = me;
+  return me;
+}
+
+export function stopSession() {
+  if (!session) return;
+  clearInterval(session.timer);
+  session.off();
+  session = null;
+  store.save();
+}
+onNavigate(stopSession); // rời màn hình là dừng tính giờ; thời gian đã làm vẫn được giữ lại trong ngày
+
+/** Ghi nhận bé vừa làm đúng một câu / tô đạt một chữ của bài đang làm. */
+export function noteItem(id) {
+  const st = state();
+  st.prog[id] = (st.prog[id] || 0) + 1;
+  store.save();
+}
+
+const mmss = (secs) => `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+
+/** Thanh thời gian của bài đang làm: "⏱ 3:20 / 10:00". */
+export function timeBar(id) {
+  const fill = h('i');
+  const text = h('b');
+  const el = h('div', { class: 'timebar' }, h('span', { text: '⏱️' }), h('div', { class: 'progress-bar' }, fill), text);
+  el.refresh = () => {
+    const s = exerciseStatus(id);
+    fill.style.width = Math.min(100, 100 * s.secs / s.target) + '%';
+    text.textContent = s.secs >= s.target
+      ? (s.over ? L('Đủ giờ rồi!', "Time's done!") : L(`Thêm ${s.need - s.count} câu nữa`, `${s.need - s.count} more`))
+      : `${mmss(Math.min(s.secs, s.target))} / ${mmss(s.target)}`;
+  };
+  el.refresh();
+  if (session && session.id === id) session.listeners.add(el.refresh);
+  return el;
+}
+
 /** Ghi nhận một bài tập đã xong. Trả về { stars, bonus, k, n, all }. */
 function complete(ex) {
   const st = state();
@@ -99,31 +178,29 @@ function complete(ex) {
   let bonus = 0;
   if (done === total && !st.bonus) { st.bonus = true; bonus = +r.allDone || 0; }
   store.save();
+  stopSession();
   return { stars: +r.exercise || 0, bonus, k: done, n: total, all: done === total };
 }
 
-/** Gọi khi bé trả lời xong một lượt đố. Trả về kết quả nếu đó là bài tập hôm nay còn chưa làm. */
+/** Gọi khi một lượt đố kết thúc. Trả về kết quả nếu đó là bài tập hôm nay và bé đã làm đủ thời gian. */
 export function hwQuiz(id) {
   const ex = todaysExercises().find((x) => x.id === id && !x.done);
-  return ex ? complete(ex) : null;
+  return ex && ex.over ? complete(ex) : null;
 }
 
 /**
- * Gọi khi bé tô đạt một chữ. Trả về null nếu chữ này không thuộc bài tập hôm nay,
- * hoặc { left: số chữ còn lại, result: kết quả khi xong cả bài }.
+ * Gọi khi bé tô đạt một chữ trong lúc làm bài tập viết.
+ * Trả về { result } khi đã đủ thời gian (xong bài), hoặc { minsLeft } nếu còn phải tô tiếp.
  */
-export function hwTrace(set, ch) {
-  const ex = todaysExercises().find((x) => x.set === set && !x.done && x.chars.includes(ch));
+export function hwTrace(set) {
+  const ex = todaysExercises().find((x) => x.set === set && !x.done);
   if (!ex) return null;
-  const st = state();
-  const got = st.prog[ex.id] || (st.prog[ex.id] = []);
-  if (!got.includes(ch)) got.push(ch);
-  store.save();
-  const left = ex.chars.filter((c) => !got.includes(c));
-  return { left, next: left[0], result: left.length ? null : complete(ex) };
+  noteItem(ex.id);
+  const s = exerciseStatus(ex.id);
+  return s.over ? { result: complete(ex) } : { minsLeft: s.minsLeft };
 }
 
-/** Bài tập viết hôm nay của một bộ chữ (để màn tô chữ biết chữ nào cần tô). */
+/** Bài tập viết hôm nay (chưa xong) của một bộ chữ. */
 export const hwWriteFor = (set) => todaysExercises().find((x) => x.set === set && !x.done) || null;
 
 /** Thưởng sao + lời báo khi xong một bài tập. Trả về câu nói. */
@@ -137,9 +214,7 @@ export function rewardExercise(r, fromEl) {
 /** Mở một bài tập. */
 export function openExercise(ex) {
   if (ex.cat === 'write') {
-    const chars = SETS()[ex.set].chars;
-    const next = ex.chars.find((c) => !ex.got.includes(c)) || ex.chars[0];
-    go('trace', { set: ex.set, i: chars.indexOf(next), hw: true });
+    go('trace', { set: ex.set, i: ex.nextIndex, hw: true });
   } else go(ex.to[0], { ...(ex.to[1] || {}), hw: true });
 }
 
@@ -150,11 +225,13 @@ register('homework', {
     const list = todaysExercises();
     const r = store.data.rules;
     const doneCount = list.filter((x) => x.done).length;
+    const mins = Math.round(exerciseMinutes());
     const bar = h('i');
     const cards = list.map((ex, k) => {
+      const doneMin = Math.floor(ex.secs / 60);
       const sub = ex.done ? L('Đã xong ✅', 'Done ✅')
-        : ex.cat === 'write' ? L(`Tô đạt ${TRACE_PER_EXERCISE} chữ (${ex.got.length}/${TRACE_PER_EXERCISE})`, `Trace ${TRACE_PER_EXERCISE} well (${ex.got.length}/${TRACE_PER_EXERCISE})`)
-          : L('Trả lời đủ 5 câu', 'Answer all 5 questions');
+        : L(`${ex.cat === 'write' ? 'Tô chữ' : 'Trả lời câu hỏi'} trong ${mins} phút`, `${ex.cat === 'write' ? 'Trace' : 'Answer questions'} for ${mins} minutes`)
+          + (ex.secs >= 30 ? L(` · đã làm ${doneMin || 1} phút`, ` · ${doneMin || 1} min done`) : '');
       return h('button', { class: 'reward hw' + (ex.done ? ' ready' : ''), onClick: () => {
         sfx.tap();
         if (ex.done) say(L('Bài này con làm xong rồi. Giỏi lắm!', 'You already finished this one. Well done!'));
@@ -169,8 +246,8 @@ register('homework', {
       h('div', { class: 'menu-head' },
         h('div', { style: { flex: 1 } },
           h('h2', { text: L('📝 Bài tập hôm nay', "📝 Today's exercises") }),
-          h('p', { text: L(`Con đã làm ${doneCount}/${list.length} bài. Mỗi bài ${r.exercise} ⭐, làm hết thưởng thêm ${r.allDone} ⭐.`,
-            `You did ${doneCount} of ${list.length}. Each one earns ${r.exercise} ⭐, plus ${r.allDone} ⭐ for finishing them all.`) }),
+          h('p', { text: L(`Con đã làm ${doneCount}/${list.length} bài. Mỗi bài làm ${mins} phút, được ${r.exercise} ⭐. Làm hết thưởng thêm ${r.allDone} ⭐.`,
+            `You did ${doneCount} of ${list.length}. Each one takes ${mins} minutes and earns ${r.exercise} ⭐, plus ${r.allDone} ⭐ for finishing them all.`) }),
           h('div', { class: 'progress-bar', style: { marginTop: '10px' } }, bar))),
       list.length ? h('div', { class: 'rewards' }, cards)
         : h('p', { class: 'warn', text: L('Hôm nay không có bài tập.', 'No exercises today.') }),
@@ -181,8 +258,8 @@ register('homework', {
     const left = list.length - doneCount;
     if (!list.length) say(L('Hôm nay không có bài tập.', 'No exercises today.'));
     else if (!left) say(L('Con đã làm hết bài tập hôm nay rồi. Giỏi quá!', "You finished all of today's exercises. Great job!"));
-    else say(L(`Hôm nay con có ${list.length} bài tập, còn ${left} bài chưa làm. Con chạm vào bài để bắt đầu nhé.`,
-      `You have ${list.length} exercises today, and ${left} still to do. Tap one to begin.`));
+    else say(L(`Hôm nay con có ${list.length} bài tập, còn ${left} bài chưa làm. Mỗi bài làm ${mins} phút. Con chạm vào bài để bắt đầu nhé.`,
+      `You have ${list.length} exercises today, and ${left} still to do. Each one takes ${mins} minutes. Tap one to begin.`));
   },
 });
 

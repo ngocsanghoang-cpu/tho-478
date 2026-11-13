@@ -1,6 +1,6 @@
 // TẬP VIẾT – tô chữ cái (tiếng Việt hoặc tiếng Anh), chữ hoa và chữ số bằng ngón tay hoặc Apple Pencil
 import { register, go, h, say, live, sleep, praise, confetti, toast } from './ui.js';
-import { hwTrace, hwWriteFor, rewardExercise } from './homework.js';
+import { hwTrace, hwWriteFor, rewardExercise, startSession, timeBar, exerciseMinutes } from './homework.js';
 import { sfx } from './sound.js';
 import { store, bump } from './store.js';
 import { L, isEn, byLang } from './i18n.js';
@@ -100,7 +100,7 @@ register('writing', {
 /* ---------------- Màn tô chữ ---------------- */
 register('trace', {
   title: (p) => SETS()[p.set].title, parent: (p) => ['writing', { set: p.set }], theme: THEME, fixed: true,
-  render(root, { set, i }) {
+  render(root, { set, i, hw: hwMode }) {
     const life = live();
     const S = SETS()[set];
     const ch = S.chars[i];
@@ -156,9 +156,12 @@ register('trace', {
           checkBtn)),
       board));
 
-    const hwEx = hwWriteFor(set);
-    if (hwEx && hwEx.chars.includes(ch) && !hwEx.got.includes(ch)) {
-      say(L(`Bài tập hôm nay: tô ${hwEx.chars.length} chữ. `, `Today's exercise: trace ${hwEx.chars.length}. `) + info.intro);
+    // Đang làm bài tập hôm nay: tính giờ và hiện thanh thời gian
+    const hwEx = hwMode ? hwWriteFor(set) : null;
+    if (hwEx && startSession(hwEx.id)) {
+      root.querySelector('.trace-side').insertBefore(timeBar(hwEx.id), modeChips);
+      const mins = Math.round(exerciseMinutes());
+      say((hwEx.secs < 5 ? L(`Bài tập hôm nay: con tô chữ trong ${mins} phút nhé. `, `Today's exercise: trace for ${mins} minutes. `) : '') + info.intro);
     } else say(info.intro);
 
     /* --- Bố cục & vẽ nền --- */
@@ -404,7 +407,7 @@ register('trace', {
       if (stars === 3) confetti(30);
       // Bông hoa 🌸 = điểm tô đẹp (1–3). Ngôi sao ⭐ = phần thưởng để đổi quà, theo luật ba mẹ đặt.
       toast('🌸'.repeat(stars));
-      const hw = hwTrace(set, ch); // chữ này có thuộc bài tập hôm nay không?
+      const hw = hwEx ? hwTrace(set) : null; // đang làm bài tập hôm nay thì ghi nhận một chữ
       nextBtn.classList.add('pulse');
       let msg = L(`${praise()} Con tô đẹp, được ${numWord(stars)} bông hoa.`, `${praise()} Neat tracing! You get ${numWord(stars)} ${stars === 1 ? 'flower' : 'flowers'}.`);
       if (hw && hw.result) {
@@ -414,9 +417,9 @@ register('trace', {
         return;
       }
       if (hw) {
-        const n = hw.left.length;
-        hwNext = S.chars.indexOf(hw.next);
-        msg += L(` Còn ${numWord(n)} chữ nữa là xong bài tập. Bấm Tiếp nhé!`, ` ${n === 1 ? 'One more' : numWord(n) + ' more'} to finish the exercise. Tap Next!`);
+        hwNext = (i + 1) % S.chars.length;
+        msg += L(` Con bấm Tiếp để tô chữ sau nhé. Còn khoảng ${numWord(hw.minsLeft)} phút nữa là xong bài.`,
+          ` Tap Next for the next one. About ${numWord(hw.minsLeft)} more ${hw.minsLeft === 1 ? 'minute' : 'minutes'} to finish.`);
         await say(msg);
         return;
       }

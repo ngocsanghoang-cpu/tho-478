@@ -27,9 +27,10 @@ const DEFAULTS = {
     exercise: 1,  // làm xong 1 bài tập hôm nay
     allDone: 1,   // thưởng khi làm hết bài tập hôm nay
   },
-  // Bài tập hôm nay: count = số bài mỗi ngày đi học; offMult = ngày nghỉ nhân mấy lần; off = các loại bài ba mẹ tắt
-  hw: { count: 3, offMult: 2, off: [] },
-  homework: { date: '', done: [], prog: {}, bonus: false }, // tiến độ bài tập của hôm nay
+  // Bài tập hôm nay: count = số bài mỗi ngày đi học; offMult = ngày nghỉ nhân mấy lần;
+  // minutes = số phút bé phải làm cho mỗi bài; off = các loại bài ba mẹ tắt
+  hw: { count: 3, offMult: 2, minutes: 10, off: [] },
+  homework: { date: '', done: [], prog: {}, time: {}, bonus: false }, // tiến độ bài tập của hôm nay
   schoolDays: [1, 2, 3, 4, 5],   // ngày đi học (0 = Chủ Nhật … 6 = Thứ Bảy): việc sáng/tối chỉ tính vào các ngày này
   // Việc ba mẹ giao thêm khi có (phơi đồ, gấp đồ…). key: việc mẫu có tên theo ngôn ngữ
   chores: [
