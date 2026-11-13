@@ -1,10 +1,10 @@
 // HỌC ĐẾM – làm quen số, đếm và chọn, nhiều hơn/ít hơn, tìm số
-import { register, go, h, say, live, sleep, rand, pick, shuffle, giveStars, praise, menuCard, progressDots, toast } from './ui.js';
+import { register, go, h, say, live, sleep, rand, pick, shuffle, praise, menuCard, progressDots, toast } from './ui.js';
 import { sfx } from './sound.js';
 import { bump } from './store.js';
 import { L } from './i18n.js';
 import { numWord, cap } from './vi.js';
-import { ROUND, THEMES, one, many, things, thereIs, level, maxN, levelName, levelChips, objectGrid, options, answerButtons, roundEnd } from './play.js';
+import { ROUND, THEMES, one, many, things, thereIs, level, maxN, levelName, levelChips, objectGrid, options, answerButtons, roundEnd, roundDots } from './play.js';
 
 const THEME = 'var(--blue)';
 
@@ -82,10 +82,10 @@ register('numbers', {
 /* ---------------- Đếm và chọn ---------------- */
 register('count', {
   title: () => L('Đếm và chọn', 'Count and choose'), parent: 'counting', theme: THEME, fixed: true,
-  render(root) {
+  render(root, { hw } = {}) {
     const life = live();
     let q = 0, last = 0, grid = null;
-    const dots = progressDots(ROUND);
+    const dots = roundDots('count', hw);
     const stage = h('div', { class: 'stage panel' });
     let ansBox = h('div', { class: 'answers' });
     root.append(h('div', { class: 'play' },
@@ -96,7 +96,7 @@ register('count', {
       if (!life.alive) return;
       grid?.dispose();
       dots.set(q);
-      if (q >= ROUND) { roundEnd(life, () => go('count'), 'counting'); return; }
+      if (dots.over(q)) { roundEnd(life, () => go('count'), 'counting', 'count'); return; }
       const max = maxN();
       let n;
       do { n = rand(1, max); } while (n === last && max > 1);
@@ -121,7 +121,6 @@ register('count', {
           wrap.querySelectorAll('.ans').forEach((x) => (x.disabled = true));
           sfx.ding(); bump('count');
           toast(praise());
-          giveStars(1, b);
           await say(L(`Đúng rồi! Có ${things(n, th)}.`, `That's right! ${thereIs(n)} ${things(n, th)}.`));
           q++;
           await sleep(300);
@@ -146,10 +145,10 @@ register('count', {
 /* ---------------- Nhiều hơn – ít hơn ---------------- */
 register('compare', {
   title: () => L('Nhiều hơn, ít hơn', 'More or fewer'), parent: 'counting', theme: THEME, fixed: true,
-  render(root) {
+  render(root, { hw } = {}) {
     const life = live();
     let q = 0, grids = [];
-    const dots = progressDots(ROUND);
+    const dots = roundDots('compare', hw);
     const body = h('div', { class: 'play-body' });
     root.append(h('div', { class: 'play' }, h('div', { class: 'play-head' }, levelChips(() => { q = 0; next(); }), dots), body));
 
@@ -157,7 +156,7 @@ register('compare', {
       if (!life.alive) return;
       grids.forEach((g) => g.dispose());
       dots.set(q);
-      if (q >= ROUND) { roundEnd(life, () => go('compare'), 'counting'); return; }
+      if (dots.over(q)) { roundEnd(life, () => go('compare'), 'counting', 'compare'); return; }
       const max = maxN();
       const a = rand(1, max);
       let b;
@@ -176,7 +175,6 @@ register('compare', {
             s.classList.add('right');
             sfx.ding(); bump('count');
             toast(praise());
-            giveStars(1, s);
             const [x, y] = k === 0 ? [a, b] : [b, a];
             await say(L(
               `Đúng rồi! ${cap(numWord(x))} ${more ? 'nhiều hơn' : 'ít hơn'} ${numWord(y)}.`,
@@ -206,10 +204,10 @@ register('compare', {
 /* ---------------- Tìm số ---------------- */
 register('find', {
   title: () => L('Tìm số', 'Find the number'), parent: 'counting', theme: THEME, fixed: true,
-  render(root) {
+  render(root, { hw } = {}) {
     const life = live();
     let q = 0, lastT = -1, target = 0;
-    const dots = progressDots(ROUND);
+    const dots = roundDots('find', hw);
     const body = h('div', { class: 'bubbles' });
     const askAgain = () => say(L(`Con hãy chạm vào số ${numWord(target)}.`, `Tap the number ${numWord(target)}.`));
     const hint = h('button', { class: 'btn ghost', onClick: () => askAgain() }, L('🔊 Nghe lại', '🔊 Hear again'));
@@ -219,7 +217,7 @@ register('find', {
     function next() {
       if (!life.alive) return;
       dots.set(q);
-      if (q >= ROUND) { roundEnd(life, () => go('find'), 'counting'); return; }
+      if (dots.over(q)) { roundEnd(life, () => go('find'), 'counting', 'find'); return; }
       const max = maxN();
       const count = level() === 1 ? 4 : level() === 2 ? 6 : 8;
       const pool = shuffle([...Array(max + 1).keys()].slice(1));
@@ -237,7 +235,6 @@ register('find', {
             b.classList.add('popped');
             sfx.pop(); sfx.ding(); bump('count');
             toast(praise());
-            giveStars(1, b);
             await say(L(`Đúng rồi! Đây là số ${numWord(v)}.`, `That's right! This is number ${numWord(v)}.`));
             q++;
             await sleep(300);

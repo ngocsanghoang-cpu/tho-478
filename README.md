@@ -5,7 +5,7 @@ Repo này có hai ứng dụng web:
 | Thư mục | Ứng dụng |
 |---|---|
 | `index.html` | Ứng dụng thở 4-7-8 |
-| [`be-vui-hoc/`](be-vui-hoc/) | **Bé Vui Học**: dạy bé tự lập, tập viết, học đếm, học toán và khám phá trên iPad, có giọng nói hướng dẫn tiếng Việt hoặc tiếng Anh |
+| [`be-vui-hoc/`](be-vui-hoc/) | **Bé Vui Học (Happy Learning)**: dạy bé tự lập, làm bài tập, tập viết, học đếm, học toán và khám phá trên iPad, có giọng nữ hướng dẫn bằng tiếng Anh |
 
 ---
 
@@ -15,27 +15,74 @@ Repo này có hai ứng dụng web:
 
 ### Ngôn ngữ và giọng đọc
 
-- Màn hình đầu tiên là bước **chọn ngôn ngữ**: bé bấm **🇻🇳 Tiếng Việt** hoặc **🇬🇧 English** là vào thẳng ứng dụng bằng ngôn ngữ đó. Trong Góc ba mẹ cũng đổi được. Đổi ngôn ngữ sẽ đổi cả chữ trên màn hình lẫn giọng đọc.
-- Bạn Thỏ đọc mọi hướng dẫn bằng giọng có sẵn trên máy. Ứng dụng tự chọn **giọng nữ** tự nhiên nhất mà máy có:
-  - Tiếng Anh: Ava, Samantha (iPad, Mac), Jenny (Microsoft Edge), Google US English (Chrome).
-  - Tiếng Việt: Linh (iPad, Mac), HoaiMy (Microsoft Edge).
-- Nếu máy không có giọng cho ngôn ngữ đang chọn, ứng dụng chỉ hiện chữ (không đọc bằng giọng ngôn ngữ khác) và hướng dẫn ba mẹ cách cài giọng.
-- Mọi câu bạn Thỏ nói cũng hiện thành chữ trong bong bóng ở thanh trên cùng. Bé chạm vào bong bóng để nghe lại.
+- Ứng dụng dùng **tiếng Anh** cho toàn bộ chữ trên màn hình và lời đọc. Trên màn hình, ứng dụng có tên “Happy Learning”.
+- Bạn Thỏ (Bunny) đọc mọi hướng dẫn bằng giọng có sẵn trên máy. Ứng dụng tự chọn **giọng nữ** tiếng Anh nhẹ nhàng nhất mà máy có: Ava, Samantha (iPad, Mac), Jenny (Microsoft Edge), Google US English (Chrome). Giọng nam và các giọng “vui nhộn” bị bỏ qua.
+- Mọi câu Bunny nói cũng hiện thành chữ trong bong bóng ở thanh trên cùng. Bé chạm vào bong bóng để nghe lại.
+- Bản tiếng Việt vẫn còn trong ứng dụng: ba mẹ đổi được ở *For parents → Language*. Giọng tiếng Việt phụ thuộc vào máy (Linh trên iPad, HoaiMy trên Edge) và chất lượng không ổn định, nên tiếng Anh là mặc định.
+
+Phần mô tả dưới đây dùng tên tiếng Việt của các mục cho dễ đọc; tên tiếng Anh trên màn hình ghi trong ngoặc ở lần đầu nhắc tới: Bé Tự Lập (I Can Do It), Bài tập hôm nay (Today's exercises), Tập Viết (Writing), Học Đếm (Counting), Học Toán (Math), Khám Phá (Explore), Đổi quà (Rewards), Góc ba mẹ (For parents).
 
 ### Các phần học
 
-**👧 Bé Tự Lập**: các việc trong ngày, chia theo buổi. Bé chạm vào từng việc để nghe hướng dẫn từng bước, làm xong thì bấm “Con làm xong rồi!” để nhận sao. Danh sách được làm mới mỗi ngày.
-- ☀️ **Buổi sáng**: tự đi vệ sinh, tự rửa mặt, tự cởi đồ ngủ, tự mặc đồ mới, nhờ ba mẹ làm tóc (tập nói lời nhờ và cảm ơn lễ phép), tự đeo túi, đi đến lớp.
-- 🌤️ **Buổi chiều**: tự mang giày dép, cởi giày dép và cất vào tủ, chơi xong cất đồ chơi đúng chỗ.
-- 🌙 **Buổi tối**: tự múc ăn, ăn một ít rau mỗi ngày, tự xếp gọn quần áo, tự leo lên giường ngủ.
-- 🌟 **Tập từng kỹ năng**: mặc quần áo, mang giày dép, xếp quần áo, rửa tay 8 bước (có đếm to), đánh răng 2 phút.
-- 🧸 **Trò dọn đồ**: bé kéo thả đồ chơi vào hộp, quần áo vào giỏ, sách bút lên giá, giày dép vào tủ giày.
+**👧 Bé Tự Lập**: các việc trong ngày, có lịch riêng cho **ngày đi học** và **ngày nghỉ**. Bé chạm vào từng việc để nghe hướng dẫn từng bước và tiêu chí đạt, làm xong thì bấm “Con làm xong rồi!” để nhận sao. Danh sách được làm mới mỗi ngày.
+
+*Ngày đi học* (mặc định thứ Hai đến thứ Sáu)
+- ☀️ **Buổi sáng** (5 việc)
+  1. Tự đi vệ sinh và làm sạch. Đạt khi: sạch sẽ, không có mùi hôi.
+  2. Tự rửa mặt. Đạt khi: mặt sạch, mắt và miệng không có ghèn.
+  3. Tự cởi đồ ngủ và mặc quần áo mới.
+  4. Uống thuốc và 1 ly nước đầy (chỉ uống thuốc do ba mẹ đưa).
+  5. Tự mang tất, mang giày, đi học sớm.
+- 🌙 **Buổi tối** (5 việc)
+  1. Về nhà cất giày vào tủ, bỏ quần áo bẩn vào giỏ.
+  2. Tự xúc ăn tối hết trong 45 phút: 1 chén cơm đầy, nửa chén thức ăn, nửa chén canh (3 ⭐).
+  3. Tự uống sữa (200 ml).
+  4. Sắp xếp đồ chơi gọn gàng.
+  5. Tự leo lên giường, tắt đèn và ngủ.
+
+*Ngày nghỉ* (cuối tuần, lễ)
+- ☀️ **Buổi sáng**: đi vệ sinh và làm sạch, rửa mặt, đánh răng (hẹn giờ 2 phút), tự xúc ăn sáng (3 ⭐), uống sữa lúc 10 giờ sáng.
+- 🌤️ **Buổi trưa, chiều**: tự xúc ăn trưa (3 ⭐), uống sữa lúc 4 giờ chiều.
+- 🌙 **Buổi tối**: tự xúc ăn tối (3 ⭐), sắp xếp đồ chơi, uống sữa lúc 8 giờ tối, đánh răng.
+
+*Chung cho cả hai loại ngày*
+- 🥄 **Bữa ăn** có đồng hồ đếm ngược 45 phút. Nếu đã bật đồng hồ mà hết giờ thì bữa đó không được sao.
+- 📋 **Việc ba mẹ giao thêm**: hôm nào có việc (phơi đồ, gấp đồ…), ba mẹ vào Góc ba mẹ bấm “Giao hôm nay”. Việc hiện trong Bé Tự Lập đến hết ngày.
+- 🏫 **Đổi loại ngày**: nếu hôm nay bé nghỉ đột xuất (lễ, ốm…), ba mẹ bấm “Ngày nghỉ” trong Góc ba mẹ để chuyển sang lịch ngày nghỉ; chỉ áp dụng cho hôm đó. Ba mẹ cũng chọn được những ngày nào trong tuần là ngày đi học.
+- 🌟 **Tập thêm cho quen tay** (không tính sao): mặc quần áo, mang giày dép, xếp quần áo, trò dọn đồ chơi, rửa tay 8 bước, đánh răng 2 phút.
+
+**📝 Bài tập hôm nay**: mỗi ngày ứng dụng chọn sẵn một số bài, đổi theo ngày và xoay vòng qua ba nhóm (viết, số, khám phá). Chỉ những bài này mới được sao.
+- Ngày đi học có 3 bài. Ngày nghỉ có gấp đôi, tức 6 bài.
+- **Mỗi bài làm 10 phút**, bằng khoảng thời gian bé tập trung được. Bé trả lời liên tục (hoặc tô liên tục các chữ kế tiếp) cho tới khi đủ giờ; trên màn hình có thanh thời gian.
+- Đồng hồ chỉ chạy khi bé đang làm: quá 45 giây không chạm màn hình thì tạm dừng và bạn Thỏ nhắc bé làm tiếp. Bé cũng phải làm đúng ít nhất 10 câu (hoặc tô đạt 10 chữ) thì bài mới tính xong.
+- Bé rời bài giữa chừng thì thời gian đã làm vẫn được giữ lại trong ngày.
+- Chơi thêm ngoài bài tập (vào thẳng Tập Viết, Học Đếm, Học Toán, Khám Phá) thì mỗi lượt vẫn là 5 câu và không tính sao, nên sao không bị “lạm phát”.
+- Ba mẹ chỉnh được số bài mỗi ngày (0–5), số phút mỗi bài (3–20), hệ số ngày nghỉ (1, 2 hoặc 3 lần) và bật, tắt từng loại bài.
+
+Có 14 loại bài tập, mỗi bài làm trong 10 phút:
+
+| Nhóm | Bài tập | Bé làm gì |
+|---|---|---|
+| Viết | Tô chữ thường | Tô lần lượt các chữ thường |
+| Viết | Tô chữ hoa | Tô lần lượt các chữ hoa |
+| Viết | Tô chữ số | Tô lần lượt các chữ số |
+| Số | Đếm và chọn | Đếm đồ vật rồi chọn số đúng |
+| Số | Nhiều hơn, ít hơn | Chọn bên có nhiều hơn hoặc ít hơn |
+| Số | Tìm số | Chạm vào bong bóng có số được đọc |
+| Số | Phép cộng | Cộng bằng hình |
+| Số | Phép trừ | Trừ bằng hình |
+| Số | Phép nhân | Đếm các nhóm bằng nhau |
+| Số | Phép chia | Chia đều cho các bạn |
+| Khám phá | Đố các ngày trong tuần | Trước, sau một ngày là ngày nào |
+| Khám phá | Đố các tháng trong năm | Trước, sau một tháng là tháng nào |
+| Khám phá | Đố ngày hay đêm | Việc này vào ban ngày hay ban đêm |
+| Khám phá | Đố trái hay phải | Bên trái hay bên phải |
 
 **✏️ Tập Viết**
 - Tiếng Việt: 29 chữ thường, 29 chữ hoa (gồm ă, â, đ, ê, ô, ơ, ư). Tiếng Anh: 26 chữ thường, 26 chữ hoa. Cả hai đều có 10 chữ số. Chữ hiện trên nền giấy ô ly với nét chấm để bé tô.
 - Bé tô bằng ngón tay hoặc Apple Pencil, được chọn màu bút, xoá từng nét hoặc xoá hết.
-- Bé bấm **Xong** thì ứng dụng chấm điểm: tô kín chữ và không lem ra ngoài thì được 1–3 sao. Nếu tô còn thiếu, phần thiếu sẽ hiện màu cam.
-- Chế độ **Tự viết**: chữ mẫu mờ đi để bé tự viết, làm được thì có thêm sao thưởng.
+- Bé bấm **Xong** thì ứng dụng chấm điểm: tô kín chữ và không lem ra ngoài thì được 1–3 bông hoa 🌸. Nếu tô còn thiếu, phần thiếu sẽ hiện màu cam.
+- Chế độ **Tự viết**: chữ mẫu mờ đi để bé tự viết.
 - Mỗi chữ có từ ví dụ kèm hình (b – 🦋 bướm, B – 🦋 butterfly).
 
 **🔢 Học Đếm** (3 mức: 1–5, 1–10, 1–20)
@@ -55,9 +102,40 @@ Repo này có hai ứng dụng web:
 - 🌞 **Ngày và đêm**: khung cảnh đổi theo sáng, trưa, chiều, tối, giải thích mặt trời, mặt trăng và việc làm từng buổi. Có đố vui “Ngày hay đêm?”.
 - 👈👉 **Trái và phải**: bé chạm từng bên để nghe, rồi chơi đố: bạn nào ở bên trái, con vật đang ở bên nào, đưa bạn thỏ sang trái hoặc phải.
 
-**🎁 Phần thưởng**: cứ 5 ⭐ bé mở được 1 nhãn dán, tổng cộng có 36 nhãn dán (kỳ lân, công chúa, nàng tiên cá…).
+**⭐ Sao và 🎁 Đổi quà** (ý tưởng chính của ứng dụng)
+
+Bé tự làm việc của mình và làm bài tập thì được sao. Sao gom lại để đổi quà thật do ba mẹ đặt, ví dụ đi khu vui chơi cuối tuần hoặc mua đồ chơi.
+
+Luật nhận sao mặc định (ba mẹ chỉnh được từng mục, từ 0 đến 10 sao):
+
+| Bé làm gì | Sao |
+|---|---|
+| 👧 Tự làm xong 1 việc trong ngày | +1 ⭐ |
+| 🥄 Tự xúc ăn hết 1 bữa trong 45 phút | +3 ⭐ |
+| 🏅 Làm hết việc của 1 buổi | +1 ⭐ thưởng |
+| 👕 Ba mẹ nhờ: phơi đồ | +2 ⭐ |
+| 🧺 Ba mẹ nhờ: gấp đồ | +2 ⭐ |
+| 📝 Làm xong 1 bài tập hôm nay (10 phút) | +1 ⭐ |
+| 🎓 Làm hết bài tập hôm nay | +1 ⭐ thưởng |
+
+Với luật mặc định:
+
+| | Tự lập | Bài tập | Tổng |
+|---|---|---|---|
+| Một ngày đi học hoàn hảo | 14 ⭐ | 4 ⭐ (3 bài + thưởng) | 18 ⭐ |
+| Một ngày nghỉ hoàn hảo | 20 ⭐ | 7 ⭐ (6 bài + thưởng) | 27 ⭐ |
+| Một tuần hoàn hảo (5 ngày đi học, 2 ngày nghỉ) | 110 ⭐ | 34 ⭐ | 144 ⭐ |
+
+- Chưa tính việc ba mẹ giao thêm. Góc ba mẹ tự tính lại các con số này khi ba mẹ đổi luật, và ước tính mỗi món quà cần bao nhiêu tuần.
+- Mục **Đổi quà** cho bé thấy còn thiếu bao nhiêu sao cho từng món quà, kèm bảng “Làm gì thì được sao?”.
+- Khi đủ sao, bé bấm **Đổi quà**, ba mẹ giữ nút 2 giây để đồng ý rồi sao mới bị trừ. Quà đã đổi được lưu lại.
+- Ba mẹ có thể **thưởng thêm** hoặc **trừ bớt** sao bằng tay.
+- Khi tô chữ, bông hoa 🌸 (1–3) là điểm tô đẹp, khác với ngôi sao ⭐ dùng để đổi quà.
+- **Nhãn dán** là quà tặng thêm: cứ nhận được 5 ⭐ thì mở 1 nhãn dán, không tốn sao.
 
 **👨‍👩‍👧 Góc ba mẹ** (phải giữ nút 2 giây mới vào được)
+- Đổi hôm nay thành ngày nghỉ hoặc ngày đi học, giao việc thêm trong ngày.
+- Đặt quà (tên, hình, số sao cần có), chỉnh luật nhận sao, số bài tập mỗi ngày và ngày đi học trong tuần.
 - Chọn ngôn ngữ, chọn giọng đọc, chỉnh tốc độ đọc, bật hoặc tắt âm thanh hiệu ứng.
 - Nhập tên gọi ở nhà của bé, để bạn Thỏ gọi tên khi khen.
 - **Nhắc nghỉ ngơi**: sau 10–45 phút, ứng dụng nhắc bé nghỉ mắt 1 phút rồi mới chơi tiếp.
@@ -68,7 +146,7 @@ Repo này có hai ứng dụng web:
 1. Đưa thư mục `be-vui-hoc/` lên một trang web có HTTPS. Cách dễ nhất là **GitHub Pages**: vào *Settings → Pages* của repo, chọn nhánh cần đăng. Khi đó địa chỉ sẽ là
    `https://<tên-tài-khoản>.github.io/tho-478/be-vui-hoc/`
 2. Mở địa chỉ đó bằng **Safari** trên iPad. Bấm nút **Chia sẻ** rồi chọn **Thêm vào MH chính**.
-3. Mở ứng dụng **Bé Vui Học** từ màn hình chính và bấm chọn ngôn ngữ. Lần bấm này cũng cho phép iPad phát tiếng.
+3. Mở ứng dụng **Happy Learning** từ màn hình chính và bấm **Start**. Lần bấm này cũng cho phép iPad phát tiếng.
 
 **Nếu không nghe thấy tiếng:**
 - Tắt chế độ im lặng và tăng âm lượng.
@@ -108,6 +186,8 @@ be-vui-hoc/
     ├── counting.js       # Học Đếm
     ├── math.js           # Học Toán: cộng, trừ, nhân, chia
     ├── explore.js        # Khám Phá: ngày tháng, ngày đêm, trái phải
+    ├── rewards.js        # Đổi quà và bảng luật nhận sao
+    ├── homework.js       # Bài tập hôm nay
     └── parents.js        # Góc ba mẹ
 ```
 

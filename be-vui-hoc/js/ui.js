@@ -1,7 +1,7 @@
 // Tiện ích giao diện: tạo phần tử, điều hướng, lời thoại, phần thưởng
 import { speak, stopSpeech } from './speech.js';
 import { sfx } from './sound.js';
-import { store, addStars, STICKERS } from './store.js';
+import { store, addStars, STICKERS, starsFor } from './store.js';
 import { L } from './i18n.js';
 
 /* ---------------- Tạo phần tử ---------------- */
@@ -45,6 +45,10 @@ let life = { alive: true };
 
 export function register(name, def) { screens[name] = def; }
 
+const navHooks = [];
+/** Gọi fn mỗi khi chuyển màn hình (trước khi màn hình mới hiện ra). */
+export function onNavigate(fn) { navHooks.push(fn); }
+
 /** Đối tượng "còn sống" của màn hình hiện tại – dùng để huỷ các tác vụ bất đồng bộ khi rời màn hình. */
 export const live = () => life;
 export const currentScreen = () => cur && cur.name;
@@ -57,6 +61,7 @@ export function go(name, params = {}) {
   stopSpeech();
   hideBubble();
   if (cur && cur.cleanup) { try { cur.cleanup(); } catch (e) { console.error(e); } }
+  navHooks.forEach((fn) => { try { fn(name, params); } catch (e) { console.error(e); } });
 
   const root = $('app');
   root.innerHTML = '';
@@ -199,6 +204,13 @@ export function giveStars(n, fromEl) {
   });
 }
 
+/** Thưởng sao theo luật ba mẹ đặt. kind: 'task' | 'routine' | 'exercise' | 'allDone'. Trả về số sao đã thưởng. */
+export function award(kind, fromEl) {
+  const n = starsFor(kind);
+  giveStars(n, fromEl);
+  return n;
+}
+
 /* ---------------- Lớp phủ (hộp thoại) ---------------- */
 const queue = [];
 let openJob = null;
@@ -231,7 +243,11 @@ function pump() {
 }
 
 /** Màn chúc mừng khi hoàn thành một lượt chơi. Trả về chỉ số nút được bấm. */
-export function celebrate({ emoji = '🏆', title = L('Hoàn thành!', 'All done!'), text = '', speech, buttons = [[L('Tiếp tục', 'Continue'), 'green']], stars = 0 }) {
+export function celebrate({ emoji = '🏆', title = L('Hoàn thành!', 'All done!'), text = '', speech, buttons = [[L('Tiếp tục', 'Continue'), 'green']], kind = null, stars = 0 }) {
+  // stars: số sao thưởng trực tiếp; kind: thưởng theo luật ba mẹ đặt
+  if (kind) stars = starsFor(kind);
+  if (!speech) speech = `${title} ${text}`;
+  if (stars) text = `${text} +${stars} ⭐`.trim();
   return overlay((close) => [
     h('div', { class: 'emo', text: emoji }),
     h('h2', { text: title }),
@@ -241,7 +257,7 @@ export function celebrate({ emoji = '🏆', title = L('Hoàn thành!', 'All done
   ], () => {
     confetti();
     sfx.fanfare();
-    say(speech || `${title} ${text}`);
+    say(speech);
     if (stars) setTimeout(() => giveStars(stars), 400);
   });
 }

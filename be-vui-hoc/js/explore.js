@@ -1,9 +1,9 @@
 // KHÁM PHÁ – ngày tháng, ngày và đêm, bên trái và bên phải
-import { register, go, h, say, live, sleep, rand, pick, shuffle, giveStars, praise, menuCard, progressDots, toast } from './ui.js';
+import { register, go, h, say, live, sleep, rand, pick, shuffle, praise, menuCard, progressDots, toast } from './ui.js';
 import { sfx } from './sound.js';
 import { bump } from './store.js';
 import { L, isEn } from './i18n.js';
-import { ROUND, answerButtons, roundEnd } from './play.js';
+import { answerButtons, roundEnd, roundDots } from './play.js';
 
 const THEME = 'var(--green)';
 const COLORS = ['pink', 'orange', 'yellow', 'green', 'blue', 'purple', 'red'];
@@ -133,7 +133,7 @@ register('dates', {
 
 register('datequiz', {
   title: () => L('Đố vui ngày tháng', 'Days and months quiz'), parent: (p) => ['dates', { tab: p.kind }], theme: THEME, fixed: true,
-  render(root, { kind }) {
+  render(root, { kind, hw }) {
     const life = live();
     const isWeek = kind === 'week';
     const names = isWeek ? week() : months();
@@ -141,14 +141,14 @@ register('datequiz', {
     const now = new Date();
     const cur = isWeek ? weekIdx(now) : now.getMonth();
     let q = 0, lastAns = -1;
-    const dots = progressDots(ROUND);
+    const dots = roundDots(kind, hw);
     const body = h('div', { class: 'quiz-body' });
     root.append(h('div', { class: 'play' }, h('div', { class: 'play-head' }, h('span'), dots), body));
 
     function next() {
       if (!life.alive) return;
       dots.set(q);
-      if (q >= ROUND) { roundEnd(life, () => go('datequiz', { kind }), 'explore'); return; }
+      if (dots.over(q)) { roundEnd(life, () => go('datequiz', { kind }), 'explore', kind); return; }
       let type, base, ans;
       do {
         type = q === 0 ? 'now' : pick(['after', 'before', 'after']);
@@ -169,7 +169,6 @@ register('datequiz', {
           wrap.querySelectorAll('.ans').forEach((x) => (x.disabled = true));
           sfx.ding(); bump('explore');
           toast(praise());
-          giveStars(1, b);
           await say(L(`Đúng rồi! ${names[ans]}.`, `That's right! ${names[ans]}.`));
           q++;
           await sleep(300);
@@ -261,19 +260,19 @@ const DN_ITEMS = [
 
 register('dnquiz', {
   title: () => L('Ngày hay đêm?', 'Day or night?'), parent: 'daynight', theme: THEME, fixed: true,
-  render(root) {
+  render(root, { hw } = {}) {
     const life = live();
     let q = 0;
-    const items = shuffle(DN_ITEMS).slice(0, ROUND);
-    const dots = progressDots(ROUND);
+    const items = shuffle(DN_ITEMS);
+    const dots = roundDots('dn', hw);
     const body = h('div', { class: 'quiz-body' });
     root.append(h('div', { class: 'play' }, h('div', { class: 'play-head' }, h('span'), dots), body));
 
     function next() {
       if (!life.alive) return;
       dots.set(q);
-      if (q >= ROUND) { roundEnd(life, () => go('dnquiz'), 'explore'); return; }
-      const [emo, vi, en, isDay] = items[q];
+      if (dots.over(q)) { roundEnd(life, () => go('dnquiz'), 'explore', 'dn'); return; }
+      const [emo, vi, en, isDay] = items[q % items.length];
       const label = L(vi, en);
       const ask = L(`${label}. Đây là ban ngày hay ban đêm?`, `${label}. Is it day or night?`);
       const answers = answerButtons([[true, L('☀️ Ban ngày', '☀️ Day')], [false, L('🌙 Ban đêm', '🌙 Night')]], async (v, b, wrap) => {
@@ -282,7 +281,6 @@ register('dnquiz', {
           wrap.querySelectorAll('.ans').forEach((x) => (x.disabled = true));
           sfx.ding(); bump('explore');
           toast(praise());
-          giveStars(1, b);
           await say(isDay ? L('Đúng rồi! Đó là ban ngày.', "That's right! That is daytime.") : L('Đúng rồi! Đó là ban đêm.', "That's right! That is nighttime."));
           q++;
           await sleep(300);
@@ -340,10 +338,10 @@ register('leftright', {
 
 register('lrquiz', {
   title: () => L('Trái hay phải?', 'Left or right?'), parent: 'leftright', theme: THEME, fixed: true,
-  render(root) {
+  render(root, { hw } = {}) {
     const life = live();
     let q = 0;
-    const dots = progressDots(ROUND);
+    const dots = roundDots('lr', hw);
     const body = h('div', { class: 'quiz-body' });
     let ask = '';
     root.append(h('div', { class: 'play' },
@@ -352,7 +350,6 @@ register('lrquiz', {
     async function good(el, speech) {
       sfx.ding(); bump('explore');
       toast(praise());
-      giveStars(1, el);
       await say(speech);
       q++;
       await sleep(300);
@@ -373,7 +370,7 @@ register('lrquiz', {
     function next() {
       if (!life.alive) return;
       dots.set(q);
-      if (q >= ROUND) { roundEnd(life, () => go('lrquiz'), 'explore'); return; }
+      if (dots.over(q)) { roundEnd(life, () => go('lrquiz'), 'explore', 'lr'); return; }
       const type = ['which', 'side', 'move'][q % 3];
       const wantLeft = Math.random() < 0.5;
       let solved = false;
