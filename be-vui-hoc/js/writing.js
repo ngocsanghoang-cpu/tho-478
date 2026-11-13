@@ -1,61 +1,84 @@
-// TẬP VIẾT – tô chữ cái tiếng Việt, chữ hoa và chữ số bằng ngón tay hoặc Apple Pencil
+// TẬP VIẾT – tô chữ cái (tiếng Việt hoặc tiếng Anh), chữ hoa và chữ số bằng ngón tay hoặc Apple Pencil
 import { register, go, h, say, live, sleep, giveStars, praise, confetti, toast } from './ui.js';
 import { sfx } from './sound.js';
 import { store, bump } from './store.js';
-import { numWord } from './vi.js';
+import { L, isEn, byLang } from './i18n.js';
+import { numWord, cap } from './vi.js';
 
-const THEME = 'var(--orange)';
-const LOWER = 'a ă â b c d đ e ê g h i k l m n o ô ơ p q r s t u ư v x y'.split(' ');
+const THEME = 'var(--purple)';
 
-// Cách đọc âm của chữ + từ ví dụ
-const INFO = {
-  a: ['a', '👕', 'áo'], ă: ['á', '🍚', 'ăn cơm'], â: ['ớ', '🫖', 'ấm trà'], b: ['bờ', '🐄', 'bò'],
-  c: ['cờ', '🐟', 'cá'], d: ['dờ', '🐐', 'dê'], đ: ['đờ', '💡', 'đèn'], e: ['e', '👶', 'em bé'],
+// Tiếng Việt: 29 chữ cái – [cách đọc âm, hình, từ ví dụ]
+const VI = {
+  a: ['a', '👗', 'áo đầm'], ă: ['á', '🍚', 'ăn cơm'], â: ['ớ', '🫖', 'ấm trà'], b: ['bờ', '🦋', 'bướm'],
+  c: ['cờ', '🐟', 'cá'], d: ['dờ', '🍓', 'dâu'], đ: ['đờ', '💡', 'đèn'], e: ['e', '👶', 'em bé'],
   ê: ['ê', '🐸', 'ếch'], g: ['gờ', '🐔', 'gà'], h: ['hờ', '🌸', 'hoa'], i: ['i', '🔵', 'viên bi'],
-  k: ['ca', '🍦', 'kem'], l: ['lờ', '🍃', 'lá'], m: ['mờ', '🐱', 'mèo'], n: ['nờ', '🍇', 'nho'],
+  k: ['ca', '🍦', 'kem'], l: ['lờ', '🍃', 'lá'], m: ['mờ', '🐱', 'mèo'], n: ['nờ', '🎀', 'nơ'],
   o: ['o', '🐝', 'ong'], ô: ['ô', '☂️', 'cái ô'], ơ: ['ơ', '🌶️', 'quả ớt'], p: ['pờ', '🔋', 'pin'],
-  q: ['quy', '🍎', 'quả táo'], r: ['rờ', '🐢', 'rùa'], s: ['sờ', '⭐', 'ngôi sao'], t: ['tờ', '🚂', 'tàu hỏa'],
-  u: ['u', '🥾', 'đôi ủng'], ư: ['ư', '🦁', 'sư tử'], v: ['vờ', '🐘', 'voi'], x: ['xờ', '🚗', 'xe ô tô'],
+  q: ['quy', '🍎', 'quả táo'], r: ['rờ', '🐢', 'rùa'], s: ['sờ', '⭐', 'ngôi sao'], t: ['tờ', '🦐', 'tôm'],
+  u: ['u', '👢', 'đôi ủng'], ư: ['ư', '🦁', 'sư tử'], v: ['vờ', '🐘', 'voi'], x: ['xờ', '🚲', 'xe đạp'],
   y: ['i dài', '👩‍⚕️', 'y tá'],
 };
-
-const SETS = {
-  lower: { title: 'Chữ thường', chars: LOWER },
-  upper: { title: 'Chữ hoa', chars: LOWER.map((c) => c.toUpperCase()) },
-  digits: { title: 'Chữ số', chars: '0123456789'.split('') },
+// English: 26 letters – [picture, example word]
+const EN = {
+  a: ['🍎', 'apple'], b: ['🦋', 'butterfly'], c: ['🐱', 'cat'], d: ['🐶', 'dog'], e: ['🐘', 'elephant'], f: ['🌸', 'flower'],
+  g: ['🍇', 'grapes'], h: ['👒', 'hat'], i: ['🍦', 'ice cream'], j: ['🧃', 'juice'], k: ['🪁', 'kite'], l: ['🦁', 'lion'],
+  m: ['🌙', 'moon'], n: ['👃', 'nose'], o: ['🍊', 'orange'], p: ['🐼', 'panda'], q: ['👸', 'queen'], r: ['🐰', 'rabbit'],
+  s: ['☀️', 'sun'], t: ['🐯', 'tiger'], u: ['☂️', 'umbrella'], v: ['🎻', 'violin'], w: ['🐳', 'whale'], x: ['🎶', 'xylophone'],
+  y: ['🪀', 'yo-yo'], z: ['🦓', 'zebra'],
 };
+export const SETS = byLang(() => {
+  const lower = Object.keys(L(VI, EN));
+  return {
+    lower: { title: L('Chữ thường', 'Lowercase'), chars: lower },
+    upper: { title: L('Chữ hoa', 'Uppercase'), chars: lower.map((c) => c.toUpperCase()) },
+    digits: { title: L('Chữ số', 'Numbers'), chars: '0123456789'.split('') },
+  };
+});
 
-const COLORS = ['#ff6b9a', '#4ea8de', '#2ec4b6', '#9b5de5', '#ff9f1c', '#2b2d42'];
+const COLORS = ['#ff6b9a', '#9b5de5', '#4ea8de', '#2ec4b6', '#ff9f1c', '#2b2d42'];
 const FONT = (px) => `700 ${px}px Andika, "Chalkboard SE", "Comic Sans MS", ui-rounded, sans-serif`;
 
+/** Lời thoại & ví dụ cho một chữ / số. */
 function describe(set, ch) {
   if (set === 'digits') {
     const n = +ch;
+    const w = numWord(n);
+    const word = n === 0 ? L('không có quả nào', 'no apples') : L(`${w} quả táo`, `${w} ${n === 1 ? 'apple' : 'apples'}`);
     return {
-      sound: numWord(n),
-      emoji: n === 0 ? '🫙' : '🍎'.repeat(n),
-      word: n === 0 ? 'không có quả nào' : `${numWord(n)} quả táo`,
-      intro: `Số ${numWord(n)}. Con hãy dùng ngón tay tô theo số ${numWord(n)} nhé.`,
-      name: `số ${numWord(n)}`,
+      emoji: n === 0 ? '🫙' : '🍎'.repeat(n), word,
+      intro: L(`Số ${w}. Con hãy dùng ngón tay tô theo số ${w} nhé.`, `Number ${w}. Trace the number ${w} with your finger.`),
+      ex: L(`${w}. ${word}`, `${cap(w)}. ${cap(word)}.`),
+      name: L(`số ${w}`, `the number ${w}`),
     };
   }
-  const [sound, emoji, word] = INFO[ch.toLowerCase()];
   const up = set === 'upper';
+  const key = ch.toLowerCase();
+  if (isEn()) {
+    const [emoji, word] = EN[key];
+    const U = key.toUpperCase();
+    const ex = `${cap(word)} starts with the letter ${U}.`;
+    return {
+      emoji, word: up ? cap(word) : word, ex,
+      intro: `${up ? 'Capital letter' : 'Letter'} ${U}. ${ex} Trace the dotted letter with your finger.`,
+      name: up ? `capital letter ${U}` : `the letter ${U}`,
+    };
+  }
+  const [sound, emoji, word] = VI[key];
   return {
-    sound, emoji, word: up ? word.charAt(0).toUpperCase() + word.slice(1) : word,
+    emoji, word: up ? cap(word) : word, ex: `${sound}, ${word}`,
     intro: `Chữ ${sound}${up ? ' hoa' : ''}. ${sound}, ${word}. Con hãy tô theo nét chấm nhé.`,
     name: `chữ ${sound}${up ? ' hoa' : ''}`,
   };
 }
 
-const starsOf = (set, ch) => store.data.letters[`${set}:${ch}`] || 0;
+export const starsOf = (set, ch) => store.data.letters[`${set}:${ch}`] || 0;
 
 /* ---------------- Danh sách chữ ---------------- */
 register('writing', {
-  title: 'Tập Viết', parent: 'home', theme: THEME,
+  title: () => L('Tập Viết', 'Writing'), parent: 'home', theme: THEME,
   render(root, { set = 'lower' } = {}) {
-    const S = SETS[set];
-    const tabs = h('div', { class: 'chips' }, Object.entries(SETS).map(([k, v]) =>
+    const S = SETS()[set];
+    const tabs = h('div', { class: 'chips' }, Object.entries(SETS()).map(([k, v]) =>
       h('button', { class: 'chip' + (k === set ? ' on' : ''), onClick: () => { sfx.tap(); go('writing', { set: k }); } }, v.title)));
     const grid = h('div', { class: 'letter-grid' }, S.chars.map((ch, i) => {
       const st = starsOf(set, ch);
@@ -66,19 +89,19 @@ register('writing', {
     const doneCount = S.chars.filter((c) => starsOf(set, c)).length;
     root.append(h('div', { class: 'menu' },
       h('div', { class: 'menu-head' },
-        h('div', { style: { flex: 1 } }, h('h2', { text: '✏️ Tập Viết' }), h('p', { text: `Đã tô ${doneCount}/${S.chars.length} ${S.title.toLowerCase()}` })),
+        h('div', { style: { flex: 1 } }, h('h2', { text: L('✏️ Tập Viết', '✏️ Writing') }), h('p', { text: L(`Đã tô ${doneCount}/${S.chars.length} ${S.title.toLowerCase()}`, `Traced ${doneCount} of ${S.chars.length} ${S.title.toLowerCase()}`) })),
         tabs),
       grid));
-    say(`${S.title}. Con chọn một ${set === 'digits' ? 'số' : 'chữ'} để tập tô nhé.`);
+    say(L(`${S.title}. Con chọn một ${set === 'digits' ? 'số' : 'chữ'} để tập tô nhé.`, `${S.title}. Pick a ${set === 'digits' ? 'number' : 'letter'} to trace.`));
   },
 });
 
 /* ---------------- Màn tô chữ ---------------- */
 register('trace', {
-  title: (p) => SETS[p.set].title, parent: (p) => ['writing', { set: p.set }], theme: THEME, fixed: true,
+  title: (p) => SETS()[p.set].title, parent: (p) => ['writing', { set: p.set }], theme: THEME, fixed: true,
   render(root, { set, i }) {
     const life = live();
-    const S = SETS[set];
+    const S = SETS()[set];
     const ch = S.chars[i];
     const info = describe(set, ch);
     let mode = 'trace'; // 'trace' = tô theo nét chấm, 'free' = tự viết
@@ -95,13 +118,13 @@ register('trace', {
     const modeChips = h('div', { class: 'chips', style: { justifyContent: 'center' } });
     const renderModes = () => {
       modeChips.innerHTML = '';
-      [['trace', '✏️ Tô chữ'], ['free', '🌟 Tự viết']].forEach(([k, label]) => modeChips.append(
+      [['trace', L('✏️ Tô chữ', '✏️ Trace')], ['free', L('🌟 Tự viết', '🌟 On my own')]].forEach(([k, label]) => modeChips.append(
         h('button', { class: 'chip' + (mode === k ? ' on' : ''), onClick: () => setMode(k) }, label)));
     };
     renderModes();
 
     const colorBtns = h('div', { class: 'colors' }, COLORS.map((c, k) => {
-      const b = h('button', { class: k === 0 ? 'on' : '', style: { background: c }, 'aria-label': 'màu bút' });
+      const b = h('button', { class: k === 0 ? 'on' : '', style: { background: c }, 'aria-label': L('màu bút', 'pen color') });
       b.addEventListener('click', () => {
         color = c; sfx.tap();
         [...colorBtns.children].forEach((x) => x.classList.toggle('on', x === b));
@@ -109,23 +132,23 @@ register('trace', {
       return b;
     }));
 
-    const nextBtn = h('button', { class: 'btn blue small', onClick: () => go('trace', { set, i: (i + 1) % S.chars.length }) }, 'Tiếp ➡️');
-    const checkBtn = h('button', { class: 'btn big green', onClick: check }, '✅ Xong');
+    const nextBtn = h('button', { class: 'btn blue small', onClick: () => go('trace', { set, i: (i + 1) % S.chars.length }) }, L('Tiếp ➡️', 'Next ➡️'));
+    const checkBtn = h('button', { class: 'btn big green', onClick: check }, L('✅ Xong', '✅ Done'));
 
     root.append(h('div', { class: 'trace' },
       h('div', { class: 'trace-side' },
         h('div', { class: 'trace-info' },
           h('div', { class: 'big', text: ch, onClick: () => say(info.intro) }),
-          h('div', { class: 'ex', onClick: () => say(`${info.sound}, ${info.word}`) },
+          h('div', { class: 'ex', onClick: () => say(info.ex) },
             h('span', { class: 'e', text: info.emoji, style: set === 'digits' ? { fontSize: '30px', letterSpacing: '-4px', wordBreak: 'break-all' } : null }),
             set === 'digits' ? null : h('span', { class: 'w', text: info.word }))),
         modeChips,
         h('div', { class: 'trace-tools' },
           colorBtns,
           h('div', { class: 'row' },
-            h('button', { class: 'btn ghost small', onClick: () => go('trace', { set, i: (i - 1 + S.chars.length) % S.chars.length }) }, '⬅️ Trước'),
-            h('button', { class: 'btn ghost small', onClick: undo }, '↩️ Xoá nét'),
-            h('button', { class: 'btn ghost small', onClick: clear }, '🧽 Xoá hết'),
+            h('button', { class: 'btn ghost small', onClick: () => go('trace', { set, i: (i - 1 + S.chars.length) % S.chars.length }) }, L('⬅️ Trước', '⬅️ Back')),
+            h('button', { class: 'btn ghost small', onClick: undo }, L('↩️ Xoá nét', '↩️ Undo')),
+            h('button', { class: 'btn ghost small', onClick: clear }, L('🧽 Xoá hết', '🧽 Clear')),
             nextBtn),
           checkBtn)),
       board));
@@ -283,7 +306,9 @@ register('trace', {
     function setMode(k) {
       if (mode === k) return;
       mode = k; sfx.tap(); renderModes(); clear();
-      say(k === 'free' ? `Bây giờ con tự viết ${info.name} nhé. Chữ mẫu mờ hơn rồi đó!` : `Con tô theo nét chấm ${info.name} nhé.`);
+      say(k === 'free'
+        ? L(`Bây giờ con tự viết ${info.name} nhé. Chữ mẫu mờ hơn rồi đó!`, `Now write ${info.name} on your own. The guide is very faint now!`)
+        : L(`Con tô theo nét chấm ${info.name} nhé.`, `Trace the dotted lines of ${info.name}.`));
     }
 
     /* --- Chấm điểm --- */
@@ -344,7 +369,7 @@ register('trace', {
 
     async function check() {
       if (!M) return;
-      if (!strokes.length) { say(`Con hãy dùng ngón tay tô lên ${info.name} trước nhé.`); return; }
+      if (!strokes.length) { say(L(`Con hãy dùng ngón tay tô lên ${info.name} trước nhé.`, `Use your finger to trace ${info.name} first.`)); return; }
       const r = score();
       let stars = 0;
       if (r.coverage >= 0.75 && r.precision >= 0.82) stars = 3;
@@ -355,9 +380,9 @@ register('trace', {
         sfx.oops();
         if (r.coverage < 0.45) {
           flashMissing(r.miss);
-          say('Con tô thêm phần màu cam còn thiếu nhé!');
+          say(L('Con tô thêm phần màu cam còn thiếu nhé!', 'Color in the orange parts you missed!'));
         } else {
-          say('Con cố tô ở bên trong nét chữ nhé. Mình thử lại nào!');
+          say(L('Con cố tô ở bên trong nét chữ nhé. Mình thử lại nào!', "Try to stay inside the lines. Let's try again!"));
           strokes = []; redrawInk();
         }
         return;
@@ -375,10 +400,10 @@ register('trace', {
       toast('⭐'.repeat(stars));
       giveStars(stars + bonus, checkBtn);
       nextBtn.classList.add('pulse');
-      let msg = `${praise()} Con được ${numWord(stars)} ngôi sao.`;
-      if (stars === 3 && mode === 'trace') msg += ' Bây giờ con thử bấm Tự viết nhé!';
-      else if (stars < 3) msg += ' Con có thể xoá và tô lại cho đẹp hơn nữa.';
-      else msg += ' Bấm Tiếp để sang chữ mới nhé!';
+      let msg = L(`${praise()} Con được ${numWord(stars)} ngôi sao.`, `${praise()} You earned ${numWord(stars)} ${stars === 1 ? 'star' : 'stars'}.`);
+      if (stars === 3 && mode === 'trace') msg += L(' Bây giờ con thử bấm Tự viết nhé!', ' Now try tapping On my own!');
+      else if (stars < 3) msg += L(' Con có thể xoá và tô lại cho đẹp hơn nữa.', ' You can clear it and trace again to make it even nicer.');
+      else msg += L(' Bấm Tiếp để sang chữ mới nhé!', ' Tap Next for a new one!');
       await say(msg);
     }
 

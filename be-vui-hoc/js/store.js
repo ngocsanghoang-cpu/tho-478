@@ -2,28 +2,30 @@
 const KEY = 'bevuihoc.v1';
 
 export const STARS_PER_STICKER = 5;
+// [biểu tượng, tên tiếng Việt, tên tiếng Anh]
 export const STICKERS = [
-  ['🐶', 'chú chó'], ['🐱', 'con mèo'], ['🐰', 'con thỏ'], ['🐼', 'gấu trúc'], ['🦁', 'sư tử'],
-  ['🐯', 'con hổ'], ['🐨', 'gấu túi'], ['🐸', 'con ếch'], ['🐵', 'chú khỉ'], ['🐧', 'chim cánh cụt'],
-  ['🦄', 'kỳ lân'], ['🐬', 'cá heo'], ['🦒', 'hươu cao cổ'], ['🐘', 'con voi'], ['🦊', 'con cáo'],
-  ['🐻', 'con gấu'], ['🐷', 'chú heo'], ['🐮', 'bò sữa'], ['🐔', 'gà mái'], ['🦋', 'con bướm'],
-  ['🐞', 'bọ rùa'], ['🐢', 'con rùa'], ['🐙', 'bạch tuộc'], ['🦀', 'con cua'], ['🐳', 'cá voi'],
-  ['🦜', 'con vẹt'], ['🦉', 'cú mèo'], ['🐝', 'ong mật'], ['🦓', 'ngựa vằn'], ['🦘', 'chuột túi'],
-  ['🦖', 'khủng long'], ['🐲', 'con rồng'], ['🌈', 'cầu vồng'], ['🚀', 'tên lửa'], ['🏆', 'cúp vàng'],
-  ['👑', 'vương miện'],
+  ['🦄', 'kỳ lân', 'unicorn'], ['🐱', 'con mèo', 'kitty'], ['🐰', 'con thỏ', 'bunny'], ['🦋', 'con bướm', 'butterfly'], ['🌸', 'bông hoa', 'flower'],
+  ['👑', 'vương miện', 'crown'], ['🧚‍♀️', 'nàng tiên', 'fairy'], ['🌈', 'cầu vồng', 'rainbow'], ['🧜‍♀️', 'nàng tiên cá', 'mermaid'], ['👸', 'công chúa', 'princess'],
+  ['🐶', 'chú chó', 'puppy'], ['🐼', 'gấu trúc', 'panda'], ['🐬', 'cá heo', 'dolphin'], ['🦢', 'thiên nga', 'swan'], ['🐨', 'gấu túi', 'koala'],
+  ['🐧', 'chim cánh cụt', 'penguin'], ['🦊', 'con cáo', 'fox'], ['🐞', 'bọ rùa', 'ladybug'], ['🦒', 'hươu cao cổ', 'giraffe'], ['🐘', 'con voi', 'elephant'],
+  ['🐻', 'con gấu', 'bear'], ['🐷', 'chú heo', 'piggy'], ['🦁', 'sư tử', 'lion'], ['🐢', 'con rùa', 'turtle'], ['🐙', 'bạch tuộc', 'octopus'],
+  ['🐳', 'cá voi', 'whale'], ['🦜', 'con vẹt', 'parrot'], ['🦉', 'cú mèo', 'owl'], ['🐝', 'ong mật', 'honeybee'], ['🦓', 'ngựa vằn', 'zebra'],
+  ['🦩', 'hồng hạc', 'flamingo'], ['🍭', 'kẹo mút', 'lollipop'], ['🎠', 'ngựa gỗ', 'carousel horse'], ['💎', 'viên kim cương', 'diamond'], ['🏆', 'cúp vàng', 'gold trophy'],
+  ['💖', 'trái tim', 'heart'],
 ];
 
 const DEFAULTS = {
   name: '',
+  lang: 'vi', // 'vi' = Tiếng Việt, 'en' = English
   stars: 0,
   rate: 0.9,
-  voiceURI: '',
+  voices: { vi: '', en: '' }, // giọng đọc ba mẹ tự chọn cho từng ngôn ngữ ('' = tự động)
   sound: true,
   restMinutes: 20,
   level: 1,
   letters: {},
   routine: { date: '', done: {} },
-  stats: { count: 0, write: 0, selfcare: 0 },
+  stats: { count: 0, write: 0, selfcare: 0, math: 0, explore: 0 },
 };
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
@@ -34,8 +36,11 @@ function load() {
     const raw = localStorage.getItem(KEY);
     if (!raw) return d;
     const p = JSON.parse(raw) || {};
+    const voices = { ...d.voices, ...(p.voices || {}) };
+    if (p.voiceURI && !voices.vi) voices.vi = p.voiceURI; // bản cũ chỉ lưu một giọng
+    delete p.voiceURI;
     return {
-      ...d, ...p,
+      ...d, ...p, voices,
       stats: { ...d.stats, ...(p.stats || {}) },
       routine: p.routine && p.routine.done ? p.routine : d.routine,
       letters: p.letters || {},
@@ -97,7 +102,7 @@ export function markRoutine(kind, id) {
 }
 
 export function resetProgress() {
-  const { name, rate, voiceURI, sound, restMinutes } = store.data;
-  store.data = { ...clone(DEFAULTS), name, rate, voiceURI, sound, restMinutes };
+  const { name, lang, rate, voices, sound, restMinutes } = store.data;
+  store.data = { ...clone(DEFAULTS), name, lang, rate, voices, sound, restMinutes };
   store.save();
 }
