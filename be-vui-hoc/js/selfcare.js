@@ -1,8 +1,8 @@
 // BÉ TỰ LẬP – việc ngày đi học (sáng, tối), việc ba mẹ giao thêm, hướng dẫn từng bước, trò chơi dọn đồ chơi
 // Ghi chú: các chuỗi dùng L(tiếng Việt, tiếng Anh); dữ liệu bọc trong byLang() để đổi ngôn ngữ được ngay.
-import { register, go, h, say, live, sleep, giveStars, praise, celebrate, menuCard, progressDots, shuffle, rand, toast } from './ui.js';
+import { register, go, h, say, live, sleep, praise, celebrate, menuCard, progressDots, shuffle, rand, toast } from './ui.js';
 import { sfx } from './sound.js';
-import { store, routineDone, markRoutine, isSchoolDay, todaysAsks, todayKey } from './store.js';
+import { store, todaysTicks, isSchoolDay, todaysAsks, todayKey } from './store.js';
 import { L, byLang } from './i18n.js';
 import { numWord } from './vi.js';
 
@@ -112,7 +112,23 @@ export const scheduleFor = (type) => SCHEDULES()[type];
 export const ROUTINES = () => SCHEDULES()[dayType()];
 
 // Việc đã làm được lưu riêng cho từng loại ngày, để ba mẹ đổi loại ngày giữa chừng không bị lẫn.
-const dk = (kind) => (kind === 'chore' || isSchoolDay() ? kind : `off-${kind}`);
+export const dk = (kind) => (kind === 'chore' || isSchoolDay() ? kind : `off-${kind}`);
+
+/* ----- Bé tích việc, ba mẹ xác nhận -----
+   Trạng thái một việc: '' (chưa làm) → 'pending' (bé đã tích, chờ ba mẹ) → 'ok' (ba mẹ xác nhận, được sao)
+   hoặc 'no' (ba mẹ chưa đồng ý, bé làm lại rồi tích lại). */
+export const tickKey = (kind, id) => `${dk(kind)}_${id}`;
+export const tickStatus = (kind, id) => (todaysTicks()[tickKey(kind, id)] || {}).s || '';
+const tickListeners = new Set();
+/** Gọi fn(key) mỗi khi bé tích một việc (để đồng bộ sang điện thoại ba mẹ). */
+export const onTick = (fn) => tickListeners.add(fn);
+function markTicked(kind, id) {
+  const items = todaysTicks();
+  const key = tickKey(kind, id);
+  items[key] = { ...(items[key] || {}), s: 'pending', at: Date.now() };
+  store.save();
+  tickListeners.forEach((fn) => { try { fn(key); } catch (e) { console.error(e); } });
+}
 
 /** Số sao của một việc trong lịch: bữa ăn theo luật "meal", việc khác theo luật "task". */
 export const taskStars = (t) => Math.max(0, +store.data.rules[t.meal ? 'meal' : 'task'] || 0);
@@ -123,11 +139,15 @@ export function maxSelfcare(type) {
   return Object.values(scheduleFor(type)).reduce((sum, x) => sum + x.tasks.reduce((a, t) => a + taskStars(t), 0) + (+r.routine || 0), 0);
 }
 
-/** Số việc đã làm hôm nay (chỉ tính những việc có trong danh sách). */
+/** Số việc của một buổi đã được ba mẹ xác nhận hôm nay. */
 export function routineCount(kind) {
-  const ids = ROUTINES()[kind].tasks.map((t) => t.id);
-  return routineDone(dk(kind)).filter((id) => ids.includes(id)).length;
+  return ROUTINES()[kind].tasks.filter((t) => tickStatus(kind, t.id) === 'ok').length;
 }
+/** Số việc của một buổi bé đã tích (đang chờ hoặc đã được xác nhận). */
+export function routineTicked(kind) {
+  return ROUTINES()[kind].tasks.filter((t) => ['ok', 'pending'].includes(tickStatus(kind, t.id))).length;
+}
+const tileClass = (st) => 'tile' + (st === 'ok' ? ' done' : st === 'pending' ? ' wait' : st === 'no' ? ' redo' : '');
 
 /** Buổi phù hợp theo giờ hiện tại. */
 export function currentRoutine() {
@@ -289,13 +309,12 @@ register('selfcare', {
     const kinds = Object.keys(ROUTINES());
     const card = (kind) => {
       const R = ROUTINES()[kind];
-      return menuCard({ emoji: R.emoji, label: R.title, color: R.color, sub: jobs(routineCount(kind), R.tasks.length),
+      return menuCard({ emoji: R.emoji, label: R.title, color: R.color, sub: jobs(routineTicked(kind), R.tasks.length),
         badge: kind === currentRoutine() ? L('Bây giờ', 'Now') : null, onClick: () => go('routine', { kind }) });
     };
     const chores = todaysChores();
-    const choreDone = routineDone('chore');
     const choreTiles = chores.map((c) => h('button', {
-      class: 'tile' + (choreDone.includes(c.id) ? ' done' : ''),
+      class: tileClass(tickStatus('chore', c.id)),
       onClick: () => { sfx.tap(); go('task', { kind: 'chore', id: c.id }); },
     }, h('span', { class: 'emo', text: c.e }), h('span', { class: 'lbl', text: c.t }), h('span', { class: 'tile-stars', text: `+${c.stars} ⭐` })));
 
@@ -317,7 +336,7 @@ register('selfcare', {
         menuCard({ emoji: '🪥', label: L('Đánh răng', 'Brush teeth'), sub: L('Hẹn giờ 2 phút', '2-minute timer'), color: 'yellow', onClick: () => go('guide', { id: 'teeth' }) }),
       )));
 
-    const open = chores.filter((c) => !choreDone.includes(c.id));
+    const open = chores.filter((c) => !tickStatus('chore', c.id));
     if (open.length) say(L(`Bé tự lập. Hôm nay ba mẹ nhờ con ${open.map((c) => c.t).join(', ')}.`, `I can do it! Today Mom and Dad ask you to: ${open.map((c) => c.t).join(', ')}.`));
     else say(L('Bé tự lập. Hôm nay con muốn tự làm việc gì nào?', 'I can do it! What do you want to do by yourself today?'));
   },
@@ -328,12 +347,12 @@ register('routine', {
   title: (p) => ROUTINES()[p.kind].title, parent: 'selfcare', theme: THEME,
   render(root, { kind }) {
     const R = ROUTINES()[kind];
-    const done = routineDone(dk(kind));
-    const n = routineCount(kind);
+    const n = routineTicked(kind);
+    const ok = routineCount(kind);
     const total = R.tasks.length;
     const bar = h('i');
     const tiles = R.tasks.map((t) => h('button', {
-      class: 'tile' + (done.includes(t.id) ? ' done' : ''),
+      class: tileClass(tickStatus(kind, t.id)),
       onClick: () => { sfx.tap(); if (t.guide) go('guide', { id: t.guide, kind, task: t.id }); else go('task', { kind, id: t.id }); },
     }, h('span', { class: 'emo', text: t.e }), h('span', { class: 'lbl', text: t.t }),
     taskStars(t) > 1 ? h('span', { class: 'tile-stars', text: `+${taskStars(t)} ⭐` }) : null));
@@ -341,40 +360,29 @@ register('routine', {
       h('div', { class: 'menu-head' },
         h('div', { style: { flex: 1 } },
           h('h2', { text: `${R.emoji} ${R.title}` }),
-          h('p', { text: L(`Con đã làm ${n}/${total} việc`, `You did ${n} of ${total} jobs`) }),
+          h('p', { text: L(`Con đã tích ${n}/${total} việc · ba mẹ xác nhận ${ok}/${total}`, `You ticked ${n} of ${total} · Mom and Dad checked ${ok} of ${total}`) }),
           h('div', { class: 'progress-bar', style: { marginTop: '10px' } }, bar))),
       h('div', { class: 'routine-tiles' }, tiles)));
     requestAnimationFrame(() => { bar.style.width = (100 * n / total) + '%'; });
 
     const left = total - n;
-    if (n === total) say(L(`Con đã làm xong hết các việc ${R.title.toLowerCase()} rồi. Giỏi quá!`, `You finished all your ${R.title.toLowerCase()} jobs. Great job!`));
+    if (ok === total) say(L(`Ba mẹ đã xác nhận hết các việc ${R.title.toLowerCase()} rồi. Giỏi quá!`, `Mom and Dad checked all your ${R.title.toLowerCase()} jobs. Great job!`));
+    else if (n === total) say(L('Con đã tích hết việc rồi. Con nhờ ba mẹ kiểm tra để nhận sao và được chơi nhé!', 'You ticked every job. Ask Mom or Dad to check them, then you get your stars and play time!'));
     else if (n === 0) say(R.intro);
     else say(L(`Con còn ${numWord(left)} việc nữa thôi. Cố lên!`, `Only ${numWord(left)} more ${left === 1 ? 'job' : 'jobs'} to go. You can do it!`));
   },
 });
 
-/** Đánh dấu một việc đã xong, thưởng sao, chúc mừng nếu hoàn thành cả buổi. */
-async function completeTask(kind, id, fromEl) {
-  const fresh = markRoutine(dk(kind), id);
-  if (kind === 'chore') {
-    const c = findTask(kind, id);
-    if (fresh && c) giveStars(c.stars, fromEl);
-    go('selfcare');
-    return;
+/** Bé tích một việc đã làm. Sao chỉ được cộng sau khi ba mẹ xác nhận (xem approve.js). */
+function completeTask(kind, id) {
+  const st = tickStatus(kind, id);
+  if (st !== 'ok' && st !== 'pending') markTicked(kind, id);
+  toast('⏳');
+  if (kind === 'chore') go('selfcare'); else go('routine', { kind });
+  if (st !== 'ok') {
+    say(L('Giỏi lắm! Con nhờ ba mẹ kiểm tra nhé. Ba mẹ xác nhận xong con sẽ được sao.',
+      'Well done! Now ask Mom or Dad to check. When they say yes, you get your stars.'));
   }
-  const R = ROUTINES()[kind];
-  const task = R.tasks.find((t) => t.id === id);
-  if (fresh && task) giveStars(taskStars(task), fromEl);
-  if (fresh && routineCount(kind) === R.tasks.length) {
-    await celebrate({
-      emoji: { morning: '🌞', afternoon: '🏅', evening: '🌟' }[kind],
-      title: L('Xong hết rồi!', 'All done!'),
-      text: L(`Con đã tự làm tất cả việc ${R.title.toLowerCase()}!`, `You did all your ${R.title.toLowerCase()} jobs by yourself!`),
-      kind: 'routine',
-      buttons: [[L('Tuyệt vời! 🎉', 'Yay! 🎉'), 'green']],
-    });
-  }
-  go('routine', { kind });
 }
 
 /* ---------------- Một việc: các bước, tiêu chí đạt, đồng hồ (nếu có) ---------------- */
@@ -386,7 +394,14 @@ register('task', {
     const t = findTask(kind, id);
     if (!t) { go('selfcare'); return undefined; }
     const items = t.steps.map((s, i) => h('li', null, h('b', { text: i + 1 }), s));
-    const doneBtn = h('button', { class: 'btn big green pulse', onClick: () => { sfx.ding(); completeTask(kind, id, doneBtn); } }, L('✅ Con làm xong rồi!', '✅ I did it!'));
+    const st = tickStatus(kind, id);
+    const doneBtn = h('button', { class: 'btn big green pulse', onClick: () => { sfx.ding(); completeTask(kind, id); } }, L('✅ Con làm xong rồi!', '✅ I did it!'));
+    if (st === 'ok' || st === 'pending') {
+      doneBtn.disabled = true;
+      doneBtn.classList.remove('pulse');
+      doneBtn.textContent = st === 'ok' ? L('✅ Ba mẹ đã xác nhận', '✅ Checked by Mom and Dad') : L('⏳ Đang chờ ba mẹ kiểm tra', '⏳ Waiting for Mom or Dad');
+    }
+    const note = st === 'no' ? L('Ba mẹ thấy việc này chưa đạt. Con làm lại cho tốt rồi bấm nút nhé!', 'Mom and Dad say this one is not done yet. Do it again, then tap the button!') : '';
     const goalText = t.goal ? L(`Đạt khi: ${t.goal}`, `Done well means: ${t.goal}`) : '';
 
     // Đồng hồ đếm ngược cho việc có giờ quy định
@@ -446,6 +461,7 @@ register('task', {
       h('div', { class: 'emo', text: t.e }),
       h('h2', { text: t.t }),
       (t.stars || (kind !== 'chore' && taskStars(t) > 1)) ? h('p', { class: 'task-stars', text: `+${t.stars || taskStars(t)} ⭐` }) : null,
+      note ? h('p', { class: 'goal redo-note', text: '↩️ ' + note }) : null,
       goalText ? h('p', { class: 'goal', text: '🎯 ' + goalText }) : null,
       clock,
       items.length ? h('ol', { class: 'steps' }, items) : null,
@@ -454,7 +470,7 @@ register('task', {
         doneBtn)));
 
     async function readSteps() {
-      if (!(await say(t.say))) return;
+      if (!(await say((note ? note + ' ' : '') + t.say))) return;
       for (let i = 0; i < t.steps.length; i++) {
         if (!life.alive) return;
         items.forEach((li, j) => li.classList.toggle('now', i === j));
@@ -560,7 +576,7 @@ register('guide', {
         buttons: [[L('Làm lại 🔁', 'Do it again 🔁'), 'orange'], [L('Xong ✅', 'Done ✅'), 'green']],
       });
       if (!life.alive) return;
-      if (params.kind) { completeTask(params.kind, params.task, null); return; }
+      if (params.kind) { completeTask(params.kind, params.task); return; }
       if (ans === 0) go('guide', params); else go('selfcare');
     }
   },
@@ -697,7 +713,7 @@ register('tidy', {
         buttons: params.kind ? [DONE] : [[L('Chơi lại 🔁', 'Play again 🔁'), 'orange'], DONE],
       });
       if (!life.alive) return;
-      if (params.kind) completeTask(params.kind, params.task, null);
+      if (params.kind) completeTask(params.kind, params.task);
       else if (ans === 0) go('tidy', params);
       else go('selfcare');
     }

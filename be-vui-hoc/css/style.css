@@ -217,6 +217,12 @@ body[data-screen="splash"] #app { top: 0; }
 .tile .emo { font-size: 72px; line-height: 1; }
 .tile .lbl { font-size: 24px; font-weight: 900; text-align: center; }
 .tile-stars { background: #fff1cc; border-radius: 999px; padding: 2px 12px; font-size: 20px; }
+.tile.wait { background: #fff1cc; box-shadow: 0 7px 0 #e6c97a; }
+.tile.wait::after { content: '⏳'; position: absolute; top: 10px; right: 12px; font-size: 32px; }
+.tile.redo { background: #ffe1e8; box-shadow: 0 7px 0 #f3b3c2; }
+.tile.redo::after { content: '↩️'; position: absolute; top: 10px; right: 12px; font-size: 32px; }
+.task .redo-note { background: #ffe1e8; }
+#playPill { flex: none; background: var(--pink); color: #fff; border-radius: 999px; padding: 10px 16px; font-size: 24px; font-weight: 900; font-family: var(--font-letter); }
 .tile.done { background: #dcfff6; box-shadow: 0 7px 0 #a4ead9; }
 .tile.done::after {
   content: '✅'; position: absolute; top: 10px; right: 12px; font-size: 34px;

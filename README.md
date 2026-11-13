@@ -22,6 +22,52 @@ Repo này có hai ứng dụng web:
 
 Phần mô tả dưới đây dùng tên tiếng Việt của các mục cho dễ đọc; tên tiếng Anh trên màn hình ghi trong ngoặc ở lần đầu nhắc tới: Bé Tự Lập (I Can Do It), Bài tập hôm nay (Today's exercises), Tập Viết (Writing), Học Đếm (Counting), Học Toán (Math), Khám Phá (Explore), Đổi quà (Rewards), Góc ba mẹ (For parents).
 
+### Cách hoạt động: bé tích việc, ba mẹ xác nhận, rồi mới được sao và được chơi
+
+1. **Bé tích việc đã làm.** Trong Bé Tự Lập, bé làm xong việc nào thì bấm “I did it!”. Việc chuyển sang trạng thái ⏳ chờ ba mẹ, **chưa có sao**.
+2. **Ba mẹ xác nhận thực tế.** Ba mẹ kiểm tra bé đã làm thật chưa rồi bấm **Yes** (đạt) hoặc **Not yet** (chưa đạt), trên điện thoại của ba mẹ hoặc ngay trên iPad (For parents → Check today's jobs).
+   - Đạt: bé được sao của việc đó.
+   - Chưa đạt: việc hiện ↩️, bé làm lại rồi tích lại.
+3. **Xác nhận hết việc của một buổi** (sáng, trưa chiều, tối): bé được thưởng thêm sao và **một lần mở khoá chơi 10 phút**.
+4. **Trò chơi và bài tập luôn bị khoá** (Today's exercises, Writing, Counting, Math, Explore, trò dọn đồ). Bé chỉ vào được trong 10 phút mở khoá. Trên thanh trên cùng có đồng hồ đếm ngược; còn 1 phút thì bạn Thỏ nhắc; hết giờ thì bé bị đưa về trang chính và mọi thứ khoá lại.
+5. Vé chơi chỉ dùng trong ngày. Bé có thể bấm “Later” để dành vé và bắt đầu chơi sau.
+
+Ba mẹ chỉnh được số phút mỗi lần mở khoá ở *For parents → Play time* (5–30 phút).
+
+### Trang của ba mẹ trên điện thoại
+
+Trang `parent.html` dành cho điện thoại của ba mẹ. Trên đó ba mẹ:
+- Thấy các việc bé vừa tích đang chờ, bấm **Yes**, **Not yet** hoặc **Yes to all**.
+- Xem toàn bộ việc hôm nay và trạng thái từng việc; đánh dấu đạt cả những việc bé quên tích; hoàn tác một xác nhận.
+- Đổi hôm nay thành ngày đi học hoặc ngày nghỉ.
+- Giao việc thêm (phơi đồ, gấp đồ…).
+- Thưởng hoặc trừ sao.
+- Đổi chữ trên trang sang tiếng Việt bằng nút 🇻🇳 ở cuối trang.
+
+iPad và điện thoại nối với nhau qua một cơ sở dữ liệu trực tuyến miễn phí (Firebase Realtime Database). iPad đồng bộ khoảng 5 giây một lần khi ứng dụng đang mở và có mạng. **Khi chưa cài đặt phần này, ba mẹ vẫn xác nhận được ngay trên iPad.**
+
+**Cài đặt một lần (khoảng 10 phút):**
+
+1. Mở https://console.firebase.google.com, đăng nhập bằng tài khoản Google, bấm **Create a project** (đặt tên bất kỳ, có thể tắt Google Analytics).
+2. Ở menu bên trái chọn **Build → Realtime Database → Create Database**. Chọn vị trí gần Việt Nam (Singapore), rồi chọn **Start in locked mode**.
+3. Mở tab **Rules**, xoá nội dung cũ, dán đoạn dưới đây rồi bấm **Publish**:
+   ```json
+   {
+     "rules": {
+       "families": {
+         "$code": { ".read": true, ".write": true }
+       }
+     }
+   }
+   ```
+4. Mở tab **Data**, chép địa chỉ ở đầu trang. Nó có dạng `https://ten-du-an-default-rtdb.asia-southeast1.firebasedatabase.app`.
+5. Trên iPad: giữ nút **For parents** 2 giây → mục **Parent phone** → dán địa chỉ vào ô *Database URL*. Ứng dụng tự tạo *Family code* và báo “Connected”.
+6. Bấm **Share link**, gửi đường link sang điện thoại của ba mẹ (AirDrop, Zalo, tin nhắn…) và mở link đó. Có thể thêm trang này vào Màn hình chính của điện thoại.
+
+Về bảo mật: với quy tắc ở bước 3, chỉ người biết mã gia đình (12 ký tự ngẫu nhiên, nằm trong đường link) mới đọc và ghi được dữ liệu, và không ai liệt kê được các mã. Dữ liệu gửi lên chỉ gồm tên gọi ở nhà của bé, danh sách việc trong ngày, trạng thái từng việc và số sao. Đừng chia sẻ đường link cho người ngoài.
+
+Phần đồng bộ mới được kiểm thử với một máy chủ giả lập cùng giao thức, chưa chạy với một dự án Firebase thật.
+
 ### Các phần học
 
 **👧 Bé Tự Lập**: các việc trong ngày, có lịch riêng cho **ngày đi học** và **ngày nghỉ**. Bé chạm vào từng việc để nghe hướng dẫn từng bước và tiêu chí đạt, làm xong thì bấm “Con làm xong rồi!” để nhận sao. Danh sách được làm mới mỗi ngày.
@@ -52,14 +98,15 @@ Phần mô tả dưới đây dùng tên tiếng Việt của các mục cho d�
 - 🌟 **Tập thêm cho quen tay** (không tính sao): mặc quần áo, mang giày dép, xếp quần áo, trò dọn đồ chơi, rửa tay 8 bước, đánh răng 2 phút.
 
 **📝 Bài tập hôm nay**: mỗi ngày ứng dụng chọn sẵn một số bài, đổi theo ngày và xoay vòng qua ba nhóm (viết, số, khám phá). Chỉ những bài này mới được sao.
-- Ngày đi học có 3 bài. Ngày nghỉ có gấp đôi, tức 6 bài.
-- **Mỗi bài làm 10 phút**, bằng khoảng thời gian bé tập trung được. Bé trả lời liên tục (hoặc tô liên tục các chữ kế tiếp) cho tới khi đủ giờ; trên màn hình có thanh thời gian.
-- Đồng hồ chỉ chạy khi bé đang làm: quá 45 giây không chạm màn hình thì tạm dừng và bạn Thỏ nhắc bé làm tiếp. Bé cũng phải làm đúng ít nhất 10 câu (hoặc tô đạt 10 chữ) thì bài mới tính xong.
+- Ngày đi học có 1 bài. Ngày nghỉ có gấp đôi, tức 2 bài.
+- Bài tập cũng bị khoá như trò chơi: bé chỉ làm được trong 10 phút mở khoá sau mỗi buổi.
+- **Mỗi bài làm 8 phút**, để vừa trong một lần mở khoá 10 phút. Bé trả lời liên tục (hoặc tô liên tục các chữ kế tiếp) cho tới khi đủ giờ; trên màn hình có thanh thời gian.
+- Đồng hồ chỉ chạy khi bé đang làm: quá 45 giây không chạm màn hình thì tạm dừng và bạn Thỏ nhắc bé làm tiếp. Bé cũng phải làm đúng ít nhất 8 câu (hoặc tô đạt 8 chữ) thì bài mới tính xong.
 - Bé rời bài giữa chừng thì thời gian đã làm vẫn được giữ lại trong ngày.
 - Chơi thêm ngoài bài tập (vào thẳng Tập Viết, Học Đếm, Học Toán, Khám Phá) thì mỗi lượt vẫn là 5 câu và không tính sao, nên sao không bị “lạm phát”.
-- Ba mẹ chỉnh được số bài mỗi ngày (0–5), số phút mỗi bài (3–20), hệ số ngày nghỉ (1, 2 hoặc 3 lần) và bật, tắt từng loại bài.
+- Ba mẹ chỉnh được số bài mỗi ngày (0–5), số phút mỗi bài (3–15), hệ số ngày nghỉ (1, 2 hoặc 3 lần) và bật, tắt từng loại bài.
 
-Có 14 loại bài tập, mỗi bài làm trong 10 phút:
+Có 14 loại bài tập, mỗi bài làm trong 8 phút:
 
 | Nhóm | Bài tập | Bé làm gì |
 |---|---|---|
@@ -110,21 +157,21 @@ Luật nhận sao mặc định (ba mẹ chỉnh được từng mục, từ 0 �
 
 | Bé làm gì | Sao |
 |---|---|
-| 👧 Tự làm xong 1 việc trong ngày | +1 ⭐ |
-| 🥄 Tự xúc ăn hết 1 bữa trong 45 phút | +3 ⭐ |
-| 🏅 Làm hết việc của 1 buổi | +1 ⭐ thưởng |
+| 👧 Tự làm xong 1 việc, ba mẹ xác nhận | +1 ⭐ |
+| 🥄 Tự xúc ăn hết 1 bữa trong 45 phút, ba mẹ xác nhận | +3 ⭐ |
+| 🏅 Ba mẹ xác nhận hết việc của 1 buổi | +1 ⭐ thưởng và 10 phút chơi |
 | 👕 Ba mẹ nhờ: phơi đồ | +2 ⭐ |
 | 🧺 Ba mẹ nhờ: gấp đồ | +2 ⭐ |
-| 📝 Làm xong 1 bài tập hôm nay (10 phút) | +1 ⭐ |
+| 📝 Làm xong 1 bài tập hôm nay (8 phút, trong giờ chơi) | +1 ⭐ |
 | 🎓 Làm hết bài tập hôm nay | +1 ⭐ thưởng |
 
 Với luật mặc định:
 
 | | Tự lập | Bài tập | Tổng |
 |---|---|---|---|
-| Một ngày đi học hoàn hảo | 14 ⭐ | 4 ⭐ (3 bài + thưởng) | 18 ⭐ |
-| Một ngày nghỉ hoàn hảo | 20 ⭐ | 7 ⭐ (6 bài + thưởng) | 27 ⭐ |
-| Một tuần hoàn hảo (5 ngày đi học, 2 ngày nghỉ) | 110 ⭐ | 34 ⭐ | 144 ⭐ |
+| Một ngày đi học hoàn hảo | 14 ⭐ | 2 ⭐ (1 bài + thưởng) | 16 ⭐ |
+| Một ngày nghỉ hoàn hảo | 20 ⭐ | 3 ⭐ (2 bài + thưởng) | 23 ⭐ |
+| Một tuần hoàn hảo (5 ngày đi học, 2 ngày nghỉ) | 110 ⭐ | 16 ⭐ | 126 ⭐ |
 
 - Chưa tính việc ba mẹ giao thêm. Góc ba mẹ tự tính lại các con số này khi ba mẹ đổi luật, và ước tính mỗi món quà cần bao nhiêu tuần.
 - Mục **Đổi quà** cho bé thấy còn thiếu bao nhiêu sao cho từng món quà, kèm bảng “Làm gì thì được sao?”.
@@ -167,7 +214,8 @@ python3 -m http.server 8000
 
 ```
 be-vui-hoc/
-├── index.html            # khung trang
+├── index.html            # khung trang (ứng dụng của bé)
+├── parent.html           # trang của ba mẹ trên điện thoại
 ├── manifest.webmanifest  # thông tin cài đặt PWA
 ├── sw.js                 # lưu ứng dụng để chạy ngoại tuyến
 ├── css/style.css         # giao diện
@@ -188,6 +236,10 @@ be-vui-hoc/
     ├── explore.js        # Khám Phá: ngày tháng, ngày đêm, trái phải
     ├── rewards.js        # Đổi quà và bảng luật nhận sao
     ├── homework.js       # Bài tập hôm nay
+    ├── approve.js        # Ba mẹ xác nhận việc, thưởng sao, cấp vé chơi
+    ├── playtime.js       # Khoá trò chơi, giờ chơi 10 phút
+    ├── sync.js           # Đồng bộ iPad với điện thoại ba mẹ (Firebase REST)
+    ├── parent.js         # Trang của ba mẹ trên điện thoại (parent.html)
     └── parents.js        # Góc ba mẹ
 ```
 

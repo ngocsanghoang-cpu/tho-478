@@ -45,6 +45,11 @@ let life = { alive: true };
 
 export function register(name, def) { screens[name] = def; }
 
+let wantRefresh = false;
+let guard = null;
+/** Đặt hàm chặn điều hướng: fn(name, params) trả về false thì không vào màn hình đó (dùng để khoá trò chơi). */
+export function setGuard(fn) { guard = fn; }
+
 const navHooks = [];
 /** Gọi fn mỗi khi chuyển màn hình (trước khi màn hình mới hiện ra). */
 export function onNavigate(fn) { navHooks.push(fn); }
@@ -56,6 +61,7 @@ export const currentScreen = () => cur && cur.name;
 export function go(name, params = {}) {
   const def = screens[name];
   if (!def) { console.warn('Không có màn hình', name); return; }
+  if (guard && !guard(name, params)) return;
   life.alive = false;
   life = { alive: true };
   stopSpeech();
@@ -78,6 +84,13 @@ export function go(name, params = {}) {
 
   const cleanup = def.render(root, params);
   cur.cleanup = typeof cleanup === 'function' ? cleanup : null;
+}
+
+/** Vẽ lại màn hình hiện tại nếu nó thuộc danh sách names (khi dữ liệu thay đổi từ bên ngoài). */
+export function refresh(names) {
+  if (!cur || (names && !names.includes(cur.name))) return;
+  if (openJob) { wantRefresh = true; return; } // đang có hộp thoại: vẽ lại ngay khi hộp thoại đóng
+  go(cur.name, cur.params);
 }
 
 export function back() {
@@ -234,7 +247,10 @@ function pump() {
     ov.classList.remove('show');
     ov.innerHTML = '';
     job.resolve(v);
-    setTimeout(pump, 120);
+    setTimeout(() => {
+      pump();
+      if (!openJob && wantRefresh) { wantRefresh = false; if (cur) go(cur.name, cur.params); }
+    }, 120);
   };
   ov.innerHTML = '';
   ov.append(h('div', { class: 'dialog' }, job.build(close)));

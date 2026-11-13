@@ -8,6 +8,8 @@ import { ROUTINES, routineCount, choreName, maxSelfcare } from './selfcare.js';
 import { SETS, starsOf } from './writing.js';
 import { getVoices, langVoices, voiceGender, voiceAdvice, onVoicesChanged, configureSpeech, currentVoice } from './speech.js';
 import { setSoundEnabled } from './sound.js';
+import { pendingList, todayTaskList, statusOf, decideAndTell } from './approve.js';
+import { syncOn, syncNow, syncState, resetSync, newFamilyCode, parentLink, pushSet } from './sync.js';
 
 register('parents', {
   title: () => L('Góc ba mẹ', 'For parents'), parent: 'home', theme: 'var(--purple)',
@@ -154,7 +156,7 @@ register('parents', {
       todayChips.innerHTML = '';
       const school = isSchoolDay();
       [[true, L('🏫 Ngày đi học', '🏫 School day')], [false, L('🎈 Ngày nghỉ', '🎈 Day off')]].forEach(([v, label]) =>
-        todayChips.append(h('button', { class: 'chip big' + (school === v ? ' on' : ''), onClick: () => { setTodaySchool(v); go('parents'); } }, label)));
+        todayChips.append(h('button', { class: 'chip big' + (school === v ? ' on' : ''), onClick: () => { setTodaySchool(v); pushSet('type', v ? 'school' : 'off'); go('parents'); } }, label)));
     };
     drawToday();
 
@@ -164,9 +166,9 @@ register('parents', {
     hwCount.value = String(d.hw.count);
     hwCount.addEventListener('change', () => { d.hw.count = +hwCount.value; store.save(); drawSummary(); drawGifts(); });
     const hwMins = h('select');
-    [3, 5, 10, 15, 20].forEach((v) => hwMins.append(h('option', { value: v }, L(`${v} phút`, `${v} minutes`))));
-    if (![3, 5, 10, 15, 20].includes(+d.hw.minutes)) hwMins.append(h('option', { value: d.hw.minutes }, L(`${d.hw.minutes} phút`, `${d.hw.minutes} minutes`)));
-    hwMins.value = String(d.hw.minutes || 10);
+    [3, 5, 8, 10, 15].forEach((v) => hwMins.append(h('option', { value: v }, L(`${v} phút`, `${v} minutes`))));
+    if (![3, 5, 8, 10, 15].includes(+d.hw.minutes)) hwMins.append(h('option', { value: d.hw.minutes }, L(`${d.hw.minutes} phút`, `${d.hw.minutes} minutes`)));
+    hwMins.value = String(d.hw.minutes || 8);
     hwMins.addEventListener('change', () => { d.hw.minutes = +hwMins.value; store.save(); });
     const hwMult = h('select');
     [1, 2, 3].forEach((v) => hwMult.append(h('option', { value: v }, v === 1 ? L('Bằng ngày đi học', 'Same as school days') : L(`Gấp ${v} lần`, `${v} times as many`))));
@@ -182,6 +184,58 @@ register('parents', {
     };
     drawTypes();
 
+    // Xác nhận việc bé đã tích (làm ngay trên iPad; trên điện thoại thì dùng trang parent.html)
+    const checkBox = h('div');
+    const drawCheck = () => {
+      checkBox.innerHTML = '';
+      const pend = pendingList();
+      const all = todayTaskList();
+      const okCount = all.filter((t) => statusOf(t.key) === 'ok').length;
+      if (!pend.length) checkBox.append(h('p', { style: muted, text: L(`Không có việc nào đang chờ. Hôm nay đã xác nhận ${okCount}/${all.length} việc.`, `Nothing is waiting. ${okCount} of ${all.length} jobs checked today.`) }));
+      pend.forEach((t) => checkBox.append(h('div', { class: 'gift-row' },
+        h('span', { class: 'rule-emo', text: t.e }),
+        h('span', { class: 'rule-text', text: `${t.t} · +${t.stars} ⭐` }),
+        h('button', { class: 'btn green small', onClick: () => { decideAndTell([{ key: t.key, ok: true }]); drawCheck(); drawSummary(); } }, L('✅ Đạt', '✅ Yes')),
+        h('button', { class: 'btn ghost small', onClick: () => { decideAndTell([{ key: t.key, ok: false }]); drawCheck(); } }, L('Chưa đạt', 'Not yet')))));
+      if (pend.length > 1) checkBox.append(h('button', { class: 'btn green', onClick: () => { decideAndTell(pend.map((t) => ({ key: t.key, ok: true }))); drawCheck(); drawSummary(); } }, L('✅ Đạt tất cả', '✅ Yes to all')));
+    };
+
+    // Kết nối với điện thoại ba mẹ
+    const syncUrl = h('input', { type: 'text', value: d.sync.url, placeholder: 'https://…firebasedatabase.app', autocapitalize: 'off', autocomplete: 'off' });
+    const syncCode = h('input', { type: 'text', value: d.sync.code, placeholder: L('Mã gia đình', 'Family code'), autocapitalize: 'off', autocomplete: 'off' });
+    const syncInfo = h('p', { style: muted });
+    const linkBox = h('div');
+    const drawSync = async (test) => {
+      linkBox.innerHTML = '';
+      if (!syncOn()) { syncInfo.textContent = L('Chưa kết nối. Khi chưa kết nối, ba mẹ xác nhận việc ngay trên iPad ở ô phía trên.', 'Not connected. Until then, check the jobs right here on the iPad, in the box above.'); return; }
+      if (test) { syncInfo.textContent = L('Đang thử kết nối…', 'Testing the connection…'); await syncNow(); }
+      syncInfo.textContent = syncState.ok === false
+        ? L(`⚠️ Không kết nối được (${syncState.error}). Kiểm tra mạng, địa chỉ và quy tắc (Rules) của cơ sở dữ liệu.`, `⚠️ Cannot connect (${syncState.error}). Check the network, the URL and the database rules.`)
+        : syncState.ok ? L('✅ Đã kết nối. Mở đường link dưới đây trên điện thoại của ba mẹ.', "✅ Connected. Open the link below on the parent's phone.") : L('Đang kết nối…', 'Connecting…');
+      const link = parentLink();
+      linkBox.append(
+        h('p', { style: { ...muted, wordBreak: 'break-all', userSelect: 'text', WebkitUserSelect: 'text' }, text: link }),
+        h('div', { class: 'row', style: { justifyContent: 'flex-start' } },
+          h('button', { class: 'btn purple small', onClick: async () => {
+            try { if (navigator.share) await navigator.share({ title: 'Happy Learning – Parents', url: link }); else { await navigator.clipboard.writeText(link); alert(L('Đã chép đường link.', 'Link copied.')); } } catch (e) { /* người dùng huỷ */ }
+          } }, L('📤 Gửi link sang điện thoại', '📤 Share link')),
+          h('button', { class: 'btn ghost small', onClick: () => drawSync(true) }, L('🔄 Thử kết nối', '🔄 Test connection'))));
+    };
+    const saveSync = () => {
+      d.sync.url = syncUrl.value.trim();
+      d.sync.code = syncCode.value.trim();
+      if (d.sync.url && !d.sync.code) { d.sync.code = newFamilyCode(); syncCode.value = d.sync.code; }
+      store.save(); resetSync(); drawSync(true);
+    };
+    syncUrl.addEventListener('change', saveSync);
+    syncCode.addEventListener('change', saveSync);
+
+    const playSel = h('select');
+    [5, 10, 15, 20, 30].forEach((v) => playSel.append(h('option', { value: v }, L(`${v} phút`, `${v} minutes`))));
+    if (![5, 10, 15, 20, 30].includes(+d.playMinutes)) playSel.append(h('option', { value: d.playMinutes }, L(`${d.playMinutes} phút`, `${d.playMinutes} minutes`)));
+    playSel.value = String(d.playMinutes);
+    playSel.addEventListener('change', () => store.set({ playMinutes: +playSel.value }));
+
     // Việc ba mẹ giao thêm (phơi đồ, gấp đồ…)
     const choreBox = h('div');
     const drawChores = () => {
@@ -196,6 +250,7 @@ register('parents', {
         name.addEventListener('change', () => { c.name = name.value.trim(); c.key = ''; store.save(); });
         const give = h('button', { class: 'btn small ' + (on ? 'green' : 'ghost'), onClick: () => { toggleAsk(c.id); drawChores(); } },
           on ? L('✅ Đã giao hôm nay', '✅ Assigned today') : L('Giao hôm nay', 'Assign today'));
+        give.addEventListener('click', () => pushSet(`asks/${c.id}`, !on));
         const del = h('button', { class: 'btn ghost small', onClick: () => {
           if (confirm(L('Xoá việc này?', 'Delete this job?'))) { d.chores.splice(i, 1); store.save(); drawChores(); }
         } }, '🗑️');
@@ -211,12 +266,18 @@ register('parents', {
 
     const adj = h('input', { type: 'number', class: 'cost', min: 1, max: 999, value: 5, inputmode: 'numeric' });
     const adjust = (sign) => { adjustStars(sign * Math.max(1, Math.round(+adj.value) || 1)); updateStars(true); drawSummary(); };
-    drawGifts(); drawRules(); drawSummary();
+    drawGifts(); drawRules(); drawSummary(); drawCheck(); drawSync(false);
 
     const stat = (num, label) => h('div', { class: 'stat' }, h('b', { text: num }), h('span', { text: label }));
     const traced = (set) => `${SETS()[set].chars.filter((c) => starsOf(set, c)).length}/${SETS()[set].chars.length}`;
 
     root.append(h('div', { class: 'parents' },
+      h('div', { class: 'box' },
+        h('h3', { text: L('✅ Xác nhận việc bé đã làm', "✅ Check today's jobs") }),
+        h('p', { style: muted, text: L('Bé tích việc đã làm, ba mẹ kiểm tra thực tế rồi bấm Đạt thì bé mới được sao. Xác nhận hết việc của một buổi thì bé được mở khoá chơi.',
+          'Your child ticks each job. You check it for real and tap Yes, and only then are the stars added. When every job of a session is checked, play time unlocks.') }),
+        checkBox),
+
       h('div', { class: 'box' },
         h('h3', { text: L('🌐 Ngôn ngữ', '🌐 Language') }),
         langBtns,
@@ -226,6 +287,20 @@ register('parents', {
         h('h3', { text: L('👧 Thông tin bé', '👧 About your child') }),
         h('div', { class: 'field' }, h('label', { text: L('Tên gọi ở nhà', 'Nickname') }), nameInput),
         h('p', { style: muted, text: L('Bạn Thỏ sẽ gọi tên bé khi khen.', 'Bunny will say your child’s name when praising.') })),
+
+      h('div', { class: 'box' },
+        h('h3', { text: L('📱 Điện thoại của ba mẹ', '📱 Parent phone') }),
+        h('p', { style: muted, text: L('Để xác nhận từ điện thoại, cần một cơ sở dữ liệu Firebase miễn phí (xem hướng dẫn trong README). Dán địa chỉ vào ô dưới; mã gia đình sẽ được tạo tự động.',
+          'To check jobs from your phone you need a free Firebase database (see the README). Paste its URL below; a family code is created for you.') }),
+        h('div', { class: 'field' }, h('label', { text: L('Địa chỉ cơ sở dữ liệu', 'Database URL') }), syncUrl),
+        h('div', { class: 'field' }, h('label', { text: L('Mã gia đình', 'Family code') }), syncCode),
+        syncInfo, linkBox),
+
+      h('div', { class: 'box' },
+        h('h3', { text: L('🎮 Giờ chơi', '🎮 Play time') }),
+        h('div', { class: 'field' }, h('label', { text: L('Mỗi lần mở khoá', 'Each unlock lasts') }), playSel),
+        h('p', { style: muted, text: L('Trò chơi và bài tập luôn bị khoá. Mỗi khi ba mẹ xác nhận bé làm xong hết việc của một buổi, bé được một lần mở khoá. Hết giờ là khoá lại.',
+          'Games and exercises are always locked. Each time you confirm that every job of a session is done, your child gets one unlock. When time is up, everything locks again.') })),
 
       h('div', { class: 'box' },
         h('h3', { text: L('📅 Hôm nay', '📅 Today') }),
@@ -253,8 +328,8 @@ register('parents', {
         h('div', { class: 'rule-row' }, h('span', { class: 'rule-emo', text: '📝' }),
           h('span', { class: 'rule-text', text: L('Số bài tập mỗi ngày đi học. Chơi thêm ngoài bài tập không tính sao.', 'Exercises per school day. Extra play earns no stars.') }), hwCount),
         h('div', { class: 'rule-row' }, h('span', { class: 'rule-emo', text: '⏱️' }),
-          h('span', { class: 'rule-text', text: L('Mỗi bài bé phải làm trong bao lâu (đồng hồ chỉ chạy khi bé đang làm, ngồi không quá 45 giây thì tạm dừng)',
-            'How long each exercise takes (the clock only runs while your child is working; it pauses after 45 idle seconds)') }), hwMins),
+          h('span', { class: 'rule-text', text: L('Mỗi bài bé phải làm trong bao lâu. Nên ngắn hơn giờ chơi, vì bài tập chỉ làm được trong lúc mở khoá.',
+            'How long each exercise takes. Keep it shorter than the play time, because exercises only open during an unlock.') }), hwMins),
         h('div', { class: 'rule-row' }, h('span', { class: 'rule-emo', text: '🎈' }),
           h('span', { class: 'rule-text', text: L('Số bài tập vào ngày nghỉ', 'Exercises on days off') }), hwMult),
         h('p', { style: muted, text: L('Các loại bài được đưa vào bài tập (bấm để bật hoặc tắt):', 'Exercise types to include (tap to turn on or off):') }),

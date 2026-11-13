@@ -20,9 +20,9 @@ export function rewardName(r) {
 export function ruleRows() {
   const r = store.data.rules;
   return [
-    ['task', '👧', L('Tự làm xong 1 việc trong ngày', 'Do 1 daily job by yourself'), r.task],
-    ['meal', '🥄', L('Tự xúc ăn hết 1 bữa trong 45 phút', 'Feed yourself and finish a meal in 45 minutes'), r.meal],
-    ['routine', '🏅', L('Làm hết việc của 1 buổi', 'Finish all the jobs of one part of the day'), r.routine],
+    ['task', '👧', L('Tự làm xong 1 việc, ba mẹ xác nhận', 'Do 1 job by yourself, checked by Mom or Dad'), r.task],
+    ['meal', '🥄', L('Tự xúc ăn hết 1 bữa trong 45 phút, ba mẹ xác nhận', 'Finish a meal by yourself in 45 minutes, checked by Mom or Dad'), r.meal],
+    ['routine', '🏅', L('Ba mẹ xác nhận hết việc của 1 buổi (và được chơi)', 'All jobs of a session checked (plus play time)'), r.routine],
     ['exercise', '📝', L('Làm xong 1 bài tập hôm nay', "Finish 1 of today's exercises"), r.exercise],
     ['allDone', '🎓', L('Làm hết bài tập hôm nay', "Finish all of today's exercises"), r.allDone],
   ];
