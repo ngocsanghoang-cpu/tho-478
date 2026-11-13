@@ -1,6 +1,7 @@
 // GÓC BA MẸ – ngôn ngữ, giọng đọc, tên bé, giờ nghỉ, xem tiến độ
 import { register, go, h, say, updateStars } from './ui.js';
-import { store, resetProgress, unlockedCount, STICKERS } from './store.js';
+import { store, resetProgress, unlockedCount, STICKERS, adjustStars } from './store.js';
+import { rewardName, ruleRows, maxSelfcarePerDay, maxPerDay } from './rewards.js';
 import { L, lang, setLang } from './i18n.js';
 import { ROUTINES, routineCount } from './selfcare.js';
 import { SETS, starsOf } from './writing.js';
@@ -85,6 +86,69 @@ register('parents', {
     const off = onVoicesChanged(() => { fillVoices(); renderVoiceInfo(); });
     const t = setTimeout(() => { fillVoices(); renderVoiceInfo(); }, 800);
 
+    /* ----- Quà và sao ----- */
+    const EMOJIS = ['🎡', '🧸', '🎠', '🎢', '🍦', '🧁', '🍕', '🎬', '🏊', '🏖️', '🚲', '🎨', '📚', '👗', '🦄', '🪆', '🎈', '🎁'];
+    const giftBox = h('div');
+    const rulesBox = h('div');
+    const sumBox = h('p', { class: 'warn' });
+    const balance = h('b');
+    const drawSummary = () => {
+      const self = maxSelfcarePerDay();
+      const cap = +d.rules.dailyCap || 0;
+      balance.textContent = `${d.stars} ⭐`;
+      sumBox.textContent = cap
+        ? L(`Với luật này, một ngày bé làm hết mọi việc sẽ được tối đa ${self + cap} ⭐ (tự lập ${self} ⭐ + học ${cap} ⭐), tức khoảng ${(self + cap) * 7} ⭐ mỗi tuần.`,
+          `With these rules, a perfect day earns up to ${self + cap} ⭐ (own jobs ${self} ⭐ + learning ${cap} ⭐), about ${(self + cap) * 7} ⭐ a week.`)
+        : L(`Tự lập tối đa ${self} ⭐ mỗi ngày. Sao học đang không giới hạn, nên bé có thể gom sao rất nhanh bằng cách chơi nhiều.`,
+          `Own jobs earn up to ${self} ⭐ a day. Learning stars have no limit, so stars can pile up quickly through play.`);
+    };
+    const drawGifts = () => {
+      giftBox.innerHTML = '';
+      const per = maxPerDay();
+      d.rewards.forEach((r, i) => {
+        const emo = h('select', { class: 'emo-sel' }, [...new Set([r.emoji, ...EMOJIS])].map((e) => h('option', { value: e }, e)));
+        emo.value = r.emoji;
+        emo.addEventListener('change', () => { r.emoji = emo.value; store.save(); });
+        const name = h('input', { type: 'text', value: rewardName(r), maxlength: 40 });
+        name.addEventListener('change', () => { r.name = name.value.trim(); r.key = ''; store.save(); });
+        const cost = h('input', { type: 'number', class: 'cost', min: 1, max: 9999, value: r.cost, inputmode: 'numeric' });
+        cost.addEventListener('change', () => { r.cost = Math.min(9999, Math.max(1, Math.round(+cost.value) || 1)); store.save(); drawGifts(); });
+        const del = h('button', { class: 'btn ghost small', onClick: () => {
+          if (confirm(L('Xoá món quà này?', 'Delete this reward?'))) { d.rewards.splice(i, 1); store.save(); drawGifts(); }
+        } }, '🗑️');
+        const days = per === Infinity ? '' : L(`≈ ${Math.ceil(r.cost / per)} ngày nếu bé làm hết mọi việc`, `≈ ${Math.ceil(r.cost / per)} perfect days`);
+        giftBox.append(h('div', { class: 'gift-row' }, emo, name, cost, h('span', { text: '⭐' }), del, h('span', { class: 'gift-est', text: days })));
+      });
+      giftBox.append(h('button', { class: 'btn pink small', onClick: () => {
+        d.rewards.push({ id: 'r' + Date.now(), emoji: '🎁', key: '', name: L('Quà mới', 'New reward'), cost: 50 });
+        store.save(); drawGifts();
+      } }, L('➕ Thêm quà', '➕ Add a reward')));
+    };
+    const stepper = (get, set) => {
+      const val = h('b', { class: 'step-val', text: get() });
+      const mk = (delta, label) => h('button', { class: 'btn ghost small', onClick: () => {
+        set(Math.min(10, Math.max(0, get() + delta))); val.textContent = get(); store.save(); drawSummary(); drawGifts();
+      } }, label);
+      return h('span', { class: 'stepper' }, mk(-1, '−'), val, mk(1, '+'));
+    };
+    const drawRules = () => {
+      rulesBox.innerHTML = '';
+      ruleRows().forEach(([key, emo, text]) => rulesBox.append(h('div', { class: 'rule-row' },
+        h('span', { class: 'rule-emo', text: emo }), h('span', { class: 'rule-text', text }),
+        stepper(() => +d.rules[key] || 0, (v) => { d.rules[key] = v; }), h('span', { text: '⭐' }))));
+      const capSel = h('select');
+      [0, 5, 10, 15, 20, 30, 50].forEach((v) => capSel.append(h('option', { value: v }, v ? `${v} ⭐` : L('Không giới hạn', 'No limit'))));
+      capSel.value = String(d.rules.dailyCap);
+      capSel.addEventListener('change', () => { d.rules.dailyCap = +capSel.value; store.save(); drawSummary(); drawGifts(); });
+      rulesBox.append(h('div', { class: 'rule-row' },
+        h('span', { class: 'rule-emo', text: '🌙' }),
+        h('span', { class: 'rule-text', text: L('Sao HỌC tối đa mỗi ngày (bài học, tô chữ, kỹ năng). Sao tự lập không bị giới hạn.', 'Most LEARNING stars per day (lessons, tracing, skills). Stars for own jobs are never limited.') }),
+        capSel));
+    };
+    const adj = h('input', { type: 'number', class: 'cost', min: 1, max: 999, value: 5, inputmode: 'numeric' });
+    const adjust = (sign) => { adjustStars(sign * Math.max(1, Math.round(+adj.value) || 1)); updateStars(true); drawSummary(); };
+    drawGifts(); drawRules(); drawSummary();
+
     const stat = (num, label) => h('div', { class: 'stat' }, h('b', { text: num }), h('span', { text: label }));
     const traced = (set) => `${SETS()[set].chars.filter((c) => starsOf(set, c)).length}/${SETS()[set].chars.length}`;
 
@@ -98,6 +162,22 @@ register('parents', {
         h('h3', { text: L('👧 Thông tin bé', '👧 About your child') }),
         h('div', { class: 'field' }, h('label', { text: L('Tên gọi ở nhà', 'Nickname') }), nameInput),
         h('p', { style: muted, text: L('Bạn Thỏ sẽ gọi tên bé khi khen.', 'Bunny will say your child’s name when praising.') })),
+
+      h('div', { class: 'box' },
+        h('h3', { text: L('🎁 Quà của bé', '🎁 Rewards') }),
+        h('p', { style: muted, text: L('Bé gom sao để đổi quà. Ba mẹ đặt tên quà và số sao cần có. Khi bé bấm Đổi quà, ba mẹ giữ nút 2 giây để đồng ý rồi sao mới bị trừ.',
+          'Your child saves stars for rewards. Set each reward and its price. When she taps Get it, a parent holds a button for 2 seconds to agree before the stars are spent.') }),
+        giftBox),
+
+      h('div', { class: 'box' },
+        h('h3', { text: L('⭐ Luật nhận sao', '⭐ Star rules') }),
+        rulesBox,
+        sumBox,
+        h('div', { class: 'field' },
+          h('label', null, L('Bé đang có ', 'Current stars: '), balance), adj,
+          h('button', { class: 'btn green small', onClick: () => adjust(1) }, L('➕ Thưởng thêm', '➕ Give bonus')),
+          h('button', { class: 'btn ghost small', onClick: () => adjust(-1) }, L('➖ Trừ bớt', '➖ Take away'))),
+        h('p', { style: muted, text: L('Dùng “Thưởng thêm” khi bé làm việc tốt ngoài ứng dụng (ví dụ: giúp ba mẹ dọn nhà).', 'Use “Give bonus” for good deeds outside the app (for example, helping around the house).') })),
 
       h('div', { class: 'box' },
         h('h3', { text: L('🔊 Giọng nói hướng dẫn', '🔊 Voice') }),
@@ -115,7 +195,9 @@ register('parents', {
       h('div', { class: 'box' },
         h('h3', { text: L('📈 Tiến độ của bé', '📈 Progress') }),
         h('div', { class: 'stat-grid' },
-          stat(d.stars, L('⭐ Tổng số sao', '⭐ Total stars')),
+          stat(d.stars, L('⭐ Sao đang có', '⭐ Stars now')),
+          stat(d.earned, L('🌟 Tổng sao đã nhận', '🌟 Stars earned in all')),
+          stat(d.redeemed.length, L('🎁 Quà đã đổi', '🎁 Rewards redeemed')),
           stat(`${unlockedCount()}/${STICKERS.length}`, L('🎁 Nhãn dán', '🎁 Stickers')),
           stat(traced('lower'), '✏️ ' + SETS().lower.title),
           stat(traced('upper'), '✏️ ' + SETS().upper.title),

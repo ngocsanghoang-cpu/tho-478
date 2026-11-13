@@ -10,6 +10,7 @@ import './writing.js';
 import './counting.js';
 import './math.js';
 import './explore.js';
+import { rewardName } from './rewards.js';
 import './parents.js';
 
 document.documentElement.lang = lang();
@@ -66,6 +67,14 @@ register('home', {
     const done = routineCount(kind);
     const total = R.tasks.length;
 
+    // Món quà gần nhất bé đang gom sao để đổi
+    const stars = store.data.stars;
+    const gifts = store.data.rewards.filter((r) => r.cost > 0).sort((a, b) => a.cost - b.cost);
+    const goal = gifts.find((r) => stars < r.cost) || gifts[gifts.length - 1];
+    const goalText = !goal ? L('Gom sao để đổi quà', 'Save stars for rewards')
+      : stars >= goal.cost ? L('Đủ sao rồi! Vào đổi quà nhé', 'You have enough stars!')
+        : L(`Còn ${goal.cost - stars} ⭐ nữa: ${rewardName(goal)}`, `${goal.cost - stars} ⭐ to go: ${rewardName(goal)}`);
+
     const parentsBtn = h('button', { class: 'card white hold-ring' },
       h('span', { class: 'emo', text: '👨‍👩‍👧' }),
       h('span', null, h('span', { class: 'lbl', text: L('Góc ba mẹ', 'For parents') }), h('br'), h('span', { class: 'sub', text: L('Giữ 2 giây để vào', 'Hold for 2 seconds') })));
@@ -84,8 +93,12 @@ register('home', {
         menuCard({ emoji: '🔢', label: L('Học Đếm', 'Counting'), sub: L('Đếm, so sánh, tìm số', 'Count, compare, find'), color: 'blue', onClick: () => go('counting') }),
         menuCard({ emoji: '🧮', label: L('Học Toán', 'Math'), sub: L('Cộng, trừ, nhân, chia', 'Add, subtract, multiply, divide'), color: 'orange', onClick: () => go('math') }),
         menuCard({ emoji: '🌈', label: L('Khám Phá', 'Explore'), sub: L('Ngày tháng, ngày đêm, trái phải', 'Dates, day and night, left and right'), color: 'green', onClick: () => go('explore') }),
-        menuCard({ emoji: '🎁', label: L('Nhãn dán', 'Stickers'), sub: `${unlockedCount()}/${STICKERS.length}`, color: 'yellow', onClick: () => go('stickers') })),
-      h('div', { class: 'home-row' }, parentsBtn)));
+        menuCard({ emoji: '🦄', label: L('Nhãn dán', 'Stickers'), sub: `${unlockedCount()}/${STICKERS.length}`, color: 'yellow', onClick: () => go('stickers') })),
+      h('div', { class: 'home-row' },
+        h('button', { class: 'card red', onClick: () => { sfx.tap(); go('rewards'); } },
+          h('span', { class: 'emo', text: goal ? goal.emoji : '🎡' }),
+          h('span', null, h('span', { class: 'lbl', text: L('Đổi quà', 'Rewards') }), h('br'), h('span', { class: 'sub', text: goalText }))),
+        parentsBtn)));
 
     if (first) {
       say(L(`${greeting()}${name ? ' ' + name : ''}! Cô là Thỏ Bông. Hôm nay con muốn học gì nào?`,
@@ -96,17 +109,17 @@ register('home', {
 
 /* ---------------- Bộ sưu tập nhãn dán ---------------- */
 register('stickers', {
-  title: () => L('Nhãn dán', 'Stickers'), parent: 'home', theme: 'var(--yellow)',
+  title: () => L('Nhãn dán', 'Stickers'), parent: 'rewards', theme: 'var(--yellow)',
   render(root) {
     const have = unlockedCount();
-    const need = have >= STICKERS.length ? 0 : STARS_PER_STICKER - (store.data.stars % STARS_PER_STICKER);
+    const need = have >= STICKERS.length ? 0 : STARS_PER_STICKER - (store.data.earned % STARS_PER_STICKER);
     const bar = h('i');
     const per = numWord(STARS_PER_STICKER);
     root.append(h('div', { class: 'menu' },
       h('div', { class: 'menu-head' },
         h('div', { style: { flex: 1 } },
           h('h2', { text: L('🎁 Nhãn dán của con', '🎁 My stickers') }),
-          h('p', { text: need ? L(`Còn ${need} ⭐ nữa để mở nhãn dán mới`, `${need} more ⭐ to unlock a new sticker`) : L('Con đã sưu tập đủ tất cả nhãn dán!', 'You collected every sticker!') }),
+          h('p', { text: need ? L(`Nhận thêm ${need} ⭐ nữa để mở nhãn dán mới (nhãn dán là quà tặng thêm, không tốn sao)`, `Earn ${need} more ⭐ to unlock a new sticker (stickers are a free bonus)`) : L('Con đã sưu tập đủ tất cả nhãn dán!', 'You collected every sticker!') }),
           h('div', { class: 'progress-bar', style: { marginTop: '10px' } }, bar))),
       h('div', { class: 'sticker-grid' }, STICKERS.map(([e, vi, en], i) => i < have
         ? h('button', { class: 'sticker', text: e, onClick: (ev) => { sfx.pop(); ev.currentTarget.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.3) rotate(10deg)' }, { transform: 'scale(1)' }], 500); say(L(vi, en)); } })

@@ -127,7 +127,7 @@ export async function roundEnd(life, again, menu) {
     emoji: '🏆', title: L('Hoàn thành!', 'Well done!'),
     text: L(`Con đã trả lời xong ${ROUND} câu!`, `You answered ${ROUND} questions!`),
     speech: L(`Hoan hô! Con đã hoàn thành ${numWord(ROUND)} câu rồi!`, `Hooray! You finished ${numWord(ROUND)} questions!`),
-    stars: 2,
+    kind: 'lesson',
     buttons: [[L('Chơi tiếp 🔁', 'Play again 🔁'), 'orange'], [L('Trò khác 🎲', 'Other games 🎲'), 'blue']],
   });
   if (!life.alive) return;

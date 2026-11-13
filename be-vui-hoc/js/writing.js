@@ -1,5 +1,5 @@
 // TẬP VIẾT – tô chữ cái (tiếng Việt hoặc tiếng Anh), chữ hoa và chữ số bằng ngón tay hoặc Apple Pencil
-import { register, go, h, say, live, sleep, giveStars, praise, confetti, toast } from './ui.js';
+import { register, go, h, say, live, sleep, award, isCapped, capNote, praise, confetti, toast } from './ui.js';
 import { sfx } from './sound.js';
 import { store, bump } from './store.js';
 import { L, isEn, byLang } from './i18n.js';
@@ -84,7 +84,7 @@ register('writing', {
       const st = starsOf(set, ch);
       return h('button', { class: 'ltile' + (st ? ' has' : ''), onClick: () => { sfx.tap(); go('trace', { set, i }); } },
         h('span', { class: 'ch', text: ch }),
-        h('span', { class: 'st', text: st ? '⭐'.repeat(st) : '' }));
+        h('span', { class: 'st', text: st ? '🌸'.repeat(st) : '' }));
     }));
     const doneCount = S.chars.filter((c) => starsOf(set, c)).length;
     root.append(h('div', { class: 'menu' },
@@ -388,7 +388,6 @@ register('trace', {
         return;
       }
 
-      const bonus = mode === 'free' ? 1 : 0;
       const key = `${set}:${ch}`;
       store.data.letters[key] = Math.max(starsOf(set, ch), stars);
       bump('write');
@@ -397,11 +396,15 @@ register('trace', {
       ['#ff6b9a', '#ffc94a', '#2ec4b6', '#4ea8de', '#9b5de5'].forEach((c, k, a) => grad.addColorStop(k / (a.length - 1), c));
       drawGuide(grad);
       if (stars === 3) confetti(30);
-      toast('⭐'.repeat(stars));
-      giveStars(stars + bonus, checkBtn);
+      // Bông hoa 🌸 = điểm tô đẹp (1–3). Ngôi sao ⭐ = phần thưởng để đổi quà, theo luật ba mẹ đặt.
+      toast('🌸'.repeat(stars));
+      const capped = isCapped('trace');
+      const got = award('trace', checkBtn);
       nextBtn.classList.add('pulse');
-      let msg = L(`${praise()} Con được ${numWord(stars)} ngôi sao.`, `${praise()} You earned ${numWord(stars)} ${stars === 1 ? 'star' : 'stars'}.`);
-      if (stars === 3 && mode === 'trace') msg += L(' Bây giờ con thử bấm Tự viết nhé!', ' Now try tapping On my own!');
+      let msg = L(`${praise()} Con tô đẹp, được ${numWord(stars)} bông hoa.`, `${praise()} Neat tracing! You get ${numWord(stars)} ${stars === 1 ? 'flower' : 'flowers'}.`);
+      if (got) msg += L(` Con nhận ${numWord(got)} ngôi sao.`, ` You earn ${numWord(got)} ${got === 1 ? 'star' : 'stars'}.`);
+      if (capped) msg += ' ' + capNote();
+      else if (stars === 3 && mode === 'trace') msg += L(' Bây giờ con thử bấm Tự viết nhé!', ' Now try tapping On my own!');
       else if (stars < 3) msg += L(' Con có thể xoá và tô lại cho đẹp hơn nữa.', ' You can clear it and trace again to make it even nicer.');
       else msg += L(' Bấm Tiếp để sang chữ mới nhé!', ' Tap Next for a new one!');
       await say(msg);

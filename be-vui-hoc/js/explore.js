@@ -1,5 +1,5 @@
 // KHÁM PHÁ – ngày tháng, ngày và đêm, bên trái và bên phải
-import { register, go, h, say, live, sleep, rand, pick, shuffle, giveStars, praise, menuCard, progressDots, toast } from './ui.js';
+import { register, go, h, say, live, sleep, rand, pick, shuffle, praise, menuCard, progressDots, toast } from './ui.js';
 import { sfx } from './sound.js';
 import { bump } from './store.js';
 import { L, isEn } from './i18n.js';
@@ -169,7 +169,6 @@ register('datequiz', {
           wrap.querySelectorAll('.ans').forEach((x) => (x.disabled = true));
           sfx.ding(); bump('explore');
           toast(praise());
-          giveStars(1, b);
           await say(L(`Đúng rồi! ${names[ans]}.`, `That's right! ${names[ans]}.`));
           q++;
           await sleep(300);
@@ -282,7 +281,6 @@ register('dnquiz', {
           wrap.querySelectorAll('.ans').forEach((x) => (x.disabled = true));
           sfx.ding(); bump('explore');
           toast(praise());
-          giveStars(1, b);
           await say(isDay ? L('Đúng rồi! Đó là ban ngày.', "That's right! That is daytime.") : L('Đúng rồi! Đó là ban đêm.', "That's right! That is nighttime."));
           q++;
           await sleep(300);
@@ -352,7 +350,6 @@ register('lrquiz', {
     async function good(el, speech) {
       sfx.ding(); bump('explore');
       toast(praise());
-      giveStars(1, el);
       await say(speech);
       q++;
       await sleep(300);

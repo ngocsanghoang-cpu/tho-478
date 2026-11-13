@@ -1,6 +1,6 @@
 // BÉ TỰ LẬP – việc buổi sáng/chiều/tối, hướng dẫn từng bước, trò chơi dọn đồ chơi
 // Ghi chú: các chuỗi dùng L(tiếng Việt, tiếng Anh); dữ liệu bọc trong byLang() để đổi ngôn ngữ được ngay.
-import { register, go, h, say, live, sleep, giveStars, praise, celebrate, menuCard, progressDots, shuffle, rand, toast } from './ui.js';
+import { register, go, h, say, live, sleep, award, praise, celebrate, menuCard, progressDots, shuffle, rand, toast } from './ui.js';
 import { sfx } from './sound.js';
 import { routineDone, markRoutine } from './store.js';
 import { L, byLang } from './i18n.js';
@@ -247,14 +247,14 @@ function openTask(kind, t) {
 /** Đánh dấu một việc đã xong + chúc mừng nếu hoàn thành cả buổi. */
 async function completeTask(kind, id, fromEl) {
   const fresh = markRoutine(kind, id);
-  if (fresh) giveStars(1, fromEl);
+  if (fresh) award('task', fromEl);
   const R = ROUTINES()[kind];
   if (fresh && routineCount(kind) === R.tasks.length) {
     await celebrate({
       emoji: { morning: '🌞', afternoon: '🏅', evening: '🌟' }[kind],
       title: L('Xong hết rồi!', 'All done!'),
       text: L(`Con đã tự làm tất cả việc ${R.title.toLowerCase()}!`, `You did all your ${R.title.toLowerCase()} jobs by yourself!`),
-      stars: 3,
+      kind: 'routine',
       buttons: [[L('Tuyệt vời! 🎉', 'Yay! 🎉'), 'green']],
     });
   }
@@ -378,7 +378,7 @@ register('guide', {
       dots.set(G.steps.length);
       toast(praise());
       const ans = await celebrate({
-        emoji: G.emoji, title: L('Hoàn thành!', 'All done!'), text: G.done, speech: G.done, stars: params.kind ? 0 : 2,
+        emoji: G.emoji, title: L('Hoàn thành!', 'All done!'), text: G.done, speech: G.done, kind: params.kind ? null : 'skill',
         buttons: [[L('Làm lại 🔁', 'Do it again 🔁'), 'orange'], [L('Xong ✅', 'Done ✅'), 'green']],
       });
       if (!life.alive) return;
@@ -515,7 +515,7 @@ register('tidy', {
       const DONE = [L('Xong ✅', 'Done ✅'), 'green'];
       const ans = await celebrate({
         emoji: '🏠', title: L('Gọn gàng quá!', 'So tidy!'), text: L('Phòng của con sạch đẹp rồi!', 'Your room is clean and neat!'),
-        speech: L('Hoan hô! Phòng của con gọn gàng sạch đẹp rồi!', 'Hooray! Your room is clean and tidy!'), stars: params.kind ? 0 : 2,
+        speech: L('Hoan hô! Phòng của con gọn gàng sạch đẹp rồi!', 'Hooray! Your room is clean and tidy!'), kind: params.kind ? null : 'skill',
         buttons: params.kind ? [DONE] : [[L('Chơi lại 🔁', 'Play again 🔁'), 'orange'], DONE],
       });
       if (!life.alive) return;

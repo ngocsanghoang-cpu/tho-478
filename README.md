@@ -34,8 +34,8 @@ Repo này có hai ứng dụng web:
 **✏️ Tập Viết**
 - Tiếng Việt: 29 chữ thường, 29 chữ hoa (gồm ă, â, đ, ê, ô, ơ, ư). Tiếng Anh: 26 chữ thường, 26 chữ hoa. Cả hai đều có 10 chữ số. Chữ hiện trên nền giấy ô ly với nét chấm để bé tô.
 - Bé tô bằng ngón tay hoặc Apple Pencil, được chọn màu bút, xoá từng nét hoặc xoá hết.
-- Bé bấm **Xong** thì ứng dụng chấm điểm: tô kín chữ và không lem ra ngoài thì được 1–3 sao. Nếu tô còn thiếu, phần thiếu sẽ hiện màu cam.
-- Chế độ **Tự viết**: chữ mẫu mờ đi để bé tự viết, làm được thì có thêm sao thưởng.
+- Bé bấm **Xong** thì ứng dụng chấm điểm: tô kín chữ và không lem ra ngoài thì được 1–3 bông hoa 🌸. Nếu tô còn thiếu, phần thiếu sẽ hiện màu cam.
+- Chế độ **Tự viết**: chữ mẫu mờ đi để bé tự viết.
 - Mỗi chữ có từ ví dụ kèm hình (b – 🦋 bướm, B – 🦋 butterfly).
 
 **🔢 Học Đếm** (3 mức: 1–5, 1–10, 1–20)
@@ -55,9 +55,30 @@ Repo này có hai ứng dụng web:
 - 🌞 **Ngày và đêm**: khung cảnh đổi theo sáng, trưa, chiều, tối, giải thích mặt trời, mặt trăng và việc làm từng buổi. Có đố vui “Ngày hay đêm?”.
 - 👈👉 **Trái và phải**: bé chạm từng bên để nghe, rồi chơi đố: bạn nào ở bên trái, con vật đang ở bên nào, đưa bạn thỏ sang trái hoặc phải.
 
-**🎁 Phần thưởng**: cứ 5 ⭐ bé mở được 1 nhãn dán, tổng cộng có 36 nhãn dán (kỳ lân, công chúa, nàng tiên cá…).
+**⭐ Sao và 🎁 Đổi quà** (ý tưởng chính của ứng dụng)
+
+Bé học và tự làm việc của mình thì được sao. Sao gom lại để đổi quà thật do ba mẹ đặt, ví dụ đi khu vui chơi cuối tuần hoặc mua đồ chơi.
+
+Luật nhận sao mặc định (ba mẹ chỉnh được từng mục, từ 0 đến 10 sao):
+
+| Bé làm gì | Sao |
+|---|---|
+| 👧 Tự làm xong 1 việc trong ngày (sáng, chiều, tối) | +1 ⭐ |
+| 🏅 Làm hết việc của 1 buổi | +2 ⭐ thưởng |
+| 📚 Học xong 1 bài (trả lời đủ 5 câu) | +2 ⭐ |
+| ✏️ Tô đạt 1 chữ hoặc 1 số | +1 ⭐ |
+| 🧼 Tập xong 1 kỹ năng (rửa tay, mặc đồ, dọn đồ…) | +2 ⭐ |
+
+- **Sao học có giới hạn mỗi ngày** (mặc định 10 ⭐, gồm bài học, tô chữ, kỹ năng) để bé không gom sao bằng cách chơi mãi một trò dễ. **Sao tự lập không bị giới hạn.**
+- Với luật mặc định, một ngày bé làm hết mọi việc được tối đa 30 ⭐ (tự lập 20 ⭐ + học 10 ⭐), khoảng 210 ⭐ mỗi tuần. Góc ba mẹ tự tính lại con số này khi ba mẹ đổi luật, và ước tính mỗi món quà cần bao nhiêu ngày.
+- Mục **Đổi quà** cho bé thấy còn thiếu bao nhiêu sao cho từng món quà, kèm bảng “Làm gì thì được sao?”.
+- Khi đủ sao, bé bấm **Đổi quà**, ba mẹ giữ nút 2 giây để đồng ý rồi sao mới bị trừ. Quà đã đổi được lưu lại.
+- Ba mẹ có thể **thưởng thêm** hoặc **trừ bớt** sao bằng tay, ví dụ khi bé làm việc tốt ngoài ứng dụng.
+- Khi tô chữ, bông hoa 🌸 (1–3) là điểm tô đẹp, khác với ngôi sao ⭐ dùng để đổi quà.
+- **Nhãn dán** là quà tặng thêm: cứ nhận được 5 ⭐ thì mở 1 nhãn dán, không tốn sao.
 
 **👨‍👩‍👧 Góc ba mẹ** (phải giữ nút 2 giây mới vào được)
+- Đặt quà (tên, hình, số sao cần có) và chỉnh luật nhận sao.
 - Chọn ngôn ngữ, chọn giọng đọc, chỉnh tốc độ đọc, bật hoặc tắt âm thanh hiệu ứng.
 - Nhập tên gọi ở nhà của bé, để bạn Thỏ gọi tên khi khen.
 - **Nhắc nghỉ ngơi**: sau 10–45 phút, ứng dụng nhắc bé nghỉ mắt 1 phút rồi mới chơi tiếp.
@@ -108,6 +129,7 @@ be-vui-hoc/
     ├── counting.js       # Học Đếm
     ├── math.js           # Học Toán: cộng, trừ, nhân, chia
     ├── explore.js        # Khám Phá: ngày tháng, ngày đêm, trái phải
+    ├── rewards.js        # Đổi quà và bảng luật nhận sao
     └── parents.js        # Góc ba mẹ
 ```
 

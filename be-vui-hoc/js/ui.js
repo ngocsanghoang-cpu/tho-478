@@ -1,7 +1,7 @@
 // Tiện ích giao diện: tạo phần tử, điều hướng, lời thoại, phần thưởng
 import { speak, stopSpeech } from './speech.js';
 import { sfx } from './sound.js';
-import { store, addStars, STICKERS } from './store.js';
+import { store, addStars, STICKERS, starsFor, noteLearn, LEARN_KINDS } from './store.js';
 import { L } from './i18n.js';
 
 /* ---------------- Tạo phần tử ---------------- */
@@ -199,6 +199,26 @@ export function giveStars(n, fromEl) {
   });
 }
 
+/** true nếu loại việc này có sao nhưng hôm nay bé đã nhận đủ sao học. */
+export function isCapped(kind) {
+  return LEARN_KINDS.includes(kind) && (+store.data.rules[kind] || 0) > 0 && starsFor(kind) === 0;
+}
+export const capNote = () => L('Hôm nay con đã nhận đủ sao học rồi. Muốn thêm sao, con hãy tự làm các việc của mình nhé!',
+  'You have earned all your learning stars for today. For more stars, do your own jobs by yourself!');
+
+/**
+ * Thưởng sao theo luật ba mẹ đặt. kind: 'task' | 'routine' | 'lesson' | 'trace' | 'skill'.
+ * Sao học bị giới hạn mỗi ngày. Trả về số sao đã thưởng.
+ */
+export function award(kind, fromEl) {
+  const n = starsFor(kind);
+  if (n > 0) {
+    if (LEARN_KINDS.includes(kind)) noteLearn(n);
+    giveStars(n, fromEl);
+  }
+  return n;
+}
+
 /* ---------------- Lớp phủ (hộp thoại) ---------------- */
 const queue = [];
 let openJob = null;
@@ -231,7 +251,12 @@ function pump() {
 }
 
 /** Màn chúc mừng khi hoàn thành một lượt chơi. Trả về chỉ số nút được bấm. */
-export function celebrate({ emoji = '🏆', title = L('Hoàn thành!', 'All done!'), text = '', speech, buttons = [[L('Tiếp tục', 'Continue'), 'green']], stars = 0 }) {
+export function celebrate({ emoji = '🏆', title = L('Hoàn thành!', 'All done!'), text = '', speech, buttons = [[L('Tiếp tục', 'Continue'), 'green']], kind = null }) {
+  const stars = kind ? starsFor(kind) : 0;
+  const capped = kind ? isCapped(kind) : false;
+  if (!speech) speech = `${title} ${text}`;
+  if (stars) text = `${text} +${stars} ⭐`.trim();
+  if (capped) { text = `${text} 🌙 ${capNote()}`.trim(); speech = `${speech} ${capNote()}`; }
   return overlay((close) => [
     h('div', { class: 'emo', text: emoji }),
     h('h2', { text: title }),
@@ -241,8 +266,8 @@ export function celebrate({ emoji = '🏆', title = L('Hoàn thành!', 'All done
   ], () => {
     confetti();
     sfx.fanfare();
-    say(speech || `${title} ${text}`);
-    if (stars) setTimeout(() => giveStars(stars), 400);
+    say(speech);
+    if (kind) setTimeout(() => award(kind), 400);
   });
 }
 

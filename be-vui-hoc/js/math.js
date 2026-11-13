@@ -1,5 +1,5 @@
 // HỌC TOÁN – bốn phép tính bằng hình ảnh: cộng, trừ, nhân, chia
-import { register, go, h, say, live, sleep, rand, pick, giveStars, praise, menuCard, progressDots, toast } from './ui.js';
+import { register, go, h, say, live, sleep, rand, pick, praise, menuCard, progressDots, toast } from './ui.js';
 import { sfx } from './sound.js';
 import { bump } from './store.js';
 import { L } from './i18n.js';
@@ -152,7 +152,6 @@ register('op', {
           reveal();
           sfx.ding(); bump('math');
           toast(praise());
-          giveStars(1, btn);
           await say(L(`Đúng rồi! ${Q.ok}`, `That's right! ${Q.ok}`));
           q++;
           await sleep(400);

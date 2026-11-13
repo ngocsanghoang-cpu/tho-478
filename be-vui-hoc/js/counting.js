@@ -1,5 +1,5 @@
 // HỌC ĐẾM – làm quen số, đếm và chọn, nhiều hơn/ít hơn, tìm số
-import { register, go, h, say, live, sleep, rand, pick, shuffle, giveStars, praise, menuCard, progressDots, toast } from './ui.js';
+import { register, go, h, say, live, sleep, rand, pick, shuffle, praise, menuCard, progressDots, toast } from './ui.js';
 import { sfx } from './sound.js';
 import { bump } from './store.js';
 import { L } from './i18n.js';
@@ -121,7 +121,6 @@ register('count', {
           wrap.querySelectorAll('.ans').forEach((x) => (x.disabled = true));
           sfx.ding(); bump('count');
           toast(praise());
-          giveStars(1, b);
           await say(L(`Đúng rồi! Có ${things(n, th)}.`, `That's right! ${thereIs(n)} ${things(n, th)}.`));
           q++;
           await sleep(300);
@@ -176,7 +175,6 @@ register('compare', {
             s.classList.add('right');
             sfx.ding(); bump('count');
             toast(praise());
-            giveStars(1, s);
             const [x, y] = k === 0 ? [a, b] : [b, a];
             await say(L(
               `Đúng rồi! ${cap(numWord(x))} ${more ? 'nhiều hơn' : 'ít hơn'} ${numWord(y)}.`,
@@ -237,7 +235,6 @@ register('find', {
             b.classList.add('popped');
             sfx.pop(); sfx.ding(); bump('count');
             toast(praise());
-            giveStars(1, b);
             await say(L(`Đúng rồi! Đây là số ${numWord(v)}.`, `That's right! This is number ${numWord(v)}.`));
             q++;
             await sleep(300);
