@@ -2,15 +2,16 @@
 import { register, go, back, h, $, say, repeatSay, updateStars, menuCard, holdToActivate, overlay, currentScreen, sleep } from './ui.js';
 import { initSpeech, voiceAdvice, onVoicesChanged } from './speech.js';
 import { unlockAudio, setSoundEnabled, sfx } from './sound.js';
-import { store, STICKERS, STARS_PER_STICKER, unlockedCount } from './store.js';
+import { store, STICKERS, STARS_PER_STICKER, unlockedCount, isSchoolDay } from './store.js';
 import { L, lang, setLang } from './i18n.js';
 import { numWord } from './vi.js';
-import { ROUTINES, routineCount, currentRoutine } from './selfcare.js';
+import { ROUTINES, routineCount, currentRoutine, mealTimerRunning } from './selfcare.js';
 import './writing.js';
 import './counting.js';
 import './math.js';
 import './explore.js';
 import { rewardName } from './rewards.js';
+import { homeworkProgress } from './homework.js';
 import './parents.js';
 
 document.documentElement.lang = lang();
@@ -75,6 +76,9 @@ register('home', {
       : stars >= goal.cost ? L('Đủ sao rồi! Vào đổi quà nhé', 'You have enough stars!')
         : L(`Còn ${goal.cost - stars} ⭐ nữa: ${rewardName(goal)}`, `${goal.cost - stars} ⭐ to go: ${rewardName(goal)}`);
 
+    const hw = homeworkProgress();
+    const hwSub = !hw.total ? L('Hôm nay không có bài', 'None today') : hw.done >= hw.total ? L('Xong hết rồi ✅', 'All done ✅') : L(`Đã làm ${hw.done}/${hw.total} bài`, `${hw.done} of ${hw.total} done`);
+
     const parentsBtn = h('button', { class: 'card white hold-ring' },
       h('span', { class: 'emo', text: '👨‍👩‍👧' }),
       h('span', null, h('span', { class: 'lbl', text: L('Góc ba mẹ', 'For parents') }), h('br'), h('span', { class: 'sub', text: L('Giữ 2 giây để vào', 'Hold for 2 seconds') })));
@@ -86,16 +90,17 @@ register('home', {
         h('span', { class: 'wave', text: '👋' }),
         h('div', null,
           h('h2', { text: `${greeting()}${name ? ', ' + name : ''}!` }),
-          h('p', { text: L(`Hôm nay: ${R.emoji} việc ${R.title.toLowerCase()} ${done}/${total}`, `Today: ${R.emoji} ${R.title.toLowerCase()} jobs ${done}/${total}`) }))),
+          h('p', { text: !isSchoolDay() ? L('Hôm nay là ngày nghỉ 🎈', 'Today is a day off 🎈')
+            : L(`Ngày đi học: ${R.emoji} việc ${R.title.toLowerCase()} ${done}/${total}`, `School day: ${R.emoji} ${R.title.toLowerCase()} jobs ${done}/${total}`) }))),
       h('div', { class: 'cards home-cards' },
         menuCard({ emoji: '👧', label: L('Bé Tự Lập', 'I Can Do It'), sub: L('Tự làm việc của mình', 'Doing things by myself'), color: 'pink', onClick: () => go('selfcare') }),
+        menuCard({ emoji: '📝', label: L('Bài tập hôm nay', "Today's exercises"), sub: hwSub, color: 'red', badge: hw.total && hw.done < hw.total ? `+⭐` : null, onClick: () => go('homework') }),
         menuCard({ emoji: '✏️', label: L('Tập Viết', 'Writing'), sub: L('Tô chữ cái và chữ số', 'Trace letters and numbers'), color: 'purple', onClick: () => go('writing') }),
         menuCard({ emoji: '🔢', label: L('Học Đếm', 'Counting'), sub: L('Đếm, so sánh, tìm số', 'Count, compare, find'), color: 'blue', onClick: () => go('counting') }),
         menuCard({ emoji: '🧮', label: L('Học Toán', 'Math'), sub: L('Cộng, trừ, nhân, chia', 'Add, subtract, multiply, divide'), color: 'orange', onClick: () => go('math') }),
-        menuCard({ emoji: '🌈', label: L('Khám Phá', 'Explore'), sub: L('Ngày tháng, ngày đêm, trái phải', 'Dates, day and night, left and right'), color: 'green', onClick: () => go('explore') }),
-        menuCard({ emoji: '🦄', label: L('Nhãn dán', 'Stickers'), sub: `${unlockedCount()}/${STICKERS.length}`, color: 'yellow', onClick: () => go('stickers') })),
+        menuCard({ emoji: '🌈', label: L('Khám Phá', 'Explore'), sub: L('Ngày tháng, ngày đêm, trái phải', 'Dates, day and night, left and right'), color: 'green', onClick: () => go('explore') })),
       h('div', { class: 'home-row' },
-        h('button', { class: 'card red', onClick: () => { sfx.tap(); go('rewards'); } },
+        h('button', { class: 'card yellow', onClick: () => { sfx.tap(); go('rewards'); } },
           h('span', { class: 'emo', text: goal ? goal.emoji : '🎡' }),
           h('span', null, h('span', { class: 'lbl', text: L('Đổi quà', 'Rewards') }), h('br'), h('span', { class: 'sub', text: goalText }))),
         parentsBtn)));
@@ -144,7 +149,7 @@ $('stars').addEventListener('click', () => {
 let activeSecs = 0;
 let resting = false;
 setInterval(() => {
-  if (document.hidden || resting || currentScreen() === 'splash' || currentScreen() === 'parents') return;
+  if (document.hidden || resting || currentScreen() === 'splash' || currentScreen() === 'parents' || mealTimerRunning()) return;
   const limit = (store.data.restMinutes || 0) * 60;
   if (!limit) return;
   activeSecs++;

@@ -1,5 +1,6 @@
 // TẬP VIẾT – tô chữ cái (tiếng Việt hoặc tiếng Anh), chữ hoa và chữ số bằng ngón tay hoặc Apple Pencil
-import { register, go, h, say, live, sleep, award, isCapped, capNote, praise, confetti, toast } from './ui.js';
+import { register, go, h, say, live, sleep, praise, confetti, toast } from './ui.js';
+import { hwTrace, hwWriteFor, rewardExercise } from './homework.js';
 import { sfx } from './sound.js';
 import { store, bump } from './store.js';
 import { L, isEn, byLang } from './i18n.js';
@@ -132,7 +133,9 @@ register('trace', {
       return b;
     }));
 
-    const nextBtn = h('button', { class: 'btn blue small', onClick: () => go('trace', { set, i: (i + 1) % S.chars.length }) }, L('Tiếp ➡️', 'Next ➡️'));
+    // Khi đang làm bài tập hôm nay, nút Tiếp đưa tới chữ kế tiếp của bài tập
+    let hwNext = -1;
+    const nextBtn = h('button', { class: 'btn blue small', onClick: () => go('trace', hwNext >= 0 ? { set, i: hwNext, hw: true } : { set, i: (i + 1) % S.chars.length }) }, L('Tiếp ➡️', 'Next ➡️'));
     const checkBtn = h('button', { class: 'btn big green', onClick: check }, L('✅ Xong', '✅ Done'));
 
     root.append(h('div', { class: 'trace' },
@@ -153,7 +156,10 @@ register('trace', {
           checkBtn)),
       board));
 
-    say(info.intro);
+    const hwEx = hwWriteFor(set);
+    if (hwEx && hwEx.chars.includes(ch) && !hwEx.got.includes(ch)) {
+      say(L(`Bài tập hôm nay: tô ${hwEx.chars.length} chữ. `, `Today's exercise: trace ${hwEx.chars.length}. `) + info.intro);
+    } else say(info.intro);
 
     /* --- Bố cục & vẽ nền --- */
     async function layout() {
@@ -398,13 +404,23 @@ register('trace', {
       if (stars === 3) confetti(30);
       // Bông hoa 🌸 = điểm tô đẹp (1–3). Ngôi sao ⭐ = phần thưởng để đổi quà, theo luật ba mẹ đặt.
       toast('🌸'.repeat(stars));
-      const capped = isCapped('trace');
-      const got = award('trace', checkBtn);
+      const hw = hwTrace(set, ch); // chữ này có thuộc bài tập hôm nay không?
       nextBtn.classList.add('pulse');
       let msg = L(`${praise()} Con tô đẹp, được ${numWord(stars)} bông hoa.`, `${praise()} Neat tracing! You get ${numWord(stars)} ${stars === 1 ? 'flower' : 'flowers'}.`);
-      if (got) msg += L(` Con nhận ${numWord(got)} ngôi sao.`, ` You earn ${numWord(got)} ${got === 1 ? 'star' : 'stars'}.`);
-      if (capped) msg += ' ' + capNote();
-      else if (stars === 3 && mode === 'trace') msg += L(' Bây giờ con thử bấm Tự viết nhé!', ' Now try tapping On my own!');
+      if (hw && hw.result) {
+        msg += ' ' + rewardExercise(hw.result, checkBtn);
+        await say(msg);
+        if (life.alive) go('homework');
+        return;
+      }
+      if (hw) {
+        const n = hw.left.length;
+        hwNext = S.chars.indexOf(hw.next);
+        msg += L(` Còn ${numWord(n)} chữ nữa là xong bài tập. Bấm Tiếp nhé!`, ` ${n === 1 ? 'One more' : numWord(n) + ' more'} to finish the exercise. Tap Next!`);
+        await say(msg);
+        return;
+      }
+      if (stars === 3 && mode === 'trace') msg += L(' Bây giờ con thử bấm Tự viết nhé!', ' Now try tapping On my own!');
       else if (stars < 3) msg += L(' Con có thể xoá và tô lại cho đẹp hơn nữa.', ' You can clear it and trace again to make it even nicer.');
       else msg += L(' Bấm Tiếp để sang chữ mới nhé!', ' Tap Next for a new one!');
       await say(msg);

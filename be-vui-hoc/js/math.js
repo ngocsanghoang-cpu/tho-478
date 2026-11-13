@@ -105,7 +105,7 @@ register('op', {
       grids.forEach((g) => g.dispose());
       grids = [];
       dots.set(q);
-      if (q >= ROUND) { roundEnd(life, () => go('op', { op }), 'math'); return; }
+      if (q >= ROUND) { roundEnd(life, () => go('op', { op }), 'math', op); return; }
       const th = pick(THEMES);
       let Q;
       do { Q = makeQuestion(op, th); } while (`${Q.a},${Q.b}` === lastKey);

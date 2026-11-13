@@ -96,7 +96,7 @@ register('count', {
       if (!life.alive) return;
       grid?.dispose();
       dots.set(q);
-      if (q >= ROUND) { roundEnd(life, () => go('count'), 'counting'); return; }
+      if (q >= ROUND) { roundEnd(life, () => go('count'), 'counting', 'count'); return; }
       const max = maxN();
       let n;
       do { n = rand(1, max); } while (n === last && max > 1);
@@ -156,7 +156,7 @@ register('compare', {
       if (!life.alive) return;
       grids.forEach((g) => g.dispose());
       dots.set(q);
-      if (q >= ROUND) { roundEnd(life, () => go('compare'), 'counting'); return; }
+      if (q >= ROUND) { roundEnd(life, () => go('compare'), 'counting', 'compare'); return; }
       const max = maxN();
       const a = rand(1, max);
       let b;
@@ -217,7 +217,7 @@ register('find', {
     function next() {
       if (!life.alive) return;
       dots.set(q);
-      if (q >= ROUND) { roundEnd(life, () => go('find'), 'counting'); return; }
+      if (q >= ROUND) { roundEnd(life, () => go('find'), 'counting', 'find'); return; }
       const max = maxN();
       const count = level() === 1 ? 4 : level() === 2 ? 6 : 8;
       const pool = shuffle([...Array(max + 1).keys()].slice(1));

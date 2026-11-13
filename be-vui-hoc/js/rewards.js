@@ -1,7 +1,8 @@
 // ĐỔI QUÀ – bé gom sao để đổi quà do ba mẹ đặt (đi khu vui chơi, mua đồ chơi…)
 import { register, go, h, say, overlay, confetti, updateStars, holdToActivate } from './ui.js';
 import { sfx } from './sound.js';
-import { store, redeem, learnLeft } from './store.js';
+import { store, redeem } from './store.js';
+import { choreName } from './selfcare.js';
 import { L } from './i18n.js';
 import { ROUTINES } from './selfcare.js';
 
@@ -19,10 +20,10 @@ export function rewardName(r) {
 export function ruleRows() {
   const r = store.data.rules;
   return [
-    ['task', '👧', L('Tự làm xong 1 việc (sáng, chiều, tối)', 'Do 1 job by yourself (morning, afternoon, evening)'), r.task],
-    ['routine', '🏅', L('Làm hết việc của 1 buổi', 'Finish all the jobs of one part of the day'), r.routine],
-    ['lesson', '📚', L('Học xong 1 bài (trả lời đủ 5 câu)', 'Finish 1 lesson (answer all 5 questions)'), r.lesson],
-    ['trace', '✏️', L('Tô đạt 1 chữ hoặc 1 số', 'Trace 1 letter or number well'), r.trace],
+    ['task', '👧', L('Ngày đi học: tự làm xong 1 việc (sáng hoặc tối)', 'School day: do 1 job by yourself (morning or evening)'), r.task],
+    ['routine', '🏅', L('Làm hết 5 việc của 1 buổi', 'Finish all 5 jobs of the morning or the evening'), r.routine],
+    ['exercise', '📝', L('Làm xong 1 bài tập hôm nay', "Finish 1 of today's exercises"), r.exercise],
+    ['allDone', '🎓', L('Làm hết bài tập hôm nay', "Finish all of today's exercises"), r.allDone],
   ];
 }
 
@@ -32,12 +33,6 @@ export function maxSelfcarePerDay() {
   const R = ROUTINES();
   return Object.values(R).reduce((sum, x) => sum + x.tasks.length * r.task + r.routine, 0);
 }
-/** Số sao tối đa mỗi ngày (tự lập + học). Infinity nếu không giới hạn sao học. */
-export function maxPerDay() {
-  const cap = +store.data.rules.dailyCap || 0;
-  return cap ? maxSelfcarePerDay() + cap : Infinity;
-}
-
 register('rewards', {
   title: () => L('Đổi quà', 'Rewards'), parent: 'home', theme: THEME,
   render(root) {
@@ -63,12 +58,12 @@ register('rewards', {
         enough ? h('button', { class: 'btn pink pulse', onClick: (e) => { e.stopPropagation(); askRedeem(r); } }, L('🎉 Đổi quà', '🎉 Get it')) : null);
     });
 
-    const rules = ruleRows().filter((x) => x[3] > 0).map(([, emo, text, n]) =>
+    const choreRows = d.chores.filter((c) => c.stars > 0).map((c) => [c.id, c.emoji, L(`Ba mẹ nhờ: ${choreName(c)}`, `When Mom or Dad asks: ${choreName(c)}`), c.stars]);
+    const allRules = [...ruleRows().slice(0, 2), ...choreRows, ...ruleRows().slice(2)].filter((x) => x[3] > 0);
+    const rules = allRules.map(([, emo, text, n]) =>
       h('li', null, h('span', { class: 'rule-emo', text: emo }), h('span', { class: 'rule-text', text }), h('b', { text: `+${n} ⭐` })));
-    const cap = +d.rules.dailyCap || 0;
-    const left = learnLeft();
-    const readRules = () => say(ruleRows().filter((x) => x[3] > 0).map(([, , text, n]) => L(`${text}: được ${n} sao.`, `${text}: ${n} ${n === 1 ? 'star' : 'stars'}.`)).join(' ')
-      + (cap ? L(` Mỗi ngày con nhận nhiều nhất ${cap} sao từ việc học. Sao từ việc tự lập thì không giới hạn.`, ` Each day you can earn up to ${cap} stars from learning. Stars for doing your own jobs have no limit.`) : ''));
+    const hwNote = L(`Mỗi ngày có ${d.hw.count} bài tập. Chơi thêm ngoài bài tập thì không tính sao.`, `There are ${d.hw.count} exercises each day. Extra play earns no stars.`);
+    const readRules = () => say(allRules.map(([, , text, n]) => L(`${text}: được ${n} sao.`, `${text}: ${n} ${n === 1 ? 'star' : 'stars'}.`)).join(' ') + ' ' + hwNote);
 
     root.append(h('div', { class: 'menu' },
       h('div', { class: 'menu-head' },
@@ -82,8 +77,7 @@ register('rewards', {
       h('div', { class: 'box rules-box' },
         h('h3', { text: L('⭐ Làm gì thì được sao?', '⭐ How do I earn stars?') }),
         h('ul', { class: 'rules' }, rules),
-        cap ? h('p', { class: 'r-sub', text: L(`Sao từ việc học: tối đa ${cap} ⭐ mỗi ngày (hôm nay còn ${left} ⭐). Sao từ việc tự lập: không giới hạn.`,
-          `Learning stars: up to ${cap} ⭐ a day (${left} ⭐ left today). Stars for your own jobs: no limit.`) }) : null,
+        h('p', { class: 'r-sub', text: hwNote }),
         h('button', { class: 'btn ghost small', onClick: readRules }, L('🔊 Nghe đọc', '🔊 Read aloud'))),
 
       d.redeemed.length ? h('div', { class: 'box' },

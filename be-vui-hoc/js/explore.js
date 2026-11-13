@@ -148,7 +148,7 @@ register('datequiz', {
     function next() {
       if (!life.alive) return;
       dots.set(q);
-      if (q >= ROUND) { roundEnd(life, () => go('datequiz', { kind }), 'explore'); return; }
+      if (q >= ROUND) { roundEnd(life, () => go('datequiz', { kind }), 'explore', kind); return; }
       let type, base, ans;
       do {
         type = q === 0 ? 'now' : pick(['after', 'before', 'after']);
@@ -271,7 +271,7 @@ register('dnquiz', {
     function next() {
       if (!life.alive) return;
       dots.set(q);
-      if (q >= ROUND) { roundEnd(life, () => go('dnquiz'), 'explore'); return; }
+      if (q >= ROUND) { roundEnd(life, () => go('dnquiz'), 'explore', 'dn'); return; }
       const [emo, vi, en, isDay] = items[q];
       const label = L(vi, en);
       const ask = L(`${label}. Đây là ban ngày hay ban đêm?`, `${label}. Is it day or night?`);
@@ -370,7 +370,7 @@ register('lrquiz', {
     function next() {
       if (!life.alive) return;
       dots.set(q);
-      if (q >= ROUND) { roundEnd(life, () => go('lrquiz'), 'explore'); return; }
+      if (q >= ROUND) { roundEnd(life, () => go('lrquiz'), 'explore', 'lr'); return; }
       const type = ['which', 'side', 'move'][q % 3];
       const wantLeft = Math.random() < 0.5;
       let solved = false;

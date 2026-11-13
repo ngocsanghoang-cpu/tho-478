@@ -21,14 +21,22 @@ const DEFAULTS = {
   earned: 0,  // tổng số sao đã nhận từ trước tới nay (dùng để mở nhãn dán)
   // Luật nhận sao – ba mẹ chỉnh trong Góc ba mẹ
   rules: {
-    task: 1,      // làm xong 1 việc tự lập
-    routine: 2,   // thưởng khi làm hết việc của 1 buổi
-    lesson: 2,    // học xong 1 bài (1 lượt 5 câu)
-    trace: 1,     // tô đạt 1 chữ hoặc 1 số
-    dailyCap: 10, // số sao HỌC tối đa mỗi ngày (0 = không giới hạn); sao tự lập không bị giới hạn
-    // Mục "Tập thêm" (rửa tay, mặc đồ, dọn đồ… ngoài lịch hằng ngày) không có sao: đó là việc bé đã biết làm.
+    task: 1,      // ngày đi học: làm xong 1 việc tự lập
+    routine: 1,   // thưởng khi làm hết việc của 1 buổi
+    exercise: 1,  // làm xong 1 bài tập hôm nay
+    allDone: 1,   // thưởng khi làm hết bài tập hôm nay
   },
-  learn: { date: '', stars: 0 }, // số sao học đã nhận hôm nay
+  // Bài tập hôm nay: count = số bài mỗi ngày; off = các loại bài ba mẹ tắt
+  hw: { count: 3, off: [] },
+  homework: { date: '', done: [], prog: {}, bonus: false }, // tiến độ bài tập của hôm nay
+  schoolDays: [1, 2, 3, 4, 5],   // ngày đi học (0 = Chủ Nhật … 6 = Thứ Bảy): việc sáng/tối chỉ tính vào các ngày này
+  // Việc ba mẹ giao thêm khi có (phơi đồ, gấp đồ…). key: việc mẫu có tên theo ngôn ngữ
+  chores: [
+    { id: 'hang', emoji: '👕', key: 'hang', name: '', stars: 2 },
+    { id: 'fold', emoji: '🧺', key: 'fold', name: '', stars: 2 },
+  ],
+  asks: { date: '', ids: [] },   // việc thêm ba mẹ giao trong hôm nay
+  dayType: { date: '', school: true }, // ba mẹ đổi riêng hôm nay thành ngày nghỉ / ngày đi học
   // Quà do ba mẹ đặt. key: quà mẫu có tên theo ngôn ngữ; name: tên ba mẹ tự đặt
   rewards: [
     { id: 'r1', emoji: '🎡', key: 'park', name: '', cost: 100 },
@@ -60,8 +68,13 @@ function load() {
       ...d, ...p, voices,
       earned: p.earned == null ? (p.stars || 0) : p.earned,
       rules: { ...d.rules, ...(p.rules || {}) },
-      learn: p.learn && p.learn.date ? p.learn : d.learn,
+      hw: { ...d.hw, ...(p.hw || {}), off: (p.hw && Array.isArray(p.hw.off)) ? p.hw.off : [] },
+      homework: p.homework && p.homework.date ? { ...d.homework, ...p.homework } : d.homework,
+      dayType: p.dayType && p.dayType.date ? p.dayType : d.dayType,
       rewards: Array.isArray(p.rewards) ? p.rewards : d.rewards,
+      chores: Array.isArray(p.chores) ? p.chores : d.chores,
+      schoolDays: Array.isArray(p.schoolDays) ? p.schoolDays : d.schoolDays,
+      asks: p.asks && Array.isArray(p.asks.ids) ? p.asks : d.asks,
       redeemed: Array.isArray(p.redeemed) ? p.redeemed : [],
       stats: { ...d.stats, ...(p.stats || {}) },
       routine: p.routine && p.routine.done ? p.routine : d.routine,
@@ -125,36 +138,15 @@ export function markRoutine(kind, id) {
 }
 
 export function resetProgress() {
-  const { name, lang, rate, voices, sound, restMinutes, rules, rewards } = store.data;
-  store.data = { ...clone(DEFAULTS), name, lang, rate, voices, sound, restMinutes, rules, rewards };
+  const { name, lang, rate, voices, sound, restMinutes, rules, rewards, chores, schoolDays, hw } = store.data;
+  store.data = { ...clone(DEFAULTS), name, lang, rate, voices, sound, restMinutes, rules, rewards, chores, schoolDays, hw };
   store.save();
 }
 
 /* ---------------- Luật nhận sao & đổi quà ---------------- */
-// Sao "học" (bị giới hạn mỗi ngày). Sao tự lập (task, routine) không bị giới hạn.
-export const LEARN_KINDS = ['lesson', 'trace'];
-
-function learnToday() {
-  if (store.data.learn.date !== todayKey()) store.data.learn = { date: todayKey(), stars: 0 };
-  return store.data.learn;
-}
-
-/** Số sao học còn có thể nhận hôm nay (Infinity nếu không giới hạn). */
-export function learnLeft() {
-  const cap = +store.data.rules.dailyCap || 0;
-  return cap ? Math.max(0, cap - learnToday().stars) : Infinity;
-}
-
-/** Số sao sẽ nhận được cho một loại việc, đã tính giới hạn trong ngày. */
+/** Số sao cho một loại việc theo luật ba mẹ đặt ('task' | 'routine' | 'exercise' | 'allDone'). */
 export function starsFor(kind) {
-  const n = Math.max(0, +store.data.rules[kind] || 0);
-  return LEARN_KINDS.includes(kind) ? Math.min(n, learnLeft()) : n;
-}
-
-/** Ghi nhận sao học đã nhận hôm nay. */
-export function noteLearn(n) {
-  learnToday().stars += n;
-  store.save();
+  return Math.max(0, +store.data.rules[kind] || 0);
 }
 
 /** Đổi quà: trừ sao và ghi vào lịch sử. Trả về false nếu chưa đủ sao. */
@@ -171,5 +163,33 @@ export function redeem(reward, name) {
 export function adjustStars(delta) {
   store.data.stars = Math.max(0, store.data.stars + delta);
   if (delta > 0) store.data.earned += delta;
+  store.save();
+}
+
+/* ---------------- Ngày đi học & việc ba mẹ giao thêm ---------------- */
+/** Hôm nay có phải ngày đi học không: theo lịch tuần, trừ khi ba mẹ đã đổi riêng cho hôm nay. */
+export function isSchoolDay() {
+  const o = store.data.dayType;
+  if (o && o.date === todayKey()) return !!o.school;
+  return store.data.schoolDays.includes(new Date().getDay());
+}
+
+/** Ba mẹ đổi riêng hôm nay thành ngày đi học (true) hoặc ngày nghỉ (false). Hết ngày thì tự về lịch tuần. */
+export function setTodaySchool(school) {
+  store.data.dayType = { date: todayKey(), school: !!school };
+  store.save();
+}
+
+/** Danh sách id việc thêm ba mẹ giao hôm nay (tự xoá khi sang ngày mới). */
+export function todaysAsks() {
+  if (store.data.asks.date !== todayKey()) store.data.asks = { date: todayKey(), ids: [] };
+  return store.data.asks.ids;
+}
+
+/** Ba mẹ giao / bỏ giao một việc thêm cho hôm nay. */
+export function toggleAsk(id) {
+  const ids = todaysAsks();
+  const i = ids.indexOf(id);
+  if (i >= 0) ids.splice(i, 1); else ids.push(id);
   store.save();
 }

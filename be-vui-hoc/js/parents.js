@@ -1,9 +1,10 @@
 // GÓC BA MẸ – ngôn ngữ, giọng đọc, tên bé, giờ nghỉ, xem tiến độ
 import { register, go, h, say, updateStars } from './ui.js';
-import { store, resetProgress, unlockedCount, STICKERS, adjustStars } from './store.js';
-import { rewardName, ruleRows, maxSelfcarePerDay, maxPerDay } from './rewards.js';
+import { store, resetProgress, unlockedCount, STICKERS, adjustStars, todaysAsks, toggleAsk, isSchoolDay, setTodaySchool } from './store.js';
+import { EXERCISES, exerciseName, maxHomeworkPerDay, TRACE_PER_EXERCISE } from './homework.js';
+import { rewardName, ruleRows, maxSelfcarePerDay } from './rewards.js';
 import { L, lang, setLang } from './i18n.js';
-import { ROUTINES, routineCount } from './selfcare.js';
+import { ROUTINES, routineCount, choreName } from './selfcare.js';
 import { SETS, starsOf } from './writing.js';
 import { getVoices, langVoices, voiceGender, voiceAdvice, onVoicesChanged, configureSpeech, currentVoice } from './speech.js';
 import { setSoundEnabled } from './sound.js';
@@ -94,17 +95,15 @@ register('parents', {
     const balance = h('b');
     const drawSummary = () => {
       const self = maxSelfcarePerDay();
-      const cap = +d.rules.dailyCap || 0;
+      const hw = maxHomeworkPerDay();
+      const days = d.schoolDays.length;
       balance.textContent = `${d.stars} ⭐`;
-      sumBox.textContent = cap
-        ? L(`Với luật này, một ngày bé làm hết mọi việc sẽ được tối đa ${self + cap} ⭐ (tự lập ${self} ⭐ + học ${cap} ⭐), tức khoảng ${(self + cap) * 7} ⭐ mỗi tuần.`,
-          `With these rules, a perfect day earns up to ${self + cap} ⭐ (own jobs ${self} ⭐ + learning ${cap} ⭐), about ${(self + cap) * 7} ⭐ a week.`)
-        : L(`Tự lập tối đa ${self} ⭐ mỗi ngày. Sao học đang không giới hạn, nên bé có thể gom sao rất nhanh bằng cách chơi nhiều.`,
-          `Own jobs earn up to ${self} ⭐ a day. Learning stars have no limit, so stars can pile up quickly through play.`);
+      sumBox.textContent = L(
+        `Với luật này: một ngày đi học hoàn hảo được ${self} ⭐ từ việc tự lập (${self} × ${days} ngày = ${self * days} ⭐ mỗi tuần). Bài tập cho thêm tối đa ${hw} ⭐ mỗi ngày (${hw * 7} ⭐ mỗi tuần). Tổng một tuần hoàn hảo: ${self * days + hw * 7} ⭐, chưa tính việc ba mẹ giao thêm.`,
+        `With these rules: a perfect school day earns ${self} ⭐ from own jobs (${self} × ${days} days = ${self * days} ⭐ a week). Exercises add up to ${hw} ⭐ a day (${hw * 7} ⭐ a week). A perfect week: ${self * days + hw * 7} ⭐, not counting extra jobs you assign.`);
     };
     const drawGifts = () => {
       giftBox.innerHTML = '';
-      const per = maxPerDay();
       d.rewards.forEach((r, i) => {
         const emo = h('select', { class: 'emo-sel' }, [...new Set([r.emoji, ...EMOJIS])].map((e) => h('option', { value: e }, e)));
         emo.value = r.emoji;
@@ -116,7 +115,8 @@ register('parents', {
         const del = h('button', { class: 'btn ghost small', onClick: () => {
           if (confirm(L('Xoá món quà này?', 'Delete this reward?'))) { d.rewards.splice(i, 1); store.save(); drawGifts(); }
         } }, '🗑️');
-        const days = per === Infinity ? '' : L(`≈ ${Math.ceil(r.cost / per)} ngày nếu bé làm hết mọi việc`, `≈ ${Math.ceil(r.cost / per)} perfect days`);
+        const week = maxSelfcarePerDay() * d.schoolDays.length + maxHomeworkPerDay() * 7;
+        const days = week > 0 ? L(`≈ ${(r.cost / week).toFixed(1).replace('.0', '')} tuần hoàn hảo`, `≈ ${(r.cost / week).toFixed(1).replace('.0', '')} perfect weeks`) : '';
         giftBox.append(h('div', { class: 'gift-row' }, emo, name, cost, h('span', { text: '⭐' }), del, h('span', { class: 'gift-est', text: days })));
       });
       giftBox.append(h('button', { class: 'btn pink small', onClick: () => {
@@ -136,15 +136,71 @@ register('parents', {
       ruleRows().forEach(([key, emo, text]) => rulesBox.append(h('div', { class: 'rule-row' },
         h('span', { class: 'rule-emo', text: emo }), h('span', { class: 'rule-text', text }),
         stepper(() => +d.rules[key] || 0, (v) => { d.rules[key] = v; }), h('span', { text: '⭐' }))));
-      const capSel = h('select');
-      [0, 5, 10, 15, 20, 30, 50].forEach((v) => capSel.append(h('option', { value: v }, v ? `${v} ⭐` : L('Không giới hạn', 'No limit'))));
-      capSel.value = String(d.rules.dailyCap);
-      capSel.addEventListener('change', () => { d.rules.dailyCap = +capSel.value; store.save(); drawSummary(); drawGifts(); });
-      rulesBox.append(h('div', { class: 'rule-row' },
-        h('span', { class: 'rule-emo', text: '🌙' }),
-        h('span', { class: 'rule-text', text: L('Sao HỌC tối đa mỗi ngày (bài học, tô chữ). Sao tự lập không bị giới hạn.', 'Most LEARNING stars per day (lessons, tracing). Stars for own jobs are never limited.') }),
-        capSel));
     };
+    // Ngày đi học
+    const DAY_NAMES = L(['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'], ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+    const dayChips = h('div', { class: 'chips' });
+    const drawDays = () => {
+      dayChips.innerHTML = '';
+      [1, 2, 3, 4, 5, 6, 0].forEach((k) => dayChips.append(h('button', { class: 'chip' + (d.schoolDays.includes(k) ? ' on' : ''), onClick: () => {
+        d.schoolDays = d.schoolDays.includes(k) ? d.schoolDays.filter((x) => x !== k) : [...d.schoolDays, k];
+        store.save(); drawDays(); drawSummary();
+      } }, DAY_NAMES[k])));
+    };
+    drawDays();
+
+    // Hôm nay là ngày đi học hay ngày nghỉ (ba mẹ đổi riêng cho hôm nay)
+    const todayChips = h('div', { class: 'chips' });
+    const drawToday = () => {
+      todayChips.innerHTML = '';
+      const school = isSchoolDay();
+      [[true, L('🏫 Ngày đi học', '🏫 School day')], [false, L('🎈 Ngày nghỉ', '🎈 Day off')]].forEach(([v, label]) =>
+        todayChips.append(h('button', { class: 'chip big' + (school === v ? ' on' : ''), onClick: () => { setTodaySchool(v); drawToday(); } }, label)));
+    };
+    drawToday();
+
+    // Bài tập hôm nay: số bài mỗi ngày và các loại bài
+    const hwCount = h('select');
+    [0, 1, 2, 3, 4, 5].forEach((v) => hwCount.append(h('option', { value: v }, v ? L(`${v} bài`, `${v}`) : L('Không có bài tập', 'None'))));
+    hwCount.value = String(d.hw.count);
+    hwCount.addEventListener('change', () => { d.hw.count = +hwCount.value; store.save(); drawSummary(); drawGifts(); });
+    const hwTypes = h('div', { class: 'chips' });
+    const drawTypes = () => {
+      hwTypes.innerHTML = '';
+      EXERCISES.forEach((x) => hwTypes.append(h('button', { class: 'chip' + (d.hw.off.includes(x.id) ? '' : ' on'), onClick: () => {
+        d.hw.off = d.hw.off.includes(x.id) ? d.hw.off.filter((k) => k !== x.id) : [...d.hw.off, x.id];
+        store.save(); drawTypes(); drawSummary(); drawGifts();
+      } }, `${x.e} ${exerciseName(x)}`)));
+    };
+    drawTypes();
+
+    // Việc ba mẹ giao thêm (phơi đồ, gấp đồ…)
+    const choreBox = h('div');
+    const drawChores = () => {
+      choreBox.innerHTML = '';
+      const asked = todaysAsks();
+      d.chores.forEach((c, i) => {
+        const on = asked.includes(c.id);
+        const emo = h('select', { class: 'emo-sel' }, [...new Set([c.emoji, '👕', '🧺', '🧹', '🍽️', '🪴', '🐶', '🛏️', '🧽', '📚', '⭐'])].map((e) => h('option', { value: e }, e)));
+        emo.value = c.emoji;
+        emo.addEventListener('change', () => { c.emoji = emo.value; store.save(); });
+        const name = h('input', { type: 'text', value: choreName(c), maxlength: 40 });
+        name.addEventListener('change', () => { c.name = name.value.trim(); c.key = ''; store.save(); });
+        const give = h('button', { class: 'btn small ' + (on ? 'green' : 'ghost'), onClick: () => { toggleAsk(c.id); drawChores(); } },
+          on ? L('✅ Đã giao hôm nay', '✅ Assigned today') : L('Giao hôm nay', 'Assign today'));
+        const del = h('button', { class: 'btn ghost small', onClick: () => {
+          if (confirm(L('Xoá việc này?', 'Delete this job?'))) { d.chores.splice(i, 1); store.save(); drawChores(); }
+        } }, '🗑️');
+        choreBox.append(h('div', { class: 'gift-row' }, emo, name,
+          stepper(() => +c.stars || 0, (v) => { c.stars = v; }), h('span', { text: '⭐' }), give, del));
+      });
+      choreBox.append(h('button', { class: 'btn pink small', onClick: () => {
+        d.chores.push({ id: 'c' + Date.now(), emoji: '⭐', key: '', name: L('Việc mới', 'New job'), stars: 2 });
+        store.save(); drawChores();
+      } }, L('➕ Thêm việc', '➕ Add a job')));
+    };
+    drawChores();
+
     const adj = h('input', { type: 'number', class: 'cost', min: 1, max: 999, value: 5, inputmode: 'numeric' });
     const adjust = (sign) => { adjustStars(sign * Math.max(1, Math.round(+adj.value) || 1)); updateStars(true); drawSummary(); };
     drawGifts(); drawRules(); drawSummary();
@@ -164,6 +220,18 @@ register('parents', {
         h('p', { style: muted, text: L('Bạn Thỏ sẽ gọi tên bé khi khen.', 'Bunny will say your child’s name when praising.') })),
 
       h('div', { class: 'box' },
+        h('h3', { text: L('📅 Hôm nay', '📅 Today') }),
+        todayChips,
+        h('p', { style: { ...muted, marginTop: '10px' }, text: L('Nếu hôm nay bé được nghỉ (lễ, ốm…), ba mẹ bấm “Ngày nghỉ”: các việc sáng và tối của ngày đi học sẽ tạm ẩn. Chỉ áp dụng cho hôm nay, mai tự trở về lịch tuần.',
+          'If there is no school today (holiday, sick day…), tap “Day off”: the school-day morning and evening jobs are hidden. This applies to today only; tomorrow follows the weekly schedule again.') })),
+
+      h('div', { class: 'box' },
+        h('h3', { text: L('📋 Giao việc thêm hôm nay', '📋 Assign extra jobs today') }),
+        h('p', { style: muted, text: L('Hôm nào có việc (phơi đồ, gấp đồ…), ba mẹ bấm “Giao hôm nay”. Việc sẽ hiện trong Bé Tự Lập của bé đến hết ngày. Bé làm xong thì được số sao ba mẹ đặt.',
+          'On days when there is an extra job (hanging or folding laundry…), tap “Assign today”. It appears under I Can Do It until the end of the day and earns the stars you set.') }),
+        choreBox),
+
+      h('div', { class: 'box' },
         h('h3', { text: L('🎁 Quà của bé', '🎁 Rewards') }),
         h('p', { style: muted, text: L('Bé gom sao để đổi quà. Ba mẹ đặt tên quà và số sao cần có. Khi bé bấm Đổi quà, ba mẹ giữ nút 2 giây để đồng ý rồi sao mới bị trừ.',
           'Your child saves stars for rewards. Set each reward and its price. When she taps Get it, a parent holds a button for 2 seconds to agree before the stars are spent.') }),
@@ -171,7 +239,14 @@ register('parents', {
 
       h('div', { class: 'box' },
         h('h3', { text: L('⭐ Luật nhận sao', '⭐ Star rules') }),
+        h('div', { class: 'rule-row' }, h('span', { class: 'rule-emo', text: '🏫' }), h('span', { class: 'rule-text', text: L('Ngày đi học (việc sáng và tối chỉ có vào các ngày này)', 'School days (morning and evening jobs only appear on these days)') })),
+        dayChips,
         rulesBox,
+        h('div', { class: 'rule-row' }, h('span', { class: 'rule-emo', text: '📝' }),
+          h('span', { class: 'rule-text', text: L(`Số bài tập mỗi ngày (1 bài = trả lời đủ 5 câu, hoặc tô đạt ${TRACE_PER_EXERCISE} chữ). Chơi thêm ngoài bài tập không tính sao.`,
+            `Exercises per day (1 exercise = answer all 5 questions, or trace ${TRACE_PER_EXERCISE} well). Extra play earns no stars.`) }), hwCount),
+        h('p', { style: muted, text: L('Các loại bài được đưa vào bài tập (bấm để bật hoặc tắt):', 'Exercise types to include (tap to turn on or off):') }),
+        hwTypes,
         sumBox,
         h('div', { class: 'field' },
           h('label', null, L('Bé đang có ', 'Current stars: '), balance), adj,
@@ -206,6 +281,7 @@ register('parents', {
           stat(d.stats.math || 0, L('🧮 Phép tính đúng', '🧮 Math answers')),
           stat(d.stats.explore || 0, L('🌈 Câu khám phá đúng', '🌈 Explore answers')),
           stat(d.stats.selfcare, L('👧 Việc tự lập', '👧 Jobs done')),
+          stat(`${d.homework && d.homework.date ? d.homework.done.length : 0}/${d.hw.count}`, L('📝 Bài tập hôm nay', "📝 Today's exercises")),
           ...Object.keys(ROUTINES()).map((k) => stat(`${routineCount(k)}/${ROUTINES()[k].tasks.length}`, `${ROUTINES()[k].emoji} ${ROUTINES()[k].title} ${L('hôm nay', 'today')}`)))),
 
       h('div', { class: 'box' },

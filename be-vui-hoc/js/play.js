@@ -4,6 +4,7 @@ import { sfx } from './sound.js';
 import { store } from './store.js';
 import { L } from './i18n.js';
 import { numWord } from './vi.js';
+import { hwQuiz } from './homework.js';
 
 export const ROUND = 5;
 
@@ -120,16 +121,28 @@ export function answerButtons(opts, onPick, cls = 'ans') {
   return wrap;
 }
 
-/** Màn chúc mừng cuối lượt chơi, rồi chơi lại hoặc về menu. */
-export async function roundEnd(life, again, menu) {
+/**
+ * Màn chúc mừng cuối lượt chơi.
+ * quizId: mã bài (xem EXERCISES trong homework.js). Nếu đó là một bài tập hôm nay còn chưa làm thì bé được sao;
+ * còn lại là chơi thêm, không tính sao.
+ */
+export async function roundEnd(life, again, menu, quizId) {
   if (!life.alive) return;
+  const r = quizId ? hwQuiz(quizId) : null;
+  const total = r ? r.stars + r.bonus : 0;
   const ans = await celebrate({
-    emoji: '🏆', title: L('Hoàn thành!', 'Well done!'),
-    text: L(`Con đã trả lời xong ${ROUND} câu!`, `You answered ${ROUND} questions!`),
-    speech: L(`Hoan hô! Con đã hoàn thành ${numWord(ROUND)} câu rồi!`, `Hooray! You finished ${numWord(ROUND)} questions!`),
-    kind: 'lesson',
-    buttons: [[L('Chơi tiếp 🔁', 'Play again 🔁'), 'orange'], [L('Trò khác 🎲', 'Other games 🎲'), 'blue']],
+    emoji: r && r.all ? '🎓' : '🏆',
+    title: r && r.all ? L('Hết bài tập hôm nay!', "Today's exercises are done!") : L('Hoàn thành!', 'Well done!'),
+    text: r ? L(`Xong bài tập ${r.k}/${r.n}.`, `Exercise ${r.k} of ${r.n} done.`) + (r.bonus ? L(` Làm hết bài: thưởng thêm ${r.bonus} ⭐.`, ` All done: ${r.bonus} ⭐ bonus.`) : '')
+      : L(`Con đã trả lời xong ${ROUND} câu! (Chơi thêm, không tính sao)`, `You answered ${ROUND} questions! (Extra play, no stars)`),
+    speech: r ? (r.all ? L(`Hoan hô! Con đã làm hết bài tập hôm nay. Con được ${total} sao.`, `Hooray! You finished all of today's exercises. You earn ${total} stars.`)
+      : L(`Hoan hô! Xong bài tập ${r.k} trên ${r.n}. Con được ${total} sao.`, `Hooray! Exercise ${r.k} of ${r.n} is done. You earn ${total} ${total === 1 ? 'star' : 'stars'}.`))
+      : L(`Hoan hô! Con đã hoàn thành ${numWord(ROUND)} câu rồi!`, `Hooray! You finished ${numWord(ROUND)} questions!`),
+    stars: total,
+    buttons: r ? [[L('📝 Xem bài tập', '📝 My exercises'), 'purple']]
+      : [[L('Chơi tiếp 🔁', 'Play again 🔁'), 'orange'], [L('Trò khác 🎲', 'Other games 🎲'), 'blue']],
   });
   if (!life.alive) return;
-  if (ans === 0) again(); else go(menu);
+  if (r) go('homework');
+  else if (ans === 0) again(); else go(menu);
 }
