@@ -15,7 +15,7 @@ Repo này có hai ứng dụng web:
 
 ### Ngôn ngữ và giọng đọc
 
-- Chọn **🇻🇳 Tiếng Việt** hoặc **🇬🇧 English** ngay ở màn chào, hoặc trong Góc ba mẹ. Đổi ngôn ngữ sẽ đổi cả chữ trên màn hình lẫn giọng đọc.
+- Màn hình đầu tiên là bước **chọn ngôn ngữ**: bé bấm **🇻🇳 Tiếng Việt** hoặc **🇬🇧 English** là vào thẳng ứng dụng bằng ngôn ngữ đó. Trong Góc ba mẹ cũng đổi được. Đổi ngôn ngữ sẽ đổi cả chữ trên màn hình lẫn giọng đọc.
 - Bạn Thỏ đọc mọi hướng dẫn bằng giọng có sẵn trên máy. Ứng dụng tự chọn **giọng nữ** tự nhiên nhất mà máy có:
   - Tiếng Anh: Ava, Samantha (iPad, Mac), Jenny (Microsoft Edge), Google US English (Chrome).
   - Tiếng Việt: Linh (iPad, Mac), HoaiMy (Microsoft Edge).
@@ -68,7 +68,7 @@ Repo này có hai ứng dụng web:
 1. Đưa thư mục `be-vui-hoc/` lên một trang web có HTTPS. Cách dễ nhất là **GitHub Pages**: vào *Settings → Pages* của repo, chọn nhánh cần đăng. Khi đó địa chỉ sẽ là
    `https://<tên-tài-khoản>.github.io/tho-478/be-vui-hoc/`
 2. Mở địa chỉ đó bằng **Safari** trên iPad. Bấm nút **Chia sẻ** rồi chọn **Thêm vào MH chính**.
-3. Mở ứng dụng **Bé Vui Học** từ màn hình chính và bấm **Bắt đầu**. Lần bấm này cho phép iPad phát tiếng.
+3. Mở ứng dụng **Bé Vui Học** từ màn hình chính và bấm chọn ngôn ngữ. Lần bấm này cũng cho phép iPad phát tiếng.
 
 **Nếu không nghe thấy tiếng:**
 - Tắt chế độ im lặng và tăng âm lượng.

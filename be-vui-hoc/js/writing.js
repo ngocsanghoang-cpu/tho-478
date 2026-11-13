@@ -2,7 +2,7 @@
 import { register, go, h, say, live, sleep, giveStars, praise, confetti, toast } from './ui.js';
 import { sfx } from './sound.js';
 import { store, bump } from './store.js';
-import { L, isEn } from './i18n.js';
+import { L, isEn, byLang } from './i18n.js';
 import { numWord, cap } from './vi.js';
 
 const THEME = 'var(--purple)';
@@ -26,13 +26,14 @@ const EN = {
   s: ['☀️', 'sun'], t: ['🐯', 'tiger'], u: ['☂️', 'umbrella'], v: ['🎻', 'violin'], w: ['🐳', 'whale'], x: ['🎶', 'xylophone'],
   y: ['🪀', 'yo-yo'], z: ['🦓', 'zebra'],
 };
-const LOWER = Object.keys(L(VI, EN));
-
-export const SETS = {
-  lower: { title: L('Chữ thường', 'Lowercase'), chars: LOWER },
-  upper: { title: L('Chữ hoa', 'Uppercase'), chars: LOWER.map((c) => c.toUpperCase()) },
-  digits: { title: L('Chữ số', 'Numbers'), chars: '0123456789'.split('') },
-};
+export const SETS = byLang(() => {
+  const lower = Object.keys(L(VI, EN));
+  return {
+    lower: { title: L('Chữ thường', 'Lowercase'), chars: lower },
+    upper: { title: L('Chữ hoa', 'Uppercase'), chars: lower.map((c) => c.toUpperCase()) },
+    digits: { title: L('Chữ số', 'Numbers'), chars: '0123456789'.split('') },
+  };
+});
 
 const COLORS = ['#ff6b9a', '#9b5de5', '#4ea8de', '#2ec4b6', '#ff9f1c', '#2b2d42'];
 const FONT = (px) => `700 ${px}px Andika, "Chalkboard SE", "Comic Sans MS", ui-rounded, sans-serif`;
@@ -76,8 +77,8 @@ export const starsOf = (set, ch) => store.data.letters[`${set}:${ch}`] || 0;
 register('writing', {
   title: () => L('Tập Viết', 'Writing'), parent: 'home', theme: THEME,
   render(root, { set = 'lower' } = {}) {
-    const S = SETS[set];
-    const tabs = h('div', { class: 'chips' }, Object.entries(SETS).map(([k, v]) =>
+    const S = SETS()[set];
+    const tabs = h('div', { class: 'chips' }, Object.entries(SETS()).map(([k, v]) =>
       h('button', { class: 'chip' + (k === set ? ' on' : ''), onClick: () => { sfx.tap(); go('writing', { set: k }); } }, v.title)));
     const grid = h('div', { class: 'letter-grid' }, S.chars.map((ch, i) => {
       const st = starsOf(set, ch);
@@ -97,10 +98,10 @@ register('writing', {
 
 /* ---------------- Màn tô chữ ---------------- */
 register('trace', {
-  title: (p) => SETS[p.set].title, parent: (p) => ['writing', { set: p.set }], theme: THEME, fixed: true,
+  title: (p) => SETS()[p.set].title, parent: (p) => ['writing', { set: p.set }], theme: THEME, fixed: true,
   render(root, { set, i }) {
     const life = live();
-    const S = SETS[set];
+    const S = SETS()[set];
     const ch = S.chars[i];
     const info = describe(set, ch);
     let mode = 'trace'; // 'trace' = tô theo nét chấm, 'free' = tự viết

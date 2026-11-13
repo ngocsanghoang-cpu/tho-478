@@ -1,17 +1,17 @@
 // BÉ TỰ LẬP – việc buổi sáng/chiều/tối, hướng dẫn từng bước, trò chơi dọn đồ chơi
-// Ghi chú: các chuỗi dùng L(tiếng Việt, tiếng Anh). Đổi ngôn ngữ sẽ tải lại trang.
+// Ghi chú: các chuỗi dùng L(tiếng Việt, tiếng Anh); dữ liệu bọc trong byLang() để đổi ngôn ngữ được ngay.
 import { register, go, h, say, live, sleep, giveStars, praise, celebrate, menuCard, progressDots, shuffle, rand, toast } from './ui.js';
 import { sfx } from './sound.js';
 import { routineDone, markRoutine } from './store.js';
-import { L } from './i18n.js';
+import { L, byLang } from './i18n.js';
 import { numWord } from './vi.js';
 
 const THEME = 'var(--pink)';
-const TAP_DONE = L(' Làm xong mỗi bước thì bấm nút Xong rồi.', ' Tap Done after each step.');
+const tapDone = () => L(' Làm xong mỗi bước thì bấm nút Xong rồi.', ' Tap Done after each step.');
 const step = (n, text) => L(`Bước ${numWord(n)}. ${text}.`, `Step ${numWord(n)}. ${text}.`);
 
 /* ---------------- Dữ liệu ---------------- */
-export const ROUTINES = {
+export const ROUTINES = byLang(() => ({
   morning: {
     title: L('Buổi sáng', 'Morning'), emoji: '☀️', color: 'yellow',
     intro: L('Chào buổi sáng! Con dậy rồi, mình cùng tự làm các việc buổi sáng nhé. Con chạm vào từng việc để nghe hướng dẫn.',
@@ -69,11 +69,11 @@ export const ROUTINES = {
           ['Say good night to Mom and Dad', 'Climb into bed carefully', 'Lie down and pull up your blanket', 'Close your eyes and sleep tight']) },
     ],
   },
-};
+}));
 
 /** Số việc đã làm hôm nay (chỉ tính những việc có trong danh sách). */
 export function routineCount(kind) {
-  const ids = ROUTINES[kind].tasks.map((t) => t.id);
+  const ids = ROUTINES()[kind].tasks.map((t) => t.id);
   return routineDone(kind).filter((id) => ids.includes(id)).length;
 }
 
@@ -86,7 +86,7 @@ export function currentRoutine() {
 // Mỗi bước: [biểu tượng, tiếng Việt, tiếng Anh, số giây (nếu có hẹn giờ)]
 const steps = (list) => list.map(([e, vi, en, secs]) => ({ e, t: L(vi, en), secs }));
 
-const GUIDES = {
+const GUIDES = byLang(() => ({
   hands: {
     title: L('Rửa tay', 'Wash hands'), emoji: '🧼', auto: true, countAloud: true,
     intro: L('Mình cùng rửa tay thật sạch nhé! Con làm theo cô từng bước.', "Let's wash our hands nice and clean! Follow me step by step."),
@@ -119,7 +119,7 @@ const GUIDES = {
   },
   dress: {
     title: L('Tự mặc đồ mới', 'Put on clean clothes'), emoji: '👗', auto: false,
-    intro: L('Con tự mặc quần áo mới nhé.', 'Put on your clean clothes all by yourself.') + TAP_DONE,
+    intro: L('Con tự mặc quần áo mới nhé.', 'Put on your clean clothes all by yourself.') + tapDone(),
     done: L('Con đã tự mặc quần áo rồi! Trông con thật xinh xắn, gọn gàng!', 'You got dressed all by yourself! You look so pretty and neat!'),
     steps: steps([
       ['👚', 'Tìm cổ áo và mặt trước của áo', 'Find the collar and the front of your shirt'],
@@ -133,7 +133,7 @@ const GUIDES = {
   },
   undress: {
     title: L('Tự cởi đồ ngủ', 'Take off pajamas'), emoji: '👚', auto: false,
-    intro: L('Con tự cởi đồ ngủ nhé.', 'Take off your pajamas all by yourself.') + TAP_DONE,
+    intro: L('Con tự cởi đồ ngủ nhé.', 'Take off your pajamas all by yourself.') + tapDone(),
     done: L('Con đã tự cởi đồ rồi! Giỏi quá!', 'You took off your pajamas by yourself! Great job!'),
     steps: steps([
       ['🔘', 'Cởi nút áo, nếu áo có nút', 'Undo the buttons, if your shirt has buttons'],
@@ -146,7 +146,7 @@ const GUIDES = {
   },
   shoesOn: {
     title: L('Tự mang giày dép', 'Put on my shoes'), emoji: '🥿', auto: false,
-    intro: L('Con tự mang giày dép nhé.', 'Put on your shoes all by yourself.') + TAP_DONE,
+    intro: L('Con tự mang giày dép nhé.', 'Put on your shoes all by yourself.') + tapDone(),
     done: L('Con đã tự mang giày dép rồi! Giỏi quá!', 'You put on your shoes by yourself! Great job!'),
     steps: steps([
       ['🪑', 'Ngồi xuống ghế hoặc bậc thấp', 'Sit down on a chair or a low step'],
@@ -170,7 +170,7 @@ const GUIDES = {
   },
   fold: {
     title: L('Tự xếp gọn quần áo', 'Fold my clothes'), emoji: '🧺', auto: false,
-    intro: L('Con tự xếp quần áo cho gọn gàng nhé.', 'Fold your clothes neatly all by yourself.') + TAP_DONE,
+    intro: L('Con tự xếp quần áo cho gọn gàng nhé.', 'Fold your clothes neatly all by yourself.') + tapDone(),
     done: L('Quần áo của con xếp thật gọn gàng! Giỏi quá!', 'Your clothes are folded so neatly! Great job!'),
     steps: steps([
       ['👚', 'Trải áo thật phẳng, mặt trước úp xuống', 'Lay your shirt flat, front side down'],
@@ -180,7 +180,7 @@ const GUIDES = {
       ['🗄️', 'Cất quần áo vào đúng ngăn tủ', 'Put your clothes in the right drawer'],
     ]),
   },
-};
+}));
 
 /* ---------------- Menu ---------------- */
 register('selfcare', {
@@ -188,7 +188,7 @@ register('selfcare', {
   render(root) {
     const jobs = (n, total) => L(`${n}/${total} việc`, `${n}/${total} jobs`);
     const card = (kind) => {
-      const R = ROUTINES[kind];
+      const R = ROUTINES()[kind];
       return menuCard({ emoji: R.emoji, label: R.title, sub: jobs(routineCount(kind), R.tasks.length), color: R.color, badge: kind === currentRoutine() ? L('Bây giờ', 'Now') : null, onClick: () => go('routine', { kind }) });
     };
     root.append(h('div', { class: 'menu' },
@@ -211,9 +211,9 @@ register('selfcare', {
 
 /* ---------------- Danh sách việc trong ngày ---------------- */
 register('routine', {
-  title: (p) => ROUTINES[p.kind].title, parent: 'selfcare', theme: THEME,
+  title: (p) => ROUTINES()[p.kind].title, parent: 'selfcare', theme: THEME,
   render(root, { kind }) {
-    const R = ROUTINES[kind];
+    const R = ROUTINES()[kind];
     const done = routineDone(kind);
     const n = routineCount(kind);
     const total = R.tasks.length;
@@ -248,7 +248,7 @@ function openTask(kind, t) {
 async function completeTask(kind, id, fromEl) {
   const fresh = markRoutine(kind, id);
   if (fresh) giveStars(1, fromEl);
-  const R = ROUTINES[kind];
+  const R = ROUTINES()[kind];
   if (fresh && routineCount(kind) === R.tasks.length) {
     await celebrate({
       emoji: { morning: '🌞', afternoon: '🏅', evening: '🌟' }[kind],
@@ -263,11 +263,11 @@ async function completeTask(kind, id, fromEl) {
 
 /* ---------------- Một việc (đọc các bước) ---------------- */
 register('task', {
-  title: (p) => ROUTINES[p.kind].tasks.find((t) => t.id === p.id).t,
+  title: (p) => ROUTINES()[p.kind].tasks.find((t) => t.id === p.id).t,
   parent: (p) => ['routine', { kind: p.kind }], theme: THEME, fixed: true,
   render(root, { kind, id }) {
     const life = live();
-    const t = ROUTINES[kind].tasks.find((x) => x.id === id);
+    const t = ROUTINES()[kind].tasks.find((x) => x.id === id);
     const items = t.steps.map((s, i) => h('li', null, h('b', { text: i + 1 }), s));
     const doneBtn = h('button', { class: 'btn big green pulse', onClick: () => { sfx.ding(); completeTask(kind, id, doneBtn); } }, L('✅ Con làm xong rồi!', '✅ I did it!'));
     root.append(h('div', { class: 'task' },
@@ -296,10 +296,10 @@ register('task', {
 
 /* ---------------- Hướng dẫn từng bước có hẹn giờ ---------------- */
 register('guide', {
-  title: (p) => GUIDES[p.id].title,
+  title: (p) => GUIDES()[p.id].title,
   parent: (p) => (p.kind ? ['routine', { kind: p.kind }] : 'selfcare'), theme: THEME, fixed: true,
   render(root, params) {
-    const G = GUIDES[params.id];
+    const G = GUIDES()[params.id];
     const life = live();
     let idx = -1;
     let paused = false;
@@ -396,14 +396,14 @@ function svgEl(tag, attrs, ...kids) {
 }
 
 /* ---------------- Trò chơi: Dọn đồ chơi ---------------- */
-const BINS = [
+const BINS = byLang(() => [
   { id: 'toy', e: '📦', t: L('Hộp đồ chơi', 'Toy box') },
   { id: 'cloth', e: '🧺', t: L('Giỏ quần áo', 'Clothes basket') },
   { id: 'book', e: '📚', t: L('Giá sách', 'Bookshelf') },
   { id: 'shoe', e: '🗄️', t: L('Tủ giày', 'Shoe cabinet') },
-];
+]);
 // [biểu tượng, tiếng Việt, tiếng Anh, chỗ cất]
-const THINGS = [
+const THINGS = byLang(() => [
   ['🧸', 'gấu bông', 'the teddy bear', 'toy'], ['🪆', 'búp bê', 'the doll', 'toy'], ['⚽', 'quả bóng', 'the ball', 'toy'],
   ['🧩', 'miếng xếp hình', 'the puzzle piece', 'toy'], ['🪀', 'con quay', 'the yo-yo', 'toy'], ['🦄', 'kỳ lân bông', 'the toy unicorn', 'toy'],
   ['👚', 'cái áo', 'the shirt', 'cloth'], ['👖', 'cái quần', 'the pants', 'cloth'], ['🧦', 'đôi tất', 'the socks', 'cloth'],
@@ -412,7 +412,7 @@ const THINGS = [
   ['📒', 'quyển vở', 'the notebook', 'book'],
   ['🥿', 'đôi giày', 'the shoes', 'shoe'], ['🩴', 'đôi dép', 'the flip-flops', 'shoe'], ['👡', 'đôi xăng đan', 'the sandals', 'shoe'],
   ['👢', 'đôi ủng', 'the boots', 'shoe'],
-].map(([e, vi, en, bin]) => ({ e, n: L(vi, en), bin }));
+].map(([e, vi, en, bin]) => ({ e, n: L(vi, en), bin })));
 
 const capFirst = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -420,12 +420,12 @@ register('tidy', {
   title: () => L('Dọn đồ chơi', 'Tidy up'), parent: (p) => (p.kind ? ['routine', { kind: p.kind }] : 'selfcare'), theme: THEME, fixed: true,
   render(root, params) {
     const life = live();
-    const byBin = (id) => shuffle(THINGS.filter((t) => t.bin === id));
+    const byBin = (id) => shuffle(THINGS().filter((t) => t.bin === id));
     const items = shuffle([...byBin('toy').slice(0, 3), ...byBin('cloth').slice(0, 2), ...byBin('book').slice(0, 2), ...byBin('shoe').slice(0, 2)]);
     let left = items.length;
 
     const room = h('div', { class: 'room' }, h('div', { class: 'win', text: '🪟' }));
-    const binEls = BINS.map((b) => {
+    const binEls = BINS().map((b) => {
       const got = h('div', { class: 'got' });
       const el = h('div', { class: 'bin' }, h('div', { class: 'emo', text: b.e }), h('div', { class: 'lbl', text: b.t }), got);
       el.dataset.bin = b.id;
@@ -484,7 +484,7 @@ register('tidy', {
         el.classList.remove('drag');
         binEls.forEach((b) => b.classList.remove('hot'));
         const bin = e.type === 'pointerup' ? binAt(e.clientX, e.clientY) : null;
-        const binInfo = bin && BINS.find((b) => b.id === bin.dataset.bin);
+        const binInfo = bin && BINS().find((b) => b.id === bin.dataset.bin);
         const binName = binInfo ? binInfo.t.toLowerCase() : '';
         if (!moved) {
           el.style.transform = rot;

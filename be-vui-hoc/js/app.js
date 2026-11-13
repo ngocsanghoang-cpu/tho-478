@@ -17,6 +17,8 @@ initSpeech({ lang: lang(), rate: store.data.rate, voiceURI: store.data.voices[la
 setSoundEnabled(store.data.sound);
 
 /* ---------------- Màn chào ---------------- */
+// Màn hình đầu tiên: bé chọn ngôn ngữ, bấm vào ngôn ngữ nào thì vào ứng dụng bằng ngôn ngữ đó.
+// Lần bấm này cũng là thao tác cho phép iPad phát tiếng.
 register('splash', {
   render(root) {
     const notice = h('div', { class: 'warn voice-note' });
@@ -30,18 +32,21 @@ register('splash', {
     const off = onVoicesChanged(showNotice);
     const t = setTimeout(showNotice, 1500);
 
-    const langBtn = (k, label) => h('button', { class: 'chip big' + (lang() === k ? ' on' : ''), onClick: () => setLang(k) }, label);
+    const enter = (k) => { setLang(k); unlockAudio(); go('home', { first: true }); };
+    const langCard = (k, flag, name, hello, color) => h('button', { class: `card ${color} lang-card` + (lang() === k ? ' last' : ''), onClick: () => enter(k) },
+      h('span', { class: 'emo', text: flag }),
+      h('span', { class: 'lbl', text: name }),
+      h('span', { class: 'sub', text: hello }));
+
     root.append(h('div', { class: 'splash' },
       h('div', { class: 'logo', text: '🐰' }),
       h('h1', { text: 'Bé Vui Học' }),
-      h('p', { text: L('Tự lập • Tập viết • Học đếm • Học toán • Khám phá', 'I can do it • Writing • Counting • Math • Explore') }),
-      h('div', { class: 'chips lang-pick' }, langBtn('vi', '🇻🇳 Tiếng Việt'), langBtn('en', '🇬🇧 English')),
-      h('button', {
-        class: 'btn big pink pulse',
-        onClick: () => { unlockAudio(); go('home', { first: true }); },
-      }, L('▶️ Bắt đầu', '▶️ Start')),
+      h('p', { class: 'pick-title', text: 'Chọn ngôn ngữ  •  Choose your language' }),
+      h('div', { class: 'lang-cards' },
+        langCard('vi', '🇻🇳', 'Tiếng Việt', 'Xin chào!', 'pink'),
+        langCard('en', '🇬🇧', 'English', 'Hello!', 'blue')),
       notice,
-      h('p', { class: 'hint', text: L('Nhớ bật âm lượng và tắt chế độ im lặng để nghe bạn Thỏ hướng dẫn nhé!', 'Turn the volume up and silent mode off to hear Bunny!') })));
+      h('p', { class: 'hint', text: 'Nhớ bật âm lượng để nghe bạn Thỏ nhé!  •  Turn the volume up to hear Bunny!' })));
     return () => { off(); clearTimeout(t); };
   },
 });
@@ -57,7 +62,7 @@ register('home', {
   render(root, { first } = {}) {
     const name = (store.data.name || '').trim();
     const kind = currentRoutine();
-    const R = ROUTINES[kind];
+    const R = ROUTINES()[kind];
     const done = routineCount(kind);
     const total = R.tasks.length;
 

@@ -124,12 +124,18 @@ body[data-screen="splash"] #app { top: 0; }
   min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 18px; padding: 30px; text-align: center;
 }
-.splash .logo { font-size: 150px; line-height: 1; animation: float 3s ease-in-out infinite; }
+.splash .logo { font-size: 120px; line-height: 1; animation: float 3s ease-in-out infinite; }
 .splash h1 { font-size: 72px; margin: 0; font-weight: 900; color: var(--pink); text-shadow: 0 5px 0 #ffd3e2; }
 .splash p { font-size: 24px; margin: 0 0 8px; color: var(--muted); }
-.splash .lang-pick { margin-bottom: 14px; justify-content: center; }
+.splash .pick-title { font-size: 28px; font-weight: 900; color: var(--ink); margin: 10px 0 6px; }
+.lang-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; width: min(720px, 100%); }
+.lang-card { min-height: 230px; }
+.lang-card .emo { font-size: 96px; }
+.lang-card .lbl { font-size: 40px; }
+.lang-card .sub { font-size: 24px; }
+.lang-card.last { animation: pulse 1.4s ease-in-out infinite; }
 .splash .voice-note { max-width: 640px; font-size: 18px; line-height: 1.45; font-weight: 700; text-align: left; }
-.splash .hint { font-size: 18px; color: var(--muted); max-width: 560px; font-weight: 700; }
+.splash .hint { margin-top: 14px; font-size: 18px; color: var(--muted); max-width: 560px; font-weight: 700; }
 
 /* ---------- Menu & thẻ ---------- */
 .menu { max-width: 1120px; margin: 0 auto; padding: 26px 24px 40px; }

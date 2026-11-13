@@ -16,7 +16,7 @@ register('parents', {
 
     // Ngôn ngữ
     const langBtns = h('div', { class: 'chips' }, [['vi', '🇻🇳 Tiếng Việt'], ['en', '🇬🇧 English']].map(([k, label]) =>
-      h('button', { class: 'chip big' + (k === cur ? ' on' : ''), onClick: () => setLang(k) }, label)));
+      h('button', { class: 'chip big' + (k === cur ? ' on' : ''), onClick: () => { setLang(k); go('parents'); } }, label)));
 
     // Tên bé
     const nameInput = h('input', { type: 'text', value: d.name, placeholder: L('Ví dụ: Na, Su, Bông…', 'For example: Mia, Lily…'), maxlength: 20 });
@@ -86,7 +86,7 @@ register('parents', {
     const t = setTimeout(() => { fillVoices(); renderVoiceInfo(); }, 800);
 
     const stat = (num, label) => h('div', { class: 'stat' }, h('b', { text: num }), h('span', { text: label }));
-    const traced = (set) => `${SETS[set].chars.filter((c) => starsOf(set, c)).length}/${SETS[set].chars.length}`;
+    const traced = (set) => `${SETS()[set].chars.filter((c) => starsOf(set, c)).length}/${SETS()[set].chars.length}`;
 
     root.append(h('div', { class: 'parents' },
       h('div', { class: 'box' },
@@ -117,14 +117,14 @@ register('parents', {
         h('div', { class: 'stat-grid' },
           stat(d.stars, L('⭐ Tổng số sao', '⭐ Total stars')),
           stat(`${unlockedCount()}/${STICKERS.length}`, L('🎁 Nhãn dán', '🎁 Stickers')),
-          stat(traced('lower'), '✏️ ' + SETS.lower.title),
-          stat(traced('upper'), '✏️ ' + SETS.upper.title),
-          stat(traced('digits'), '✏️ ' + SETS.digits.title),
+          stat(traced('lower'), '✏️ ' + SETS().lower.title),
+          stat(traced('upper'), '✏️ ' + SETS().upper.title),
+          stat(traced('digits'), '✏️ ' + SETS().digits.title),
           stat(d.stats.count, L('🔢 Câu đếm đúng', '🔢 Counting answers')),
           stat(d.stats.math || 0, L('🧮 Phép tính đúng', '🧮 Math answers')),
           stat(d.stats.explore || 0, L('🌈 Câu khám phá đúng', '🌈 Explore answers')),
           stat(d.stats.selfcare, L('👧 Việc tự lập', '👧 Jobs done')),
-          ...Object.keys(ROUTINES).map((k) => stat(`${routineCount(k)}/${ROUTINES[k].tasks.length}`, `${ROUTINES[k].emoji} ${ROUTINES[k].title} ${L('hôm nay', 'today')}`)))),
+          ...Object.keys(ROUTINES()).map((k) => stat(`${routineCount(k)}/${ROUTINES()[k].tasks.length}`, `${ROUTINES()[k].emoji} ${ROUTINES()[k].title} ${L('hôm nay', 'today')}`)))),
 
       h('div', { class: 'box' },
         h('h3', { text: L('📱 Cài lên màn hình chính iPad', '📱 Add to the iPad Home Screen') }),
