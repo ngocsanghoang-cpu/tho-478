@@ -3,7 +3,7 @@ import { register, go, back, h, $, say, repeatSay, updateStars, menuCard, holdTo
 import { initSpeech, voiceAdvice, onVoicesChanged } from './speech.js';
 import { unlockAudio, setSoundEnabled, sfx } from './sound.js';
 import { store, STICKERS, STARS_PER_STICKER, unlockedCount, isSchoolDay } from './store.js';
-import { L, lang, setLang } from './i18n.js';
+import { L, lang } from './i18n.js';
 import { numWord } from './vi.js';
 import { ROUTINES, routineCount, currentRoutine, mealTimerRunning } from './selfcare.js';
 import './writing.js';
@@ -18,9 +18,11 @@ document.documentElement.lang = lang();
 initSpeech({ lang: lang(), rate: store.data.rate, voiceURI: store.data.voices[lang()] || '' });
 setSoundEnabled(store.data.sound);
 
+const APP_NAME = () => L('Bé Vui Học', 'Happy Learning');
+
 /* ---------------- Màn chào ---------------- */
-// Màn hình đầu tiên: bé chọn ngôn ngữ, bấm vào ngôn ngữ nào thì vào ứng dụng bằng ngôn ngữ đó.
-// Lần bấm này cũng là thao tác cho phép iPad phát tiếng.
+// Màn hình đầu tiên. Lần bấm Start cũng là thao tác cho phép iPad phát tiếng.
+// Ứng dụng dùng tiếng Anh; ba mẹ có thể đổi ngôn ngữ trong Góc ba mẹ.
 register('splash', {
   render(root) {
     const notice = h('div', { class: 'warn voice-note' });
@@ -34,21 +36,16 @@ register('splash', {
     const off = onVoicesChanged(showNotice);
     const t = setTimeout(showNotice, 1500);
 
-    const enter = (k) => { setLang(k); unlockAudio(); go('home', { first: true }); };
-    const langCard = (k, flag, name, hello, color) => h('button', { class: `card ${color} lang-card` + (lang() === k ? ' last' : ''), onClick: () => enter(k) },
-      h('span', { class: 'emo', text: flag }),
-      h('span', { class: 'lbl', text: name }),
-      h('span', { class: 'sub', text: hello }));
-
     root.append(h('div', { class: 'splash' },
       h('div', { class: 'logo', text: '🐰' }),
-      h('h1', { text: 'Bé Vui Học' }),
-      h('p', { class: 'pick-title', text: 'Chọn ngôn ngữ  •  Choose your language' }),
-      h('div', { class: 'lang-cards' },
-        langCard('vi', '🇻🇳', 'Tiếng Việt', 'Xin chào!', 'pink'),
-        langCard('en', '🇬🇧', 'English', 'Hello!', 'blue')),
+      h('h1', { text: APP_NAME() }),
+      h('p', { text: L('Tự lập • Bài tập • Tập viết • Học đếm • Học toán • Khám phá', 'I can do it • Exercises • Writing • Counting • Math • Explore') }),
+      h('button', {
+        class: 'btn big pink pulse',
+        onClick: () => { unlockAudio(); go('home', { first: true }); },
+      }, L('▶️ Bắt đầu', '▶️ Start')),
       notice,
-      h('p', { class: 'hint', text: 'Nhớ bật âm lượng để nghe bạn Thỏ nhé!  •  Turn the volume up to hear Bunny!' })));
+      h('p', { class: 'hint', text: L('Nhớ bật âm lượng và tắt chế độ im lặng để nghe bạn Thỏ nhé!', 'Turn the volume up and silent mode off to hear Bunny!') })));
     return () => { off(); clearTimeout(t); };
   },
 });
@@ -60,7 +57,7 @@ function greeting() {
 }
 
 register('home', {
-  title: 'Bé Vui Học',
+  title: () => APP_NAME(),
   render(root, { first } = {}) {
     const name = (store.data.name || '').trim();
     const kind = currentRoutine();

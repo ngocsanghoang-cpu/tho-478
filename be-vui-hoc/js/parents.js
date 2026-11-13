@@ -301,12 +301,12 @@ register('parents', {
         h('ol', null, L([
           'Mở trang này bằng Safari.',
           'Bấm nút Chia sẻ (ô vuông có mũi tên lên) → “Thêm vào MH chính”.',
-          'Mở ứng dụng “Bé Vui Học” từ màn hình chính – chạy toàn màn hình và dùng được khi không có mạng.',
+          'Mở ứng dụng từ màn hình chính – chạy toàn màn hình và dùng được khi không có mạng.',
           'Mẹo: bật Truy cập được hướng dẫn (Cài đặt → Trợ năng) để khoá bé trong ứng dụng.',
         ], [
           'Open this page in Safari.',
           'Tap the Share button (the square with an arrow) → “Add to Home Screen”.',
-          'Open “Bé Vui Học” from the Home Screen. It runs full screen and works offline.',
+          'Open the app from the Home Screen. It runs full screen and works offline.',
           'Tip: turn on Guided Access (Settings → Accessibility) to keep your child inside the app.',
         ]).map((text) => h('li', { text })))),
 

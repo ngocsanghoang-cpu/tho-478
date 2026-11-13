@@ -1,8 +1,8 @@
 {
-  "name": "Bé Vui Học – Tự lập, Tập viết, Học đếm",
-  "short_name": "Bé Vui Học",
-  "description": "Ứng dụng giúp bé tự lập, tập viết chữ và học đếm số với giọng nói hướng dẫn tiếng Việt.",
-  "lang": "vi",
+  "name": "Happy Learning",
+  "short_name": "Happy Learning",
+  "description": "Helps children do things by themselves, practice writing, counting and math, with a gentle voice guide.",
+  "lang": "en",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

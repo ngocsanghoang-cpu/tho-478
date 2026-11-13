@@ -1,5 +1,5 @@
 // Service Worker: lưu ứng dụng để dùng khi không có mạng
-const VERSION = 'bevuihoc-v11';
+const VERSION = 'bevuihoc-v12';
 const ASSETS = [
   './', 'index.html', 'manifest.webmanifest', 'css/style.css',
   'js/app.js', 'js/ui.js', 'js/speech.js', 'js/sound.js', 'js/store.js', 'js/vi.js', 'js/i18n.js', 'js/play.js', 'js/math.js', 'js/explore.js', 'js/rewards.js', 'js/homework.js',

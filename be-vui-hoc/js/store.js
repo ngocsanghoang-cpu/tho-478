@@ -16,7 +16,8 @@ export const STICKERS = [
 
 const DEFAULTS = {
   name: '',
-  lang: 'vi', // 'vi' = Tiếng Việt, 'en' = English
+  lang: 'en', // 'en' = English (mặc định), 'vi' = Tiếng Việt (ba mẹ đổi được trong Góc ba mẹ)
+  langV: 2,   // phiên bản cài đặt ngôn ngữ
   stars: 0,   // số sao đang có (đổi quà sẽ trừ)
   earned: 0,  // tổng số sao đã nhận từ trước tới nay (dùng để mở nhãn dán)
   // Luật nhận sao – ba mẹ chỉnh trong Góc ba mẹ
@@ -66,6 +67,8 @@ function load() {
     const voices = { ...d.voices, ...(p.voices || {}) };
     if (p.voiceURI && !voices.vi) voices.vi = p.voiceURI; // bản cũ chỉ lưu một giọng
     delete p.voiceURI;
+    // Từ bản này ứng dụng dùng tiếng Anh: máy đang lưu lựa chọn cũ được chuyển sang tiếng Anh một lần.
+    if (p.langV !== 2) { p.lang = 'en'; p.langV = 2; }
     return {
       ...d, ...p, voices,
       earned: p.earned == null ? (p.stars || 0) : p.earned,
@@ -140,8 +143,8 @@ export function markRoutine(kind, id) {
 }
 
 export function resetProgress() {
-  const { name, lang, rate, voices, sound, restMinutes, rules, rewards, chores, schoolDays, hw } = store.data;
-  store.data = { ...clone(DEFAULTS), name, lang, rate, voices, sound, restMinutes, rules, rewards, chores, schoolDays, hw };
+  const { name, lang, langV, rate, voices, sound, restMinutes, rules, rewards, chores, schoolDays, hw } = store.data;
+  store.data = { ...clone(DEFAULTS), name, lang, langV, rate, voices, sound, restMinutes, rules, rewards, chores, schoolDays, hw };
   store.save();
 }
 

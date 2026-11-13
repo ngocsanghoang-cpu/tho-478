@@ -5,7 +5,7 @@ Repo này có hai ứng dụng web:
 | Thư mục | Ứng dụng |
 |---|---|
 | `index.html` | Ứng dụng thở 4-7-8 |
-| [`be-vui-hoc/`](be-vui-hoc/) | **Bé Vui Học**: dạy bé tự lập, tập viết, học đếm, học toán và khám phá trên iPad, có giọng nói hướng dẫn tiếng Việt hoặc tiếng Anh |
+| [`be-vui-hoc/`](be-vui-hoc/) | **Bé Vui Học (Happy Learning)**: dạy bé tự lập, làm bài tập, tập viết, học đếm, học toán và khám phá trên iPad, có giọng nữ hướng dẫn bằng tiếng Anh |
 
 ---
 
@@ -15,12 +15,12 @@ Repo này có hai ứng dụng web:
 
 ### Ngôn ngữ và giọng đọc
 
-- Màn hình đầu tiên là bước **chọn ngôn ngữ**: bé bấm **🇻🇳 Tiếng Việt** hoặc **🇬🇧 English** là vào thẳng ứng dụng bằng ngôn ngữ đó. Trong Góc ba mẹ cũng đổi được. Đổi ngôn ngữ sẽ đổi cả chữ trên màn hình lẫn giọng đọc.
-- Bạn Thỏ đọc mọi hướng dẫn bằng giọng có sẵn trên máy. Ứng dụng tự chọn **giọng nữ** tự nhiên nhất mà máy có:
-  - Tiếng Anh: Ava, Samantha (iPad, Mac), Jenny (Microsoft Edge), Google US English (Chrome).
-  - Tiếng Việt: Linh (iPad, Mac), HoaiMy (Microsoft Edge).
-- Nếu máy không có giọng cho ngôn ngữ đang chọn, ứng dụng chỉ hiện chữ (không đọc bằng giọng ngôn ngữ khác) và hướng dẫn ba mẹ cách cài giọng.
-- Mọi câu bạn Thỏ nói cũng hiện thành chữ trong bong bóng ở thanh trên cùng. Bé chạm vào bong bóng để nghe lại.
+- Ứng dụng dùng **tiếng Anh** cho toàn bộ chữ trên màn hình và lời đọc. Trên màn hình, ứng dụng có tên “Happy Learning”.
+- Bạn Thỏ (Bunny) đọc mọi hướng dẫn bằng giọng có sẵn trên máy. Ứng dụng tự chọn **giọng nữ** tiếng Anh nhẹ nhàng nhất mà máy có: Ava, Samantha (iPad, Mac), Jenny (Microsoft Edge), Google US English (Chrome). Giọng nam và các giọng “vui nhộn” bị bỏ qua.
+- Mọi câu Bunny nói cũng hiện thành chữ trong bong bóng ở thanh trên cùng. Bé chạm vào bong bóng để nghe lại.
+- Bản tiếng Việt vẫn còn trong ứng dụng: ba mẹ đổi được ở *For parents → Language*. Giọng tiếng Việt phụ thuộc vào máy (Linh trên iPad, HoaiMy trên Edge) và chất lượng không ổn định, nên tiếng Anh là mặc định.
+
+Phần mô tả dưới đây dùng tên tiếng Việt của các mục cho dễ đọc; tên tiếng Anh trên màn hình ghi trong ngoặc ở lần đầu nhắc tới: Bé Tự Lập (I Can Do It), Bài tập hôm nay (Today's exercises), Tập Viết (Writing), Học Đếm (Counting), Học Toán (Math), Khám Phá (Explore), Đổi quà (Rewards), Góc ba mẹ (For parents).
 
 ### Các phần học
 
@@ -146,7 +146,7 @@ Với luật mặc định:
 1. Đưa thư mục `be-vui-hoc/` lên một trang web có HTTPS. Cách dễ nhất là **GitHub Pages**: vào *Settings → Pages* của repo, chọn nhánh cần đăng. Khi đó địa chỉ sẽ là
    `https://<tên-tài-khoản>.github.io/tho-478/be-vui-hoc/`
 2. Mở địa chỉ đó bằng **Safari** trên iPad. Bấm nút **Chia sẻ** rồi chọn **Thêm vào MH chính**.
-3. Mở ứng dụng **Bé Vui Học** từ màn hình chính và bấm chọn ngôn ngữ. Lần bấm này cũng cho phép iPad phát tiếng.
+3. Mở ứng dụng **Happy Learning** từ màn hình chính và bấm **Start**. Lần bấm này cũng cho phép iPad phát tiếng.
 
 **Nếu không nghe thấy tiếng:**
 - Tắt chế độ im lặng và tăng âm lượng.
