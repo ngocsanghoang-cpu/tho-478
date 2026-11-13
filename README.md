@@ -28,7 +28,7 @@ Repo này có hai ứng dụng web:
 - ☀️ **Buổi sáng**: tự đi vệ sinh, tự rửa mặt, tự cởi đồ ngủ, tự mặc đồ mới, nhờ ba mẹ làm tóc (tập nói lời nhờ và cảm ơn lễ phép), tự đeo túi, đi đến lớp.
 - 🌤️ **Buổi chiều**: tự mang giày dép, cởi giày dép và cất vào tủ, chơi xong cất đồ chơi đúng chỗ.
 - 🌙 **Buổi tối**: tự múc ăn, ăn một ít rau mỗi ngày, tự xếp gọn quần áo, tự leo lên giường ngủ.
-- 🌟 **Tập từng kỹ năng**: mặc quần áo, mang giày dép, xếp quần áo, rửa tay 8 bước (có đếm to), đánh răng 2 phút.
+- 🌟 **Tập thêm cho quen tay** (không tính sao): mặc quần áo, mang giày dép, xếp quần áo, rửa tay 8 bước (có đếm to), đánh răng 2 phút.
 - 🧸 **Trò dọn đồ**: bé kéo thả đồ chơi vào hộp, quần áo vào giỏ, sách bút lên giá, giày dép vào tủ giày.
 
 **✏️ Tập Viết**
@@ -67,9 +67,8 @@ Luật nhận sao mặc định (ba mẹ chỉnh được từng mục, từ 0 �
 | 🏅 Làm hết việc của 1 buổi | +2 ⭐ thưởng |
 | 📚 Học xong 1 bài (trả lời đủ 5 câu) | +2 ⭐ |
 | ✏️ Tô đạt 1 chữ hoặc 1 số | +1 ⭐ |
-| 🧼 Tập xong 1 kỹ năng (rửa tay, mặc đồ, dọn đồ…) | +2 ⭐ |
 
-- **Sao học có giới hạn mỗi ngày** (mặc định 10 ⭐, gồm bài học, tô chữ, kỹ năng) để bé không gom sao bằng cách chơi mãi một trò dễ. **Sao tự lập không bị giới hạn.**
+- **Sao học có giới hạn mỗi ngày** (mặc định 10 ⭐, gồm bài học và tô chữ) để bé không gom sao bằng cách chơi mãi một trò dễ. **Sao tự lập không bị giới hạn.**
 - Với luật mặc định, một ngày bé làm hết mọi việc được tối đa 30 ⭐ (tự lập 20 ⭐ + học 10 ⭐), khoảng 210 ⭐ mỗi tuần. Góc ba mẹ tự tính lại con số này khi ba mẹ đổi luật, và ước tính mỗi món quà cần bao nhiêu ngày.
 - Mục **Đổi quà** cho bé thấy còn thiếu bao nhiêu sao cho từng món quà, kèm bảng “Làm gì thì được sao?”.
 - Khi đủ sao, bé bấm **Đổi quà**, ba mẹ giữ nút 2 giây để đồng ý rồi sao mới bị trừ. Quà đã đổi được lưu lại.

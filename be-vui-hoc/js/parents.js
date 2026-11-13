@@ -142,7 +142,7 @@ register('parents', {
       capSel.addEventListener('change', () => { d.rules.dailyCap = +capSel.value; store.save(); drawSummary(); drawGifts(); });
       rulesBox.append(h('div', { class: 'rule-row' },
         h('span', { class: 'rule-emo', text: '🌙' }),
-        h('span', { class: 'rule-text', text: L('Sao HỌC tối đa mỗi ngày (bài học, tô chữ, kỹ năng). Sao tự lập không bị giới hạn.', 'Most LEARNING stars per day (lessons, tracing, skills). Stars for own jobs are never limited.') }),
+        h('span', { class: 'rule-text', text: L('Sao HỌC tối đa mỗi ngày (bài học, tô chữ). Sao tự lập không bị giới hạn.', 'Most LEARNING stars per day (lessons, tracing). Stars for own jobs are never limited.') }),
         capSel));
     };
     const adj = h('input', { type: 'number', class: 'cost', min: 1, max: 999, value: 5, inputmode: 'numeric' });

@@ -23,7 +23,6 @@ export function ruleRows() {
     ['routine', '🏅', L('Làm hết việc của 1 buổi', 'Finish all the jobs of one part of the day'), r.routine],
     ['lesson', '📚', L('Học xong 1 bài (trả lời đủ 5 câu)', 'Finish 1 lesson (answer all 5 questions)'), r.lesson],
     ['trace', '✏️', L('Tô đạt 1 chữ hoặc 1 số', 'Trace 1 letter or number well'), r.trace],
-    ['skill', '🧼', L('Tập xong 1 kỹ năng (rửa tay, mặc đồ, dọn đồ…)', 'Practice 1 skill (wash hands, get dressed, tidy up…)'), r.skill],
   ];
 }
 

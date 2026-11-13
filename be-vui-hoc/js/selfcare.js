@@ -196,7 +196,7 @@ register('selfcare', {
         h('h2', { text: L('👧 Bé Tự Lập', '👧 I Can Do It') }),
         h('p', { text: L('Con tự làm việc của mình nhé!', 'I can do things all by myself!') }))),
       h('div', { class: 'cards three' }, card('morning'), card('afternoon'), card('evening')),
-      h('h3', { style: { fontSize: '28px', margin: '30px 0 16px' }, text: L('🌟 Tập từng kỹ năng', '🌟 Practice one skill') }),
+      h('h3', { style: { fontSize: '28px', margin: '30px 0 16px' }, text: L('🌟 Tập thêm cho quen tay (không tính sao)', '🌟 Extra practice (no stars)') }),
       h('div', { class: 'cards' },
         menuCard({ emoji: '👗', label: L('Mặc quần áo', 'Get dressed'), sub: L('Từng bước một', 'Step by step'), color: 'pink', onClick: () => go('guide', { id: 'dress' }) }),
         menuCard({ emoji: '🥿', label: L('Mang giày dép', 'Put on shoes'), sub: L('Đúng chân trái, phải', 'Left foot, right foot'), color: 'blue', onClick: () => go('guide', { id: 'shoesOn' }) }),
@@ -378,7 +378,7 @@ register('guide', {
       dots.set(G.steps.length);
       toast(praise());
       const ans = await celebrate({
-        emoji: G.emoji, title: L('Hoàn thành!', 'All done!'), text: G.done, speech: G.done, kind: params.kind ? null : 'skill',
+        emoji: G.emoji, title: L('Hoàn thành!', 'All done!'), text: G.done, speech: G.done,
         buttons: [[L('Làm lại 🔁', 'Do it again 🔁'), 'orange'], [L('Xong ✅', 'Done ✅'), 'green']],
       });
       if (!life.alive) return;
@@ -515,7 +515,7 @@ register('tidy', {
       const DONE = [L('Xong ✅', 'Done ✅'), 'green'];
       const ans = await celebrate({
         emoji: '🏠', title: L('Gọn gàng quá!', 'So tidy!'), text: L('Phòng của con sạch đẹp rồi!', 'Your room is clean and neat!'),
-        speech: L('Hoan hô! Phòng của con gọn gàng sạch đẹp rồi!', 'Hooray! Your room is clean and tidy!'), kind: params.kind ? null : 'skill',
+        speech: L('Hoan hô! Phòng của con gọn gàng sạch đẹp rồi!', 'Hooray! Your room is clean and tidy!'),
         buttons: params.kind ? [DONE] : [[L('Chơi lại 🔁', 'Play again 🔁'), 'orange'], DONE],
       });
       if (!life.alive) return;

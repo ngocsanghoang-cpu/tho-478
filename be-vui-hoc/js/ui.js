@@ -207,7 +207,7 @@ export const capNote = () => L('Hôm nay con đã nhận đủ sao học rồi. 
   'You have earned all your learning stars for today. For more stars, do your own jobs by yourself!');
 
 /**
- * Thưởng sao theo luật ba mẹ đặt. kind: 'task' | 'routine' | 'lesson' | 'trace' | 'skill'.
+ * Thưởng sao theo luật ba mẹ đặt. kind: 'task' | 'routine' | 'lesson' | 'trace'.
  * Sao học bị giới hạn mỗi ngày. Trả về số sao đã thưởng.
  */
 export function award(kind, fromEl) {

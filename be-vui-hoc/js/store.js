@@ -25,8 +25,8 @@ const DEFAULTS = {
     routine: 2,   // thưởng khi làm hết việc của 1 buổi
     lesson: 2,    // học xong 1 bài (1 lượt 5 câu)
     trace: 1,     // tô đạt 1 chữ hoặc 1 số
-    skill: 2,     // tập xong 1 kỹ năng (rửa tay, mặc đồ, dọn đồ…)
     dailyCap: 10, // số sao HỌC tối đa mỗi ngày (0 = không giới hạn); sao tự lập không bị giới hạn
+    // Mục "Tập thêm" (rửa tay, mặc đồ, dọn đồ… ngoài lịch hằng ngày) không có sao: đó là việc bé đã biết làm.
   },
   learn: { date: '', stars: 0 }, // số sao học đã nhận hôm nay
   // Quà do ba mẹ đặt. key: quà mẫu có tên theo ngôn ngữ; name: tên ba mẹ tự đặt
@@ -132,7 +132,7 @@ export function resetProgress() {
 
 /* ---------------- Luật nhận sao & đổi quà ---------------- */
 // Sao "học" (bị giới hạn mỗi ngày). Sao tự lập (task, routine) không bị giới hạn.
-export const LEARN_KINDS = ['lesson', 'trace', 'skill'];
+export const LEARN_KINDS = ['lesson', 'trace'];
 
 function learnToday() {
   if (store.data.learn.date !== todayKey()) store.data.learn = { date: todayKey(), stars: 0 };
