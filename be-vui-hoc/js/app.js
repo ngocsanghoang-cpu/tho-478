@@ -1,36 +1,55 @@
-// Điểm khởi động: màn chào, trang chính, bộ sưu tập nhãn dán, nhắc nghỉ
+// Điểm khởi động: màn chào (chọn ngôn ngữ), trang chính, bộ sưu tập nhãn dán, nhắc nghỉ
 import { register, go, back, h, $, say, repeatSay, updateStars, menuCard, holdToActivate, overlay, currentScreen, sleep } from './ui.js';
-import { initSpeech } from './speech.js';
+import { initSpeech, voiceAdvice, onVoicesChanged } from './speech.js';
 import { unlockAudio, setSoundEnabled, sfx } from './sound.js';
 import { store, STICKERS, STARS_PER_STICKER, unlockedCount } from './store.js';
+import { L, lang, setLang } from './i18n.js';
 import { numWord } from './vi.js';
 import { ROUTINES, routineCount, currentRoutine } from './selfcare.js';
 import './writing.js';
 import './counting.js';
+import './math.js';
+import './explore.js';
 import './parents.js';
 
-initSpeech({ rate: store.data.rate, voiceURI: store.data.voiceURI });
+document.documentElement.lang = lang();
+initSpeech({ lang: lang(), rate: store.data.rate, voiceURI: store.data.voices[lang()] || '' });
 setSoundEnabled(store.data.sound);
 
 /* ---------------- Màn chào ---------------- */
 register('splash', {
   render(root) {
+    const notice = h('div', { class: 'warn voice-note' });
+    const showNotice = () => {
+      const adv = voiceAdvice();
+      notice.hidden = !adv;
+      notice.innerHTML = '';
+      if (adv) notice.append(h('b', { text: '🔇 ' + adv.problem }), h('span', { text: ' ' + adv.fix }));
+    };
+    showNotice();
+    const off = onVoicesChanged(showNotice);
+    const t = setTimeout(showNotice, 1500);
+
+    const langBtn = (k, label) => h('button', { class: 'chip big' + (lang() === k ? ' on' : ''), onClick: () => setLang(k) }, label);
     root.append(h('div', { class: 'splash' },
-      h('div', { class: 'logo', text: '🦉' }),
+      h('div', { class: 'logo', text: '🐰' }),
       h('h1', { text: 'Bé Vui Học' }),
-      h('p', { text: 'Tự lập • Tập viết • Học đếm' }),
+      h('p', { text: L('Tự lập • Tập viết • Học đếm • Học toán • Khám phá', 'I can do it • Writing • Counting • Math • Explore') }),
+      h('div', { class: 'chips lang-pick' }, langBtn('vi', '🇻🇳 Tiếng Việt'), langBtn('en', '🇬🇧 English')),
       h('button', {
-        class: 'btn big orange pulse',
+        class: 'btn big pink pulse',
         onClick: () => { unlockAudio(); go('home', { first: true }); },
-      }, '▶️ Bắt đầu'),
-      h('p', { class: 'hint', text: 'Nhớ bật âm lượng và tắt chế độ im lặng trên iPad để nghe Cú Mèo hướng dẫn nhé!' })));
+      }, L('▶️ Bắt đầu', '▶️ Start')),
+      notice,
+      h('p', { class: 'hint', text: L('Nhớ bật âm lượng và tắt chế độ im lặng để nghe bạn Thỏ hướng dẫn nhé!', 'Turn the volume up and silent mode off to hear Bunny!') })));
+    return () => { off(); clearTimeout(t); };
   },
 });
 
 /* ---------------- Trang chính ---------------- */
 function greeting() {
   const hr = new Date().getHours();
-  return hr < 11 ? 'Chào buổi sáng' : hr < 14 ? 'Chào buổi trưa' : hr < 18 ? 'Chào buổi chiều' : 'Chào buổi tối';
+  return hr < 11 ? L('Chào buổi sáng', 'Good morning') : hr < 14 ? L('Chào buổi trưa', 'Hello') : hr < 18 ? L('Chào buổi chiều', 'Good afternoon') : L('Chào buổi tối', 'Good evening');
 }
 
 register('home', {
@@ -44,48 +63,53 @@ register('home', {
 
     const parentsBtn = h('button', { class: 'card white hold-ring' },
       h('span', { class: 'emo', text: '👨‍👩‍👧' }),
-      h('span', null, h('span', { class: 'lbl', text: 'Góc ba mẹ' }), h('br'), h('span', { class: 'sub', text: 'Giữ 2 giây để vào' })));
+      h('span', null, h('span', { class: 'lbl', text: L('Góc ba mẹ', 'For parents') }), h('br'), h('span', { class: 'sub', text: L('Giữ 2 giây để vào', 'Hold for 2 seconds') })));
     holdToActivate(parentsBtn, 2000, () => { sfx.ding(); go('parents'); },
-      () => say('Đây là góc của ba mẹ. Ba mẹ giữ nút này hai giây để vào nhé.'));
+      () => say(L('Đây là góc của ba mẹ. Ba mẹ giữ nút này hai giây để vào nhé.', 'This part is for Mom and Dad. Hold this button for two seconds to open it.')));
 
     root.append(h('div', { class: 'menu' },
       h('div', { class: 'home-hello' },
         h('span', { class: 'wave', text: '👋' }),
         h('div', null,
           h('h2', { text: `${greeting()}${name ? ', ' + name : ''}!` }),
-          h('p', { text: `Hôm nay: ${R.emoji} việc ${R.title.toLowerCase()} ${done}/${total}` }))),
-      h('div', { class: 'cards three' },
-        menuCard({ emoji: '🧒', label: 'Bé Tự Lập', sub: 'Tự làm việc của mình', color: 'green', cls: 'tall', onClick: () => go('selfcare') }),
-        menuCard({ emoji: '✏️', label: 'Tập Viết', sub: 'Tô chữ cái và chữ số', color: 'orange', cls: 'tall', onClick: () => go('writing') }),
-        menuCard({ emoji: '🔢', label: 'Học Đếm', sub: 'Đếm, so sánh, cộng trừ', color: 'blue', cls: 'tall', onClick: () => go('counting') })),
-      h('div', { class: 'home-row' },
-        menuCard({ emoji: '🎁', label: 'Nhãn dán của con', sub: `${unlockedCount()}/${STICKERS.length}`, color: 'yellow', onClick: () => go('stickers') }),
-        parentsBtn)));
+          h('p', { text: L(`Hôm nay: ${R.emoji} việc ${R.title.toLowerCase()} ${done}/${total}`, `Today: ${R.emoji} ${R.title.toLowerCase()} jobs ${done}/${total}`) }))),
+      h('div', { class: 'cards home-cards' },
+        menuCard({ emoji: '👧', label: L('Bé Tự Lập', 'I Can Do It'), sub: L('Tự làm việc của mình', 'Doing things by myself'), color: 'pink', onClick: () => go('selfcare') }),
+        menuCard({ emoji: '✏️', label: L('Tập Viết', 'Writing'), sub: L('Tô chữ cái và chữ số', 'Trace letters and numbers'), color: 'purple', onClick: () => go('writing') }),
+        menuCard({ emoji: '🔢', label: L('Học Đếm', 'Counting'), sub: L('Đếm, so sánh, tìm số', 'Count, compare, find'), color: 'blue', onClick: () => go('counting') }),
+        menuCard({ emoji: '🧮', label: L('Học Toán', 'Math'), sub: L('Cộng, trừ, nhân, chia', 'Add, subtract, multiply, divide'), color: 'orange', onClick: () => go('math') }),
+        menuCard({ emoji: '🌈', label: L('Khám Phá', 'Explore'), sub: L('Ngày tháng, ngày đêm, trái phải', 'Dates, day and night, left and right'), color: 'green', onClick: () => go('explore') }),
+        menuCard({ emoji: '🎁', label: L('Nhãn dán', 'Stickers'), sub: `${unlockedCount()}/${STICKERS.length}`, color: 'yellow', onClick: () => go('stickers') })),
+      h('div', { class: 'home-row' }, parentsBtn)));
 
-    if (first) say(`${greeting()}${name ? ' ' + name : ''}! Cô là Cú Mèo. Hôm nay con muốn học gì nào? Tự lập, tập viết, hay học đếm?`);
-    else say('Con muốn chơi gì nào?');
+    if (first) {
+      say(L(`${greeting()}${name ? ' ' + name : ''}! Cô là Thỏ Bông. Hôm nay con muốn học gì nào?`,
+        `${greeting()}${name ? ', ' + name : ''}! I am Bunny. What would you like to learn today?`));
+    } else say(L('Con muốn chơi gì nào?', 'What do you want to play?'));
   },
 });
 
 /* ---------------- Bộ sưu tập nhãn dán ---------------- */
 register('stickers', {
-  title: 'Nhãn dán', parent: 'home', theme: 'var(--yellow)',
+  title: () => L('Nhãn dán', 'Stickers'), parent: 'home', theme: 'var(--yellow)',
   render(root) {
     const have = unlockedCount();
     const need = have >= STICKERS.length ? 0 : STARS_PER_STICKER - (store.data.stars % STARS_PER_STICKER);
     const bar = h('i');
+    const per = numWord(STARS_PER_STICKER);
     root.append(h('div', { class: 'menu' },
       h('div', { class: 'menu-head' },
         h('div', { style: { flex: 1 } },
-          h('h2', { text: '🎁 Nhãn dán của con' }),
-          h('p', { text: need ? `Còn ${need} ⭐ nữa để mở nhãn dán mới` : 'Con đã sưu tập đủ tất cả nhãn dán!' }),
+          h('h2', { text: L('🎁 Nhãn dán của con', '🎁 My stickers') }),
+          h('p', { text: need ? L(`Còn ${need} ⭐ nữa để mở nhãn dán mới`, `${need} more ⭐ to unlock a new sticker`) : L('Con đã sưu tập đủ tất cả nhãn dán!', 'You collected every sticker!') }),
           h('div', { class: 'progress-bar', style: { marginTop: '10px' } }, bar))),
-      h('div', { class: 'sticker-grid' }, STICKERS.map(([e, n], i) => i < have
-        ? h('button', { class: 'sticker', text: e, onClick: (ev) => { sfx.pop(); ev.currentTarget.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.3) rotate(10deg)' }, { transform: 'scale(1)' }], 500); say(n); } })
-        : h('button', { class: 'sticker locked', text: '❓', onClick: () => say('Con hãy học thêm để mở nhãn dán này nhé!') })))));
+      h('div', { class: 'sticker-grid' }, STICKERS.map(([e, vi, en], i) => i < have
+        ? h('button', { class: 'sticker', text: e, onClick: (ev) => { sfx.pop(); ev.currentTarget.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.3) rotate(10deg)' }, { transform: 'scale(1)' }], 500); say(L(vi, en)); } })
+        : h('button', { class: 'sticker locked', text: '❓', onClick: () => say(L('Con hãy học thêm để mở nhãn dán này nhé!', 'Keep learning to unlock this sticker!')) })))));
     requestAnimationFrame(() => { bar.style.width = need ? `${100 * (STARS_PER_STICKER - need) / STARS_PER_STICKER}%` : '100%'; });
-    say(have ? `Con đã có ${numWord(have)} nhãn dán. Cứ ${numWord(STARS_PER_STICKER)} ngôi sao con sẽ được thêm một nhãn dán mới!`
-      : `Con hãy học để nhận sao nhé. Cứ ${numWord(STARS_PER_STICKER)} ngôi sao con sẽ được một nhãn dán!`);
+    say(have
+      ? L(`Con đã có ${numWord(have)} nhãn dán. Cứ ${per} ngôi sao con sẽ được thêm một nhãn dán mới!`, `You have ${numWord(have)} ${have === 1 ? 'sticker' : 'stickers'}. Every ${per} stars gives you a new sticker!`)
+      : L(`Con hãy học để nhận sao nhé. Cứ ${per} ngôi sao con sẽ được một nhãn dán!`, `Learn and play to earn stars. Every ${per} stars gives you a sticker!`));
   },
 });
 
@@ -93,7 +117,10 @@ register('stickers', {
 $('homeBtn').addEventListener('click', () => { sfx.tap(); go('home'); });
 $('backBtn').addEventListener('click', () => { sfx.tap(); back(); });
 $('bubble').addEventListener('click', () => repeatSay());
-$('stars').addEventListener('click', () => say(`Con có ${numWord(store.data.stars)} ngôi sao.`));
+$('stars').addEventListener('click', () => {
+  const n = store.data.stars;
+  say(L(`Con có ${numWord(n)} ngôi sao.`, `You have ${numWord(n)} ${n === 1 ? 'star' : 'stars'}.`));
+});
 
 /* ---------------- Nhắc nghỉ ngơi ---------------- */
 let activeSecs = 0;
@@ -111,18 +138,19 @@ async function restBreak() {
   const mins = store.data.restMinutes;
   let left = 60;
   const num = h('h2', { text: `${left}` });
-  const btn = h('button', { class: 'btn big green', disabled: true }, 'Chơi tiếp ▶️');
+  const btn = h('button', { class: 'btn big green', disabled: true }, L('Chơi tiếp ▶️', 'Keep playing ▶️'));
   await overlay((close) => {
     btn.addEventListener('click', () => close());
     return [
       h('div', { class: 'emo', text: '👀' }),
-      h('h2', { text: 'Nghỉ mắt một chút nhé!' }),
-      h('p', { text: 'Con nhìn ra cửa sổ thật xa, chớp mắt, vươn vai và uống một ngụm nước.' }),
+      h('h2', { text: L('Nghỉ mắt một chút nhé!', 'Time to rest your eyes!') }),
+      h('p', { text: L('Con nhìn ra cửa sổ thật xa, chớp mắt, vươn vai và uống một ngụm nước.', 'Look far out the window, blink, stretch, and take a sip of water.') }),
       num,
       h('div', { class: 'row' }, btn),
     ];
   }, async () => {
-    say(`Con đã học ${numWord(mins)} phút rồi. Mình nghỉ một chút nhé. Con nhìn ra xa cho mắt nghỉ, vươn vai và uống nước nào!`);
+    say(L(`Con đã học ${numWord(mins)} phút rồi. Mình nghỉ một chút nhé. Con nhìn ra xa cho mắt nghỉ, vươn vai và uống nước nào!`,
+      `You have been learning for ${numWord(mins)} minutes. Let's take a little break. Look far away to rest your eyes, stretch, and drink some water!`));
     while (left > 0) {
       await sleep(1000);
       left--;
@@ -130,7 +158,7 @@ async function restBreak() {
     }
     btn.disabled = false;
     btn.classList.add('pulse');
-    say('Giỏi lắm! Con có thể chơi tiếp rồi.');
+    say(L('Giỏi lắm! Con có thể chơi tiếp rồi.', 'Good job! You can play again now.'));
   });
   activeSecs = 0;
   resting = false;

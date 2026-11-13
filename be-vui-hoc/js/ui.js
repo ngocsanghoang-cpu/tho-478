@@ -2,6 +2,7 @@
 import { speak, stopSpeech } from './speech.js';
 import { sfx } from './sound.js';
 import { store, addStars, STICKERS } from './store.js';
+import { L } from './i18n.js';
 
 /* ---------------- Tạo phần tử ---------------- */
 export function h(tag, props = {}, ...kids) {
@@ -82,7 +83,7 @@ export function back() {
 
 export function setTitle(t) { $('title').textContent = t; }
 
-/* ---------------- Lời thoại của Cú Mèo ---------------- */
+/* ---------------- Lời thoại của bạn Thỏ ---------------- */
 let lastSaid = '';
 let sayToken = 0;
 
@@ -105,15 +106,22 @@ export function hideBubble() {
 
 export function repeatSay() { if (lastSaid) say(lastSaid); }
 
-const PRAISE = ['Giỏi quá!', 'Tuyệt vời!', 'Con làm tốt lắm!', 'Hoan hô!', 'Xuất sắc!', 'Con giỏi lắm!', 'Siêu quá!', 'Đúng rồi, giỏi quá!'];
-const TRY = ['Chưa đúng rồi, con thử lại nhé!', 'Gần đúng rồi, cố lên nào!', 'Không sao đâu, mình thử lại nhé!'];
+const PRAISE = {
+  vi: ['Giỏi quá!', 'Tuyệt vời!', 'Con làm tốt lắm!', 'Hoan hô!', 'Xuất sắc!', 'Con giỏi lắm!', 'Siêu quá!', 'Đúng rồi, giỏi quá!'],
+  en: ['Great job!', 'Wonderful!', 'Well done!', 'Hooray!', 'Excellent!', 'You did it!', 'Super!', 'Yes, that is right!'],
+};
+const TRY = {
+  vi: ['Chưa đúng rồi, con thử lại nhé!', 'Gần đúng rồi, cố lên nào!', 'Không sao đâu, mình thử lại nhé!'],
+  en: ['Not quite. Try again!', 'Almost! You can do it!', "That's okay. Let's try again!"],
+};
 
 export function praise() {
-  const p = pick(PRAISE);
+  const p = pick(L(PRAISE.vi, PRAISE.en));
   const n = (store.data.name || '').trim();
-  return n && Math.random() < 0.5 ? `${p.replace(/!$/, '')}, ${n} ơi!` : p;
+  if (!n || Math.random() >= 0.5) return p;
+  return L(`${p.replace(/!$/, '')}, ${n} ơi!`, `${p.replace(/!$/, '')}, ${n}!`);
 }
-export const encourage = () => pick(TRY);
+export const encourage = () => pick(L(TRY.vi, TRY.en));
 
 /* ---------------- Hiệu ứng ---------------- */
 export function toast(text) {
@@ -123,7 +131,7 @@ export function toast(text) {
 }
 
 export function confetti(count = 46) {
-  const items = ['⭐', '🌟', '🎉', '🎈', '💖', '✨', '🌈'];
+  const items = ['⭐', '🌟', '🎉', '🎈', '💖', '✨', '🌈', '🌸', '🦋'];
   const W = window.innerWidth, H = window.innerHeight;
   for (let i = 0; i < count; i++) {
     const s = h('div', { class: 'fx', text: pick(items) });
@@ -180,13 +188,14 @@ export function giveStars(n, fromEl) {
   starFly(n, fromEl);
   setTimeout(() => updateStars(true), 950);
   unlocked.forEach((idx) => {
-    const [emo, name] = STICKERS[idx];
+    const [emo, vi, en] = STICKERS[idx];
+    const name = L(vi, en);
     overlay((close) => [
       h('div', { class: 'emo', text: emo }),
-      h('h2', { text: 'Nhãn dán mới!' }),
-      h('p', { text: `Con đã mở khoá: ${name}` }),
-      h('div', { class: 'row' }, h('button', { class: 'btn big yellow', onClick: () => close() }, 'Tuyệt quá! 🎉')),
-    ], () => { confetti(); sfx.fanfare(); say(`Hoan hô! Con nhận được nhãn dán ${name}!`); });
+      h('h2', { text: L('Nhãn dán mới!', 'New sticker!') }),
+      h('p', { text: L(`Con đã mở khoá: ${name}`, `You unlocked: the ${name}`) }),
+      h('div', { class: 'row' }, h('button', { class: 'btn big yellow', onClick: () => close() }, L('Tuyệt quá! 🎉', 'Yay! 🎉'))),
+    ], () => { confetti(); sfx.fanfare(); say(L(`Hoan hô! Con nhận được nhãn dán ${name}!`, `Hooray! You got a new sticker: the ${name}!`)); });
   });
 }
 
@@ -222,7 +231,7 @@ function pump() {
 }
 
 /** Màn chúc mừng khi hoàn thành một lượt chơi. Trả về chỉ số nút được bấm. */
-export function celebrate({ emoji = '🏆', title = 'Hoàn thành!', text = '', speech, buttons = [['Tiếp tục', 'green']], stars = 0 }) {
+export function celebrate({ emoji = '🏆', title = L('Hoàn thành!', 'All done!'), text = '', speech, buttons = [[L('Tiếp tục', 'Continue'), 'green']], stars = 0 }) {
   return overlay((close) => [
     h('div', { class: 'emo', text: emoji }),
     h('h2', { text: title }),

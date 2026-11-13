@@ -24,7 +24,7 @@
 html, body { margin: 0; height: 100%; overscroll-behavior: none; }
 body {
   background: var(--bg);
-  background-image: radial-gradient(rgba(255, 159, 28, .10) 2px, transparent 2px);
+  background-image: radial-gradient(rgba(255, 107, 154, .12) 2px, transparent 2px);
   background-size: 28px 28px;
   color: var(--ink);
   font-family: var(--font);
@@ -116,6 +116,7 @@ body[data-screen="splash"] #app { top: 0; }
   border: none; border-radius: 999px; padding: 10px 18px; font-size: 20px; font-weight: 900;
   background: #fff; box-shadow: 0 4px 0 var(--line); cursor: pointer;
 }
+.chip.big { font-size: 24px; padding: 14px 24px; }
 .chip.on { background: var(--theme, var(--orange)); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.18); }
 
 /* ---------- Màn hình chào ---------- */
@@ -124,8 +125,10 @@ body[data-screen="splash"] #app { top: 0; }
   gap: 18px; padding: 30px; text-align: center;
 }
 .splash .logo { font-size: 150px; line-height: 1; animation: float 3s ease-in-out infinite; }
-.splash h1 { font-size: 72px; margin: 0; font-weight: 900; color: var(--orange); text-shadow: 0 5px 0 #ffe1b0; }
-.splash p { font-size: 28px; margin: 0 0 20px; color: var(--muted); }
+.splash h1 { font-size: 72px; margin: 0; font-weight: 900; color: var(--pink); text-shadow: 0 5px 0 #ffd3e2; }
+.splash p { font-size: 24px; margin: 0 0 8px; color: var(--muted); }
+.splash .lang-pick { margin-bottom: 14px; justify-content: center; }
+.splash .voice-note { max-width: 640px; font-size: 18px; line-height: 1.45; font-weight: 700; text-align: left; }
 .splash .hint { font-size: 18px; color: var(--muted); max-width: 560px; font-weight: 700; }
 
 /* ---------- Menu & thẻ ---------- */
@@ -159,14 +162,18 @@ body[data-screen="splash"] #app { top: 0; }
 .card.pink   { --c: var(--pink);   --cd: var(--pink-d); }
 .card.purple { --c: var(--purple); --cd: var(--purple-d); }
 .card.yellow { --c: var(--yellow); --cd: var(--yellow-d); color: var(--ink); }
+.card.red    { --c: var(--red);    --cd: var(--red-d); }
 .card.white  { --c: #fff; --cd: var(--line); color: var(--ink); }
 
 .home-hello { display: flex; align-items: center; gap: 16px; margin: 6px 0 24px; }
 .home-hello .wave { font-size: 64px; animation: wave 2s ease-in-out infinite; transform-origin: 70% 80%; }
 .home-hello h2 { margin: 0; font-size: 42px; font-weight: 900; }
 .home-hello p { margin: 2px 0 0; font-size: 22px; color: var(--muted); }
-.home-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 26px; }
-.home-row .card { min-height: 120px; flex-direction: row; gap: 16px; }
+.home-cards { grid-template-columns: repeat(3, 1fr); }
+.home-cards .card { min-height: 185px; padding: 16px 12px; }
+.home-cards .card .emo { font-size: 76px; }
+.home-row { display: grid; grid-template-columns: minmax(0, 460px); justify-content: center; gap: 24px; margin-top: 26px; }
+.home-row .card { min-height: 96px; flex-direction: row; gap: 16px; }
 .home-row .card .emo { font-size: 60px; }
 .home-row .card .lbl { font-size: 26px; }
 .hold-ring { position: relative; }
@@ -323,8 +330,8 @@ body[data-screen="splash"] #app { top: 0; }
 }
 .obj.counted { transform: scale(1.06); }
 .obj.lit { animation: bump .45s; }
-.obj.gone { opacity: .28; filter: grayscale(1); }
-.obj.gone::after { content: '✖'; position: absolute; inset: 0; display: grid; place-items: center; color: var(--red); font-size: .8em; }
+.obj.gone .e { opacity: .3; filter: grayscale(1); }
+.obj.gone::after { content: '✖'; position: absolute; inset: 0; display: grid; place-items: center; color: var(--red); font-size: .75em; font-weight: 900; }
 
 .stage { flex: 1; min-width: 0; min-height: 0; padding: 18px; display: flex; }
 .answers { display: flex; gap: 18px; justify-content: center; align-items: center; }
@@ -354,7 +361,7 @@ body[data-screen="splash"] #app { top: 0; }
 .math-eq { display: flex; align-items: center; justify-content: center; gap: 18px; font-family: var(--font-letter); font-weight: 700; font-size: 80px; }
 .math-eq .q { display: inline-grid; place-items: center; min-width: 110px; height: 110px; border-radius: 26px; background: #fff; box-shadow: 0 6px 0 var(--line); color: var(--blue); }
 .math-groups { display: flex; align-items: stretch; justify-content: center; gap: 18px; flex: 1; min-height: 0; width: 100%; }
-.math-groups .grp { flex: 1; min-width: 0; padding: 14px; display: flex; }
+.grp { flex: 1; min-width: 0; min-height: 0; padding: 12px; display: flex; }
 .math-groups .op { align-self: center; font-size: 70px; font-weight: 900; color: var(--muted); }
 
 .bubbles { flex: 1; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 26px; padding: 10px; }
@@ -439,6 +446,76 @@ body[data-screen="splash"] #app { top: 0; }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes toast { 0% { opacity: 0; transform: translate(-50%, -30%) scale(.6); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } 75% { opacity: 1; transform: translate(-50%, -55%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -80%) scale(.9); } }
 
+/* ---------------- Học toán: nhân, chia ---------------- */
+.math-many {
+  display: grid; grid-template-columns: repeat(var(--n), 1fr); grid-auto-rows: 1fr; gap: 12px;
+  flex: 1; min-height: 0; width: 100%;
+}
+.math-div { display: flex; flex-direction: column; gap: 12px; flex: 1; min-height: 0; width: 100%; }
+.math-div .grp.total { flex: 0 0 38%; }
+.share { flex-direction: column; align-items: center; gap: 4px; }
+.share .friend { font-size: 44px; line-height: 1; }
+.share-box { position: relative; flex: 1; width: 100%; min-height: 0; display: flex; }
+.share-q { position: absolute; inset: 0; display: grid; place-items: center; font-size: 60px; color: var(--muted); font-family: var(--font-letter); }
+
+/* ---------------- Khám phá: câu đố chung ---------------- */
+.quiz-body { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; text-align: center; }
+.quiz-emo { font-size: 110px; line-height: 1; }
+.quiz-emo.big { font-size: min(28vh, 220px); animation: wiggle 2s ease-in-out infinite; }
+.quiz-q { font-size: 44px; margin: 0; font-weight: 900; cursor: pointer; }
+.ans.word { width: auto; min-width: 230px; height: 110px; padding: 0 30px; font-size: 36px; font-family: var(--font); font-weight: 900; }
+
+/* ---------------- Ngày tháng ---------------- */
+.cal-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.cal-label { margin: 0; font-size: 40px; font-weight: 900; }
+.cal { width: min(420px, 90vw); background: #fff; border-radius: 34px; overflow: hidden; box-shadow: 0 10px 0 var(--line); text-align: center; cursor: pointer; }
+.cal-week { background: var(--pink); color: #fff; font-size: 44px; font-weight: 900; padding: 14px; }
+.cal-day { font-family: var(--font-letter); font-size: 180px; line-height: 1.15; font-weight: 700; }
+.cal-month { font-size: 32px; padding-bottom: 18px; color: var(--muted); }
+.date-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 18px; }
+.date-tile { min-height: 150px; padding: 14px 8px; transition: transform .2s; }
+.date-tile .emo { font-size: 52px; }
+.date-tile .lbl { font-size: 25px; }
+.date-tile.today { outline: 6px solid var(--ink); outline-offset: 3px; }
+.date-tile.lit { transform: scale(1.1); }
+.date-tile .badge { top: auto; bottom: -14px; right: 50%; transform: translateX(50%); white-space: nowrap; box-shadow: 0 0 0 3px var(--ink); font-size: 16px; }
+
+/* ---------------- Ngày và đêm ---------------- */
+.sky { position: relative; flex: 1; min-height: 0; border-radius: 30px; overflow: hidden; transition: background 1s; box-shadow: inset 0 0 0 6px #fff; }
+.orb { position: absolute; font-size: min(18vh, 140px); line-height: 1; transform: translateX(-50%); transition: left 1.2s, top 1.2s; cursor: pointer; }
+.stars { position: absolute; top: 8%; left: 0; right: 0; text-align: center; font-size: 36px; letter-spacing: 36px; opacity: 0; transition: opacity 1s; }
+.sky.night .stars { opacity: 1; }
+.ground {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background: #8fd694; transition: background 1s;
+  display: flex; align-items: flex-end; justify-content: space-around; font-size: min(14vh, 110px); line-height: 1; padding-bottom: 12px;
+}
+.sky.night .ground { background: #3f6b5a; }
+.act { animation: float 2.5s ease-in-out infinite; }
+.sky-tag { position: absolute; top: 18px; left: 18px; background: rgba(255,255,255,.88); border-radius: 999px; padding: 8px 20px; font-size: 26px; font-weight: 900; }
+
+/* ---------------- Trái và phải ---------------- */
+.lr { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.lr-half {
+  border: none; border-radius: 30px; cursor: pointer; color: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+}
+.lr-half.left { background: var(--pink); box-shadow: 0 8px 0 var(--pink-d); }
+.lr-half.right { background: var(--blue); box-shadow: 0 8px 0 var(--blue-d); }
+.lr-half.lit { animation: bump .5s; }
+.lr-arrow { font-size: 84px; line-height: 1; }
+.lr-animal { font-size: min(22vh, 170px); line-height: 1; }
+.lr-name { font-size: 46px; font-weight: 900; }
+.lr-stage {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; justify-items: center;
+  width: 100%; max-width: 940px; min-height: 36vh; padding: 20px;
+  background: var(--paper); border-radius: 30px; box-shadow: 0 6px 0 var(--line);
+}
+.lr-pick { border: none; background: none; padding: 0; font-size: min(22vh, 170px); line-height: 1; cursor: pointer; transition: transform .8s; }
+.lr-pick.still { cursor: default; }
+.lr-pick.right { animation: bump .5s; }
+.lr-pick.wrong { animation: shake .4s; }
+.lr-goal { font-size: 90px; line-height: 1; }
+
 @media (max-width: 700px) {
   :root { --topbar: 70px; }
   .icon-btn { width: 52px; height: 52px; font-size: 26px; }
@@ -447,6 +524,7 @@ body[data-screen="splash"] #app { top: 0; }
   #bubble .say { font-size: 17px; }
   #stars { font-size: 22px; padding: 8px 12px; }
   .home-row { grid-template-columns: 1fr; }
+  .home-cards { grid-template-columns: repeat(2, 1fr); }
   .ans { width: 96px; height: 96px; font-size: 56px; }
 }
 @media (prefers-reduced-motion: reduce) {

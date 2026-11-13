@@ -1,35 +1,47 @@
-// GÓC BỐ MẸ – cài đặt giọng đọc, tên bé, giờ nghỉ, xem tiến độ
+// GÓC BA MẸ – ngôn ngữ, giọng đọc, tên bé, giờ nghỉ, xem tiến độ
 import { register, go, h, say, updateStars } from './ui.js';
 import { store, resetProgress, unlockedCount, STICKERS } from './store.js';
+import { L, lang, setLang } from './i18n.js';
 import { ROUTINES, routineCount } from './selfcare.js';
-import { getVoices, hasVietnamese, configureSpeech, speechSupported, currentVoice } from './speech.js';
+import { SETS, starsOf } from './writing.js';
+import { getVoices, langVoices, voiceGender, voiceAdvice, onVoicesChanged, configureSpeech, currentVoice } from './speech.js';
 import { setSoundEnabled } from './sound.js';
 
 register('parents', {
-  title: 'Góc ba mẹ', parent: 'home', theme: 'var(--purple)',
+  title: () => L('Góc ba mẹ', 'For parents'), parent: 'home', theme: 'var(--purple)',
   render(root) {
     const d = store.data;
-    const letters = Object.keys(d.letters);
-    const count = (prefix) => letters.filter((k) => k.startsWith(prefix + ':')).length;
+    const cur = lang();
+    const muted = { margin: 0, fontSize: '16px', color: 'var(--muted)' };
+
+    // Ngôn ngữ
+    const langBtns = h('div', { class: 'chips' }, [['vi', '🇻🇳 Tiếng Việt'], ['en', '🇬🇧 English']].map(([k, label]) =>
+      h('button', { class: 'chip big' + (k === cur ? ' on' : ''), onClick: () => setLang(k) }, label)));
 
     // Tên bé
-    const nameInput = h('input', { type: 'text', value: d.name, placeholder: 'Ví dụ: Bin, Na, Su…', maxlength: 20 });
+    const nameInput = h('input', { type: 'text', value: d.name, placeholder: L('Ví dụ: Na, Su, Bông…', 'For example: Mia, Lily…'), maxlength: 20 });
     nameInput.addEventListener('change', () => store.set({ name: nameInput.value.trim() }));
 
-    // Giọng đọc
+    // Giọng đọc (lưu riêng cho từng ngôn ngữ)
     const voiceSel = h('select');
+    const genderText = (v) => ({ female: L(' – giọng nữ', ' – female'), male: L(' – giọng nam', ' – male') }[voiceGender(v)] || '');
     const fillVoices = () => {
-      const vs = getVoices();
-      const vi = vs.filter((v) => /^vi/i.test(v.lang));
-      const other = vs.filter((v) => !/^vi/i.test(v.lang));
+      const mine = langVoices(cur);
+      const other = getVoices().filter((v) => !mine.includes(v));
       voiceSel.innerHTML = '';
-      voiceSel.append(h('option', { value: '' }, 'Tự động (ưu tiên tiếng Việt)'));
-      vi.forEach((v) => voiceSel.append(h('option', { value: v.voiceURI }, `🇻🇳 ${v.name}`)));
+      voiceSel.append(h('option', { value: '' }, L('Tự động (giọng nữ hay nhất)', 'Automatic (best female voice)')));
+      mine.forEach((v) => voiceSel.append(h('option', { value: v.voiceURI }, `⭐ ${v.name}${genderText(v)}`)));
       other.forEach((v) => voiceSel.append(h('option', { value: v.voiceURI }, `${v.name} (${v.lang})`)));
-      voiceSel.value = d.voiceURI || '';
+      voiceSel.value = d.voices[cur] || '';
     };
     fillVoices();
-    voiceSel.addEventListener('change', () => { store.set({ voiceURI: voiceSel.value }); configureSpeech({ voiceURI: voiceSel.value }); test(); });
+    voiceSel.addEventListener('change', () => {
+      d.voices[cur] = voiceSel.value;
+      store.save();
+      configureSpeech({ voiceURI: voiceSel.value });
+      renderVoiceInfo();
+      test();
+    });
 
     const rate = h('input', { type: 'range', min: 0.6, max: 1.3, step: 0.05, value: d.rate });
     const rateLbl = h('b', { text: Number(d.rate).toFixed(2) + '×' });
@@ -41,83 +53,103 @@ register('parents', {
     sound.addEventListener('change', () => { store.set({ sound: sound.checked }); setSoundEnabled(sound.checked); });
 
     const rest = h('select');
-    [[0, 'Tắt'], [10, '10 phút'], [15, '15 phút'], [20, '20 phút'], [30, '30 phút'], [45, '45 phút']].forEach(([v, t]) => rest.append(h('option', { value: v }, t)));
+    [0, 10, 15, 20, 30, 45].forEach((v) => rest.append(h('option', { value: v }, v ? L(`${v} phút`, `${v} minutes`) : L('Tắt', 'Off'))));
     rest.value = String(d.restMinutes);
     rest.addEventListener('change', () => store.set({ restMinutes: +rest.value }));
 
     function test() {
       const n = (store.data.name || '').trim();
-      say(`Xin chào${n ? ' ' + n : ''}! Mình cùng học nhé. Một, hai, ba, bốn, năm.`);
+      say(L(`Xin chào${n ? ' ' + n : ''}! Mình cùng học nhé. Một, hai, ba, bốn, năm.`,
+        `Hello${n ? ', ' + n : ''}! Let's learn together. One, two, three, four, five.`));
     }
 
     const voiceInfo = h('div');
-    const renderVoiceInfo = () => {
+    function renderVoiceInfo() {
       voiceInfo.innerHTML = '';
-      if (!speechSupported()) {
-        voiceInfo.append(h('p', { class: 'warn', text: '⚠️ Trình duyệt này không hỗ trợ đọc giọng nói. Hãy mở bằng Safari trên iPad.' }));
-      } else if (!hasVietnamese()) {
+      const adv = voiceAdvice();
+      const v = currentVoice();
+      if (adv) {
         voiceInfo.append(h('div', { class: 'warn' },
-          h('p', { style: { margin: 0 }, text: '⚠️ Chưa tìm thấy giọng tiếng Việt. Trên iPad hãy vào:' }),
-          h('p', { style: { margin: '6px 0 0' }, text: 'Cài đặt → Trợ năng → Nội dung được đọc → Giọng nói → Tiếng Việt → tải giọng “Linh” (nên chọn bản Nâng cao). Sau đó đóng hẳn ứng dụng và mở lại.' })));
-      } else {
-        const v = currentVoice();
-        voiceInfo.append(h('p', { style: { margin: 0 }, text: `✅ Đang dùng giọng: ${v ? v.name : 'mặc định'}` }));
+          h('p', { style: { margin: 0 }, text: '⚠️ ' + adv.problem }),
+          h('p', { style: { margin: '6px 0 0' }, text: adv.fix })));
+      } else if (v) {
+        voiceInfo.append(h('p', { style: { margin: 0 }, text: L(`✅ Đang dùng giọng: ${v.name}`, `✅ Current voice: ${v.name}`) }));
+        if (/linh|samantha/i.test(v.name) && !/enhanced|premium|nâng cao|cao cấp/i.test(v.name)) {
+          voiceInfo.append(h('p', { style: { ...muted, marginTop: '6px' }, text: L(
+            'Mẹo: trên iPad vào Cài đặt → Trợ năng → Nội dung được đọc → Giọng nói, tải bản “Nâng cao” của giọng này để nghe tự nhiên hơn.',
+            'Tip: on iPad go to Settings → Accessibility → Spoken Content → Voices and download the “Enhanced” version (or “Ava”) for a more natural sound.') }));
+        }
       }
-    };
+    }
     renderVoiceInfo();
+    const off = onVoicesChanged(() => { fillVoices(); renderVoiceInfo(); });
     const t = setTimeout(() => { fillVoices(); renderVoiceInfo(); }, 800);
 
     const stat = (num, label) => h('div', { class: 'stat' }, h('b', { text: num }), h('span', { text: label }));
+    const traced = (set) => `${SETS[set].chars.filter((c) => starsOf(set, c)).length}/${SETS[set].chars.length}`;
 
     root.append(h('div', { class: 'parents' },
       h('div', { class: 'box' },
-        h('h3', { text: '👶 Thông tin bé' }),
-        h('div', { class: 'field' }, h('label', { text: 'Tên gọi ở nhà' }), nameInput),
-        h('p', { style: { margin: 0, fontSize: '16px', color: 'var(--muted)' }, text: 'Cú Mèo sẽ gọi tên bé khi khen.' })),
+        h('h3', { text: L('🌐 Ngôn ngữ', '🌐 Language') }),
+        langBtns,
+        h('p', { style: { ...muted, marginTop: '10px' }, text: L('Đổi ngôn ngữ sẽ đổi cả chữ trên màn hình và giọng đọc.', 'Changing the language changes both the on-screen text and the voice.') })),
 
       h('div', { class: 'box' },
-        h('h3', { text: '🔊 Giọng nói hướng dẫn' }),
+        h('h3', { text: L('👧 Thông tin bé', '👧 About your child') }),
+        h('div', { class: 'field' }, h('label', { text: L('Tên gọi ở nhà', 'Nickname') }), nameInput),
+        h('p', { style: muted, text: L('Bạn Thỏ sẽ gọi tên bé khi khen.', 'Bunny will say your child’s name when praising.') })),
+
+      h('div', { class: 'box' },
+        h('h3', { text: L('🔊 Giọng nói hướng dẫn', '🔊 Voice') }),
         voiceInfo,
-        h('div', { class: 'field' }, h('label', { text: 'Giọng đọc' }), voiceSel),
-        h('div', { class: 'field' }, h('label', { text: 'Tốc độ đọc' }), rate, rateLbl),
-        h('div', { class: 'field' }, h('label', { text: 'Âm thanh hiệu ứng' }), sound),
-        h('button', { class: 'btn purple', onClick: test }, '▶️ Nghe thử')),
+        h('div', { class: 'field' }, h('label', { text: L('Giọng đọc', 'Voice') }), voiceSel),
+        h('div', { class: 'field' }, h('label', { text: L('Tốc độ đọc', 'Speed') }), rate, rateLbl),
+        h('div', { class: 'field' }, h('label', { text: L('Âm thanh hiệu ứng', 'Sound effects') }), sound),
+        h('button', { class: 'btn purple', onClick: test }, L('▶️ Nghe thử', '▶️ Test voice'))),
 
       h('div', { class: 'box' },
-        h('h3', { text: '⏰ Nhắc nghỉ ngơi' }),
-        h('div', { class: 'field' }, h('label', { text: 'Nhắc bé nghỉ sau' }), rest),
-        h('p', { style: { margin: 0, fontSize: '16px', color: 'var(--muted)' }, text: 'Khi đến giờ, ứng dụng sẽ nhắc bé nghỉ mắt 1 phút rồi mới chơi tiếp.' })),
+        h('h3', { text: L('⏰ Nhắc nghỉ ngơi', '⏰ Break reminder') }),
+        h('div', { class: 'field' }, h('label', { text: L('Nhắc bé nghỉ sau', 'Remind after') }), rest),
+        h('p', { style: muted, text: L('Khi đến giờ, ứng dụng sẽ nhắc bé nghỉ mắt 1 phút rồi mới chơi tiếp.', 'When time is up, the app asks your child to rest her eyes for 1 minute before playing again.') })),
 
       h('div', { class: 'box' },
-        h('h3', { text: '📈 Tiến độ của bé' }),
+        h('h3', { text: L('📈 Tiến độ của bé', '📈 Progress') }),
         h('div', { class: 'stat-grid' },
-          stat(d.stars, '⭐ Tổng số sao'),
-          stat(`${unlockedCount()}/${STICKERS.length}`, '🎁 Nhãn dán'),
-          stat(`${count('lower')}/29`, '✏️ Chữ thường'),
-          stat(`${count('upper')}/29`, '✏️ Chữ hoa'),
-          stat(`${count('digits')}/10`, '✏️ Chữ số'),
-          stat(d.stats.count, '🔢 Câu đếm đúng'),
-          stat(d.stats.selfcare, '🧒 Việc tự lập'),
-          ...Object.keys(ROUTINES).map((k) => stat(`${routineCount(k)}/${ROUTINES[k].tasks.length}`, `${ROUTINES[k].emoji} ${ROUTINES[k].title} hôm nay`)))),
+          stat(d.stars, L('⭐ Tổng số sao', '⭐ Total stars')),
+          stat(`${unlockedCount()}/${STICKERS.length}`, L('🎁 Nhãn dán', '🎁 Stickers')),
+          stat(traced('lower'), '✏️ ' + SETS.lower.title),
+          stat(traced('upper'), '✏️ ' + SETS.upper.title),
+          stat(traced('digits'), '✏️ ' + SETS.digits.title),
+          stat(d.stats.count, L('🔢 Câu đếm đúng', '🔢 Counting answers')),
+          stat(d.stats.math || 0, L('🧮 Phép tính đúng', '🧮 Math answers')),
+          stat(d.stats.explore || 0, L('🌈 Câu khám phá đúng', '🌈 Explore answers')),
+          stat(d.stats.selfcare, L('👧 Việc tự lập', '👧 Jobs done')),
+          ...Object.keys(ROUTINES).map((k) => stat(`${routineCount(k)}/${ROUTINES[k].tasks.length}`, `${ROUTINES[k].emoji} ${ROUTINES[k].title} ${L('hôm nay', 'today')}`)))),
 
       h('div', { class: 'box' },
-        h('h3', { text: '📱 Cài lên màn hình chính iPad' }),
-        h('ol', null,
-          h('li', { text: 'Mở trang này bằng Safari.' }),
-          h('li', { text: 'Bấm nút Chia sẻ (ô vuông có mũi tên lên) → “Thêm vào MH chính”.' }),
-          h('li', { text: 'Mở ứng dụng “Bé Vui Học” từ màn hình chính – chạy toàn màn hình và dùng được khi không có mạng.' }),
-          h('li', { text: 'Mẹo: bật Truy cập được hướng dẫn (Cài đặt → Trợ năng) để khoá bé trong ứng dụng.' }))),
+        h('h3', { text: L('📱 Cài lên màn hình chính iPad', '📱 Add to the iPad Home Screen') }),
+        h('ol', null, L([
+          'Mở trang này bằng Safari.',
+          'Bấm nút Chia sẻ (ô vuông có mũi tên lên) → “Thêm vào MH chính”.',
+          'Mở ứng dụng “Bé Vui Học” từ màn hình chính – chạy toàn màn hình và dùng được khi không có mạng.',
+          'Mẹo: bật Truy cập được hướng dẫn (Cài đặt → Trợ năng) để khoá bé trong ứng dụng.',
+        ], [
+          'Open this page in Safari.',
+          'Tap the Share button (the square with an arrow) → “Add to Home Screen”.',
+          'Open “Bé Vui Học” from the Home Screen. It runs full screen and works offline.',
+          'Tip: turn on Guided Access (Settings → Accessibility) to keep your child inside the app.',
+        ]).map((text) => h('li', { text })))),
 
       h('div', { class: 'box' },
-        h('h3', { text: '♻️ Đặt lại' }),
+        h('h3', { text: L('♻️ Đặt lại', '♻️ Reset') }),
         h('button', {
           class: 'btn red', onClick: () => {
-            if (confirm('Xoá toàn bộ sao, nhãn dán và tiến độ của bé?')) {
+            if (confirm(L('Xoá toàn bộ sao, nhãn dán và tiến độ của bé?', 'Delete all stars, stickers and progress?'))) {
               resetProgress(); updateStars(); go('parents');
             }
           },
-        }, '🗑️ Xoá tiến độ'))));
+        }, L('🗑️ Xoá tiến độ', '🗑️ Delete progress')))));
 
-    return () => clearTimeout(t);
+    return () => { clearTimeout(t); off(); };
   },
 });
