@@ -1,6 +1,6 @@
 // BÉ TỰ LẬP – việc ngày đi học (sáng, tối), việc ba mẹ giao thêm, hướng dẫn từng bước, trò chơi dọn đồ chơi
 // Ghi chú: các chuỗi dùng L(tiếng Việt, tiếng Anh); dữ liệu bọc trong byLang() để đổi ngôn ngữ được ngay.
-import { register, go, h, say, live, sleep, award, giveStars, praise, celebrate, menuCard, progressDots, shuffle, rand, toast } from './ui.js';
+import { register, go, h, say, live, sleep, giveStars, praise, celebrate, menuCard, progressDots, shuffle, rand, toast } from './ui.js';
 import { sfx } from './sound.js';
 import { store, routineDone, markRoutine, isSchoolDay, todaysAsks, todayKey } from './store.js';
 import { L, byLang } from './i18n.js';
@@ -10,79 +10,130 @@ const THEME = 'var(--pink)';
 const tapDone = () => L(' Làm xong mỗi bước thì bấm nút Xong rồi.', ' Tap Done after each step.');
 const step = (n, text) => L(`Bước ${numWord(n)}. ${text}.`, `Step ${numWord(n)}. ${text}.`);
 
-/* ---------------- Dữ liệu: việc của NGÀY ĐI HỌC ---------------- */
+/* ---------------- Dữ liệu: lịch NGÀY ĐI HỌC và lịch NGÀY NGHỈ ---------------- */
 // goal: tiêu chí đạt (ba mẹ đặt). timer: số phút quy định (hiện đồng hồ đếm ngược).
-export const ROUTINES = byLang(() => ({
-  morning: {
-    title: L('Buổi sáng', 'Morning'), emoji: '☀️', color: 'yellow',
-    intro: L('Chào buổi sáng! Hôm nay con đi học. Mình cùng tự làm năm việc buổi sáng nhé. Con chạm vào từng việc để nghe hướng dẫn.',
-      "Good morning! It's a school day. Let's do our five morning jobs all by ourselves. Tap each job to hear what to do."),
-    tasks: [
-      { id: 'toilet', e: '🚽', t: L('Tự đi vệ sinh và làm sạch', 'Use the toilet and clean up'),
-        say: L('Ngủ dậy rồi, con tự đi vệ sinh và làm sạch nhé.', 'You are up! Go to the toilet and clean yourself up.'),
-        goal: L('sạch sẽ, không có mùi hôi', 'clean, with no bad smell'),
-        steps: L(['Tự đi vệ sinh', 'Lau rửa thật sạch', 'Xả nước', 'Rửa tay bằng xà phòng'],
-          ['Use the toilet by yourself', 'Wipe and wash until you are clean', 'Flush the toilet', 'Wash your hands with soap']) },
-      { id: 'face', e: '💦', t: L('Tự rửa mặt', 'Wash my face'),
-        say: L('Con tự rửa mặt cho sạch sẽ nhé.', 'Wash your face nice and clean.'),
-        goal: L('mặt sạch, mắt và miệng không có ghèn', 'a clean face, with nothing left around your eyes and mouth'),
-        steps: L(['Vốc nước sạch lên mặt', 'Rửa kỹ khoé mắt và quanh miệng', 'Lau khô bằng khăn của con', 'Soi gương kiểm tra lại'],
-          ['Splash clean water on your face', 'Wash the corners of your eyes and around your mouth', 'Dry your face with your own towel', 'Check in the mirror']) },
-      { id: 'clothes', e: '👗', t: L('Cởi đồ ngủ, mặc quần áo mới', 'Change out of pajamas'),
-        say: L('Con tự cởi đồ ngủ và mặc quần áo mới nhé.', 'Take off your pajamas and put on clean clothes all by yourself.'),
-        steps: L(['Cởi áo và quần ngủ', 'Bỏ đồ ngủ vào giỏ', 'Mặc áo mới: chui đầu, rồi xỏ từng tay', 'Mặc quần hoặc váy', 'Soi gương xem đã gọn gàng chưa'],
-          ['Take off your pajama top and bottoms', 'Put your pajamas in the basket', 'Put on your clean top: head first, then each arm', 'Put on your pants or skirt', 'Look in the mirror. Are you neat?']) },
-      { id: 'medicine', e: '💊', t: L('Uống thuốc và 1 ly nước đầy', 'Take medicine and a full glass of water'),
-        say: L('Đến giờ uống thuốc rồi. Con nhớ chỉ uống thuốc do ba mẹ đưa nhé.', "It's medicine time. Remember: only take the medicine Mom or Dad gives you."),
-        goal: L('uống hết thuốc và một ly nước đầy', 'all your medicine and a full glass of water'),
-        steps: L(['Nhận thuốc từ ba mẹ', 'Uống hết thuốc', 'Uống hết một ly nước đầy'],
-          ['Get your medicine from Mom or Dad', 'Take all of your medicine', 'Drink a full glass of water']) },
-      { id: 'shoes', e: '🥿', t: L('Mang tất, mang giày, đi học sớm', 'Socks and shoes on, ready early'),
-        say: L('Con tự mang tất và mang giày để đi học sớm nhé.', 'Put on your socks and shoes so we can leave for school early.'),
-        goal: L('xong sớm, kịp giờ đi học', 'ready early, in time for school'),
-        steps: L(['Mang tất vào hai chân', 'Mang giày đúng chân trái, chân phải', 'Dán quai hoặc cài khoá cho chặt', 'Đeo túi, sẵn sàng đi học'],
-          ['Put a sock on each foot', 'Put each shoe on the correct foot', 'Close the strap or buckle tightly', 'Put on your bag. Ready for school!']) },
-    ],
-  },
-  evening: {
-    title: L('Buổi tối', 'Evening'), emoji: '🌙', color: 'purple',
-    intro: L('Con đi học về rồi! Mình cùng tự làm năm việc buổi tối nhé.', "You are home from school! Let's do our five evening jobs."),
-    tasks: [
-      { id: 'home', e: '🗄️', t: L('Cất giày vào tủ, bỏ đồ bẩn vào giỏ', 'Shoes in the cabinet, dirty clothes in the basket'),
-        say: L('Về đến nhà rồi! Con cất giày vào tủ và bỏ quần áo bẩn vào giỏ nhé.', 'You are home! Put your shoes in the cabinet and your dirty clothes in the basket.'),
-        steps: L(['Cởi giày, ghép thành một đôi', 'Cất giày vào tủ giày', 'Thay quần áo', 'Bỏ quần áo bẩn vào giỏ'],
-          ['Take off your shoes and put them together as a pair', 'Put your shoes in the shoe cabinet', 'Change your clothes', 'Put your dirty clothes in the basket']) },
-      { id: 'eat', e: '🥄', t: L('Tự xúc ăn hết trong 45 phút', 'Feed myself and finish in 45 minutes'), timer: 45,
-        say: L('Đến giờ ăn rồi. Con tự xúc ăn và ăn hết trong bốn mươi lăm phút nhé.', "It's time to eat. Feed yourself and finish everything in forty-five minutes."),
-        goal: L('ăn hết trong 45 phút: 1 chén cơm đầy, nửa chén thức ăn, nửa chén canh', 'everything eaten within 45 minutes: 1 full bowl of rice, half a bowl of food, half a bowl of soup'),
-        steps: L(['Ngồi ngay ngắn vào bàn ăn', 'Tự xúc: một chén cơm đầy', 'Ăn hết nửa chén thức ăn', 'Ăn hết nửa chén canh'],
-          ['Sit up straight at the table', 'Feed yourself: one full bowl of rice', 'Finish half a bowl of food', 'Finish half a bowl of soup']) },
-      { id: 'milk', e: '🥛', t: L('Tự uống sữa (200 ml)', 'Drink my milk (200 ml)'),
-        say: L('Con tự uống sữa nhé.', 'Drink your milk all by yourself.'),
-        goal: L('uống hết 200 ml sữa', 'all 200 ml of milk finished'),
-        steps: L(['Tự cầm ly hoặc hộp sữa', 'Uống hết sữa', 'Bỏ vỏ hộp vào thùng rác hoặc mang ly ra bồn rửa'],
-          ['Hold your cup or milk box by yourself', 'Drink all of your milk', 'Throw the box away or take the cup to the sink']) },
-      { id: 'toys', e: '🧸', t: L('Sắp xếp đồ chơi gọn gàng', 'Tidy up my toys'),
-        say: L('Chơi xong rồi, con sắp xếp đồ chơi cho gọn gàng nhé.', 'Play time is over. Tidy up your toys.'),
-        steps: L(['Nhặt hết đồ chơi trên sàn', 'Xếp từng món vào đúng hộp, đúng kệ', 'Nhìn lại xem sàn nhà đã gọn chưa'],
-          ['Pick up all the toys from the floor', 'Put each toy in its box or on its shelf', 'Look around. Is the floor tidy?']) },
-      { id: 'bed', e: '🛏️', t: L('Tự leo lên giường, tắt đèn và ngủ', 'Climb into bed, lights off, sleep'),
-        say: L('Đến giờ đi ngủ rồi. Con tự leo lên giường, tắt đèn và ngủ nhé.', "It's bedtime. Climb into bed, turn off the light, and go to sleep."),
-        steps: L(['Chúc ba mẹ ngủ ngon', 'Tự leo lên giường', 'Tắt đèn', 'Nhắm mắt và ngủ ngoan'],
-          ['Say good night to Mom and Dad', 'Climb into bed by yourself', 'Turn off the light', 'Close your eyes and sleep tight']) },
-    ],
-  },
-}));
+// meal: bữa tự xúc ăn – được nhiều sao hơn việc thường (luật "meal"). guide: mở hướng dẫn có hẹn giờ.
+const SCHEDULES = byLang(() => {
+  const toilet = () => ({ id: 'toilet', e: '🚽', t: L('Tự đi vệ sinh và làm sạch', 'Use the toilet and clean up'),
+    say: L('Ngủ dậy rồi, con tự đi vệ sinh và làm sạch nhé.', 'You are up! Go to the toilet and clean yourself up.'),
+    goal: L('sạch sẽ, không có mùi hôi', 'clean, with no bad smell'),
+    steps: L(['Tự đi vệ sinh', 'Lau rửa thật sạch', 'Xả nước', 'Rửa tay bằng xà phòng'],
+      ['Use the toilet by yourself', 'Wipe and wash until you are clean', 'Flush the toilet', 'Wash your hands with soap']) });
+  const face = () => ({ id: 'face', e: '💦', t: L('Tự rửa mặt', 'Wash my face'),
+    say: L('Con tự rửa mặt cho sạch sẽ nhé.', 'Wash your face nice and clean.'),
+    goal: L('mặt sạch, mắt và miệng không có ghèn', 'a clean face, with nothing left around your eyes and mouth'),
+    steps: L(['Vốc nước sạch lên mặt', 'Rửa kỹ khoé mắt và quanh miệng', 'Lau khô bằng khăn của con', 'Soi gương kiểm tra lại'],
+      ['Splash clean water on your face', 'Wash the corners of your eyes and around your mouth', 'Dry your face with your own towel', 'Check in the mirror']) });
+  const teeth = () => ({ id: 'teeth', e: '🪥', t: L('Đánh răng', 'Brush my teeth'), guide: 'teeth' });
+  const toys = () => ({ id: 'toys', e: '🧸', t: L('Sắp xếp đồ chơi gọn gàng', 'Tidy up my toys'),
+    say: L('Chơi xong rồi, con sắp xếp đồ chơi cho gọn gàng nhé.', 'Play time is over. Tidy up your toys.'),
+    steps: L(['Nhặt hết đồ chơi trên sàn', 'Xếp từng món vào đúng hộp, đúng kệ', 'Nhìn lại xem sàn nhà đã gọn chưa'],
+      ['Pick up all the toys from the floor', 'Put each toy in its box or on its shelf', 'Look around. Is the floor tidy?']) });
+  // Bữa ăn: tự xúc, ăn hết trong 45 phút
+  const meal = (id, vi, en, full = true) => ({ id, e: '🥄', meal: true, timer: 45,
+    t: L(`Tự xúc ${vi} hết trong 45 phút`, `Feed myself at ${en}, done in 45 minutes`),
+    say: L(`Đến giờ ${vi} rồi. Con tự xúc ăn và ăn hết trong bốn mươi lăm phút nhé.`, `It's time for ${en}. Feed yourself and finish everything in forty-five minutes.`),
+    goal: full
+      ? L('ăn hết trong 45 phút: 1 chén cơm đầy, nửa chén thức ăn, nửa chén canh', 'everything eaten within 45 minutes: 1 full bowl of rice, half a bowl of food, half a bowl of soup')
+      : L('ăn hết phần ăn của mình trong 45 phút', 'your whole meal eaten within 45 minutes'),
+    steps: full
+      ? L(['Ngồi ngay ngắn vào bàn ăn', 'Tự xúc: một chén cơm đầy', 'Ăn hết nửa chén thức ăn', 'Ăn hết nửa chén canh'],
+        ['Sit up straight at the table', 'Feed yourself: one full bowl of rice', 'Finish half a bowl of food', 'Finish half a bowl of soup'])
+      : L(['Ngồi ngay ngắn vào bàn ăn', 'Tự xúc ăn gọn gàng', 'Ăn hết phần của mình'],
+        ['Sit up straight at the table', 'Feed yourself neatly', 'Finish your whole meal']) });
+  // Cữ sữa 200 ml
+  const milk = (id, vi, en) => ({ id, e: '🥛', t: vi ? L(`Uống sữa lúc ${vi} (200 ml)`, `Drink milk at ${en} (200 ml)`) : L('Tự uống sữa (200 ml)', 'Drink my milk (200 ml)'),
+    say: vi ? L(`${vi} là giờ uống sữa. Con tự uống sữa nhé.`, `${en} is milk time. Drink your milk all by yourself.`) : L('Con tự uống sữa nhé.', 'Drink your milk all by yourself.'),
+    goal: L('uống hết 200 ml sữa', 'all 200 ml of milk finished'),
+    steps: L(['Tự cầm ly hoặc hộp sữa', 'Uống hết sữa', 'Bỏ vỏ hộp vào thùng rác hoặc mang ly ra bồn rửa'],
+      ['Hold your cup or milk box by yourself', 'Drink all of your milk', 'Throw the box away or take the cup to the sink']) });
+  const M = { title: L('Buổi sáng', 'Morning'), emoji: '☀️', color: 'yellow' };
+  const A = { title: L('Buổi trưa, chiều', 'Midday'), emoji: '🌤️', color: 'orange' };
+  const E = { title: L('Buổi tối', 'Evening'), emoji: '🌙', color: 'purple' };
+
+  return {
+    // ----- NGÀY ĐI HỌC -----
+    school: {
+      morning: { ...M,
+        intro: L('Chào buổi sáng! Hôm nay con đi học. Mình cùng tự làm năm việc buổi sáng nhé. Con chạm vào từng việc để nghe hướng dẫn.',
+          "Good morning! It's a school day. Let's do our five morning jobs all by ourselves. Tap each job to hear what to do."),
+        tasks: [
+          toilet(), face(),
+          { id: 'clothes', e: '👗', t: L('Cởi đồ ngủ, mặc quần áo mới', 'Change out of pajamas'),
+            say: L('Con tự cởi đồ ngủ và mặc quần áo mới nhé.', 'Take off your pajamas and put on clean clothes all by yourself.'),
+            steps: L(['Cởi áo và quần ngủ', 'Bỏ đồ ngủ vào giỏ', 'Mặc áo mới: chui đầu, rồi xỏ từng tay', 'Mặc quần hoặc váy', 'Soi gương xem đã gọn gàng chưa'],
+              ['Take off your pajama top and bottoms', 'Put your pajamas in the basket', 'Put on your clean top: head first, then each arm', 'Put on your pants or skirt', 'Look in the mirror. Are you neat?']) },
+          { id: 'medicine', e: '💊', t: L('Uống thuốc và 1 ly nước đầy', 'Take medicine and a full glass of water'),
+            say: L('Đến giờ uống thuốc rồi. Con nhớ chỉ uống thuốc do ba mẹ đưa nhé.', "It's medicine time. Remember: only take the medicine Mom or Dad gives you."),
+            goal: L('uống hết thuốc và một ly nước đầy', 'all your medicine and a full glass of water'),
+            steps: L(['Nhận thuốc từ ba mẹ', 'Uống hết thuốc', 'Uống hết một ly nước đầy'],
+              ['Get your medicine from Mom or Dad', 'Take all of your medicine', 'Drink a full glass of water']) },
+          { id: 'shoes', e: '🥿', t: L('Mang tất, mang giày, đi học sớm', 'Socks and shoes on, ready early'),
+            say: L('Con tự mang tất và mang giày để đi học sớm nhé.', 'Put on your socks and shoes so we can leave for school early.'),
+            goal: L('xong sớm, kịp giờ đi học', 'ready early, in time for school'),
+            steps: L(['Mang tất vào hai chân', 'Mang giày đúng chân trái, chân phải', 'Dán quai hoặc cài khoá cho chặt', 'Đeo túi, sẵn sàng đi học'],
+              ['Put a sock on each foot', 'Put each shoe on the correct foot', 'Close the strap or buckle tightly', 'Put on your bag. Ready for school!']) },
+        ] },
+      evening: { ...E,
+        intro: L('Con đi học về rồi! Mình cùng tự làm năm việc buổi tối nhé.', "You are home from school! Let's do our five evening jobs."),
+        tasks: [
+          { id: 'home', e: '🗄️', t: L('Cất giày vào tủ, bỏ đồ bẩn vào giỏ', 'Shoes in the cabinet, dirty clothes in the basket'),
+            say: L('Về đến nhà rồi! Con cất giày vào tủ và bỏ quần áo bẩn vào giỏ nhé.', 'You are home! Put your shoes in the cabinet and your dirty clothes in the basket.'),
+            steps: L(['Cởi giày, ghép thành một đôi', 'Cất giày vào tủ giày', 'Thay quần áo', 'Bỏ quần áo bẩn vào giỏ'],
+              ['Take off your shoes and put them together as a pair', 'Put your shoes in the shoe cabinet', 'Change your clothes', 'Put your dirty clothes in the basket']) },
+          meal('eat', 'ăn tối', 'dinner'),
+          milk('milk'),
+          toys(),
+          { id: 'bed', e: '🛏️', t: L('Tự leo lên giường, tắt đèn và ngủ', 'Climb into bed, lights off, sleep'),
+            say: L('Đến giờ đi ngủ rồi. Con tự leo lên giường, tắt đèn và ngủ nhé.', "It's bedtime. Climb into bed, turn off the light, and go to sleep."),
+            steps: L(['Chúc ba mẹ ngủ ngon', 'Tự leo lên giường', 'Tắt đèn', 'Nhắm mắt và ngủ ngoan'],
+              ['Say good night to Mom and Dad', 'Climb into bed by yourself', 'Turn off the light', 'Close your eyes and sleep tight']) },
+        ] },
+    },
+    // ----- NGÀY NGHỈ (cuối tuần, lễ) -----
+    off: {
+      morning: { ...M,
+        intro: L('Chào buổi sáng! Hôm nay là ngày nghỉ. Mình cùng tự làm các việc buổi sáng nhé.', "Good morning! Today is a day off. Let's do our morning jobs all by ourselves."),
+        tasks: [toilet(), face(), teeth(), meal('breakfast', 'ăn sáng', 'breakfast', false), milk('milk10', '10 giờ sáng', '10 in the morning')] },
+      afternoon: { ...A,
+        intro: L('Buổi trưa rồi! Con tự ăn trưa, đến bốn giờ chiều thì uống sữa nhé.', "It's midday! Feed yourself at lunch, and drink your milk at four o'clock."),
+        tasks: [meal('lunch', 'ăn trưa', 'lunch'), milk('milk16', '4 giờ chiều', '4 in the afternoon')] },
+      evening: { ...E,
+        intro: L('Buổi tối rồi! Mình cùng tự làm các việc buổi tối nhé.', "It's evening! Let's do our evening jobs."),
+        tasks: [meal('dinner', 'ăn tối', 'dinner'), toys(), milk('milk20', '8 giờ tối', '8 in the evening'), teeth()] },
+    },
+  };
+});
+
+export const dayType = () => (isSchoolDay() ? 'school' : 'off');
+/** Lịch của một loại ngày ('school' | 'off'). */
+export const scheduleFor = (type) => SCHEDULES()[type];
+/** Lịch của hôm nay (ngày đi học hoặc ngày nghỉ). */
+export const ROUTINES = () => SCHEDULES()[dayType()];
+
+// Việc đã làm được lưu riêng cho từng loại ngày, để ba mẹ đổi loại ngày giữa chừng không bị lẫn.
+const dk = (kind) => (kind === 'chore' || isSchoolDay() ? kind : `off-${kind}`);
+
+/** Số sao của một việc trong lịch: bữa ăn theo luật "meal", việc khác theo luật "task". */
+export const taskStars = (t) => Math.max(0, +store.data.rules[t.meal ? 'meal' : 'task'] || 0);
+
+/** Số sao tự lập tối đa trong một ngày thuộc loại type. */
+export function maxSelfcare(type) {
+  const r = store.data.rules;
+  return Object.values(scheduleFor(type)).reduce((sum, x) => sum + x.tasks.reduce((a, t) => a + taskStars(t), 0) + (+r.routine || 0), 0);
+}
 
 /** Số việc đã làm hôm nay (chỉ tính những việc có trong danh sách). */
 export function routineCount(kind) {
   const ids = ROUTINES()[kind].tasks.map((t) => t.id);
-  return routineDone(kind).filter((id) => ids.includes(id)).length;
+  return routineDone(dk(kind)).filter((id) => ids.includes(id)).length;
 }
 
 /** Buổi phù hợp theo giờ hiện tại. */
 export function currentRoutine() {
-  return new Date().getHours() < 12 ? 'morning' : 'evening';
+  const hr = new Date().getHours();
+  if (isSchoolDay()) return hr < 12 ? 'morning' : 'evening';
+  return hr < 11 ? 'morning' : hr < 17 ? 'afternoon' : 'evening';
 }
 
 /* ---------------- Việc ba mẹ giao thêm (phơi đồ, gấp đồ…) ---------------- */
@@ -127,7 +178,7 @@ function timerStart(id, minutes) {
 }
 /** true khi đang có đồng hồ bữa ăn chạy (để tạm hoãn lời nhắc nghỉ mắt). */
 export function mealTimerRunning() {
-  return ROUTINES().evening.tasks.some((t) => t.timer && timerEnd(t.id) > Date.now());
+  return Object.values(ROUTINES()).some((R) => R.tasks.some((t) => t.timer && timerEnd(t.id) > Date.now()));
 }
 
 // Mỗi bước: [biểu tượng, tiếng Việt, tiếng Anh, số giây (nếu có hẹn giờ)]
@@ -235,14 +286,11 @@ register('selfcare', {
   render(root) {
     const school = isSchoolDay();
     const jobs = (n, total) => L(`${n}/${total} việc`, `${n}/${total} jobs`);
-    const holiday = () => say(L('Hôm nay là ngày nghỉ, con không đi học. Các việc ngày đi học sẽ có lại vào ngày con đi học nhé.',
-      "Today is a day off. No school today! Your school-day jobs will be back on the next school day."));
+    const kinds = Object.keys(ROUTINES());
     const card = (kind) => {
       const R = ROUTINES()[kind];
-      return menuCard({ emoji: R.emoji, label: R.title, color: school ? R.color : 'white',
-        sub: school ? jobs(routineCount(kind), R.tasks.length) : L('Ngày nghỉ 🎈', 'Day off 🎈'),
-        badge: school && kind === currentRoutine() ? L('Bây giờ', 'Now') : null,
-        onClick: () => (school ? go('routine', { kind }) : holiday()) });
+      return menuCard({ emoji: R.emoji, label: R.title, color: R.color, sub: jobs(routineCount(kind), R.tasks.length),
+        badge: kind === currentRoutine() ? L('Bây giờ', 'Now') : null, onClick: () => go('routine', { kind }) });
     };
     const chores = todaysChores();
     const choreDone = routineDone('chore');
@@ -254,8 +302,8 @@ register('selfcare', {
     root.append(h('div', { class: 'menu' },
       h('div', { class: 'menu-head' }, h('div', null,
         h('h2', { text: L('👧 Bé Tự Lập', '👧 I Can Do It') }),
-        h('p', { text: school ? L('Việc của ngày đi học: mỗi việc 1 ⭐', 'School-day jobs: 1 ⭐ each') : L('Hôm nay là ngày nghỉ', 'Today is a day off') }))),
-      h('div', { class: 'cards two' }, card('morning'), card('evening')),
+        h('p', { text: school ? L('🏫 Việc của ngày đi học', '🏫 School-day jobs') : L('🎈 Việc của ngày nghỉ', '🎈 Day-off jobs') }))),
+      h('div', { class: kinds.length === 2 ? 'cards two' : 'cards three' }, kinds.map(card)),
       chores.length ? [
         h('h3', { class: 'sec', text: L('📋 Việc ba mẹ nhờ hôm nay', '📋 Jobs from Mom and Dad today') }),
         h('div', { class: 'routine-tiles' }, choreTiles)] : null,
@@ -271,7 +319,6 @@ register('selfcare', {
 
     const open = chores.filter((c) => !choreDone.includes(c.id));
     if (open.length) say(L(`Bé tự lập. Hôm nay ba mẹ nhờ con ${open.map((c) => c.t).join(', ')}.`, `I can do it! Today Mom and Dad ask you to: ${open.map((c) => c.t).join(', ')}.`));
-    else if (!school) holiday();
     else say(L('Bé tự lập. Hôm nay con muốn tự làm việc gì nào?', 'I can do it! What do you want to do by yourself today?'));
   },
 });
@@ -281,14 +328,15 @@ register('routine', {
   title: (p) => ROUTINES()[p.kind].title, parent: 'selfcare', theme: THEME,
   render(root, { kind }) {
     const R = ROUTINES()[kind];
-    const done = routineDone(kind);
+    const done = routineDone(dk(kind));
     const n = routineCount(kind);
     const total = R.tasks.length;
     const bar = h('i');
     const tiles = R.tasks.map((t) => h('button', {
       class: 'tile' + (done.includes(t.id) ? ' done' : ''),
-      onClick: () => { sfx.tap(); go('task', { kind, id: t.id }); },
-    }, h('span', { class: 'emo', text: t.e }), h('span', { class: 'lbl', text: t.t })));
+      onClick: () => { sfx.tap(); if (t.guide) go('guide', { id: t.guide, kind, task: t.id }); else go('task', { kind, id: t.id }); },
+    }, h('span', { class: 'emo', text: t.e }), h('span', { class: 'lbl', text: t.t }),
+    taskStars(t) > 1 ? h('span', { class: 'tile-stars', text: `+${taskStars(t)} ⭐` }) : null));
     root.append(h('div', { class: 'menu' },
       h('div', { class: 'menu-head' },
         h('div', { style: { flex: 1 } },
@@ -307,18 +355,19 @@ register('routine', {
 
 /** Đánh dấu một việc đã xong, thưởng sao, chúc mừng nếu hoàn thành cả buổi. */
 async function completeTask(kind, id, fromEl) {
-  const fresh = markRoutine(kind, id);
+  const fresh = markRoutine(dk(kind), id);
   if (kind === 'chore') {
     const c = findTask(kind, id);
     if (fresh && c) giveStars(c.stars, fromEl);
     go('selfcare');
     return;
   }
-  if (fresh) award('task', fromEl);
   const R = ROUTINES()[kind];
+  const task = R.tasks.find((t) => t.id === id);
+  if (fresh && task) giveStars(taskStars(task), fromEl);
   if (fresh && routineCount(kind) === R.tasks.length) {
     await celebrate({
-      emoji: { morning: '🌞', evening: '🌟' }[kind],
+      emoji: { morning: '🌞', afternoon: '🏅', evening: '🌟' }[kind],
       title: L('Xong hết rồi!', 'All done!'),
       text: L(`Con đã tự làm tất cả việc ${R.title.toLowerCase()}!`, `You did all your ${R.title.toLowerCase()} jobs by yourself!`),
       kind: 'routine',
@@ -396,7 +445,7 @@ register('task', {
     root.append(h('div', { class: 'task' },
       h('div', { class: 'emo', text: t.e }),
       h('h2', { text: t.t }),
-      t.stars ? h('p', { class: 'task-stars', text: `+${t.stars} ⭐` }) : null,
+      (t.stars || (kind !== 'chore' && taskStars(t) > 1)) ? h('p', { class: 'task-stars', text: `+${t.stars || taskStars(t)} ⭐` }) : null,
       goalText ? h('p', { class: 'goal', text: '🎯 ' + goalText }) : null,
       clock,
       items.length ? h('ol', { class: 'steps' }, items) : null,

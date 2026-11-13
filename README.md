@@ -24,8 +24,9 @@ Repo này có hai ứng dụng web:
 
 ### Các phần học
 
-**👧 Bé Tự Lập**: các việc của **ngày đi học**. Bé chạm vào từng việc để nghe hướng dẫn từng bước và tiêu chí đạt, làm xong thì bấm “Con làm xong rồi!” để nhận sao. Danh sách được làm mới mỗi ngày.
+**👧 Bé Tự Lập**: các việc trong ngày, có lịch riêng cho **ngày đi học** và **ngày nghỉ**. Bé chạm vào từng việc để nghe hướng dẫn từng bước và tiêu chí đạt, làm xong thì bấm “Con làm xong rồi!” để nhận sao. Danh sách được làm mới mỗi ngày.
 
+*Ngày đi học* (mặc định thứ Hai đến thứ Sáu)
 - ☀️ **Buổi sáng** (5 việc)
   1. Tự đi vệ sinh và làm sạch. Đạt khi: sạch sẽ, không có mùi hôi.
   2. Tự rửa mặt. Đạt khi: mặt sạch, mắt và miệng không có ghèn.
@@ -34,18 +35,46 @@ Repo này có hai ứng dụng web:
   5. Tự mang tất, mang giày, đi học sớm.
 - 🌙 **Buổi tối** (5 việc)
   1. Về nhà cất giày vào tủ, bỏ quần áo bẩn vào giỏ.
-  2. Tự xúc ăn hết trong 45 phút: 1 chén cơm đầy, nửa chén thức ăn, nửa chén canh. Có đồng hồ đếm ngược 45 phút; hết giờ thì việc này không được sao.
+  2. Tự xúc ăn tối hết trong 45 phút: 1 chén cơm đầy, nửa chén thức ăn, nửa chén canh (3 ⭐).
   3. Tự uống sữa (200 ml).
   4. Sắp xếp đồ chơi gọn gàng.
   5. Tự leo lên giường, tắt đèn và ngủ.
+
+*Ngày nghỉ* (cuối tuần, lễ)
+- ☀️ **Buổi sáng**: đi vệ sinh và làm sạch, rửa mặt, đánh răng (hẹn giờ 2 phút), tự xúc ăn sáng (3 ⭐), uống sữa lúc 10 giờ sáng.
+- 🌤️ **Buổi trưa, chiều**: tự xúc ăn trưa (3 ⭐), uống sữa lúc 4 giờ chiều.
+- 🌙 **Buổi tối**: tự xúc ăn tối (3 ⭐), sắp xếp đồ chơi, uống sữa lúc 8 giờ tối, đánh răng.
+
+*Chung cho cả hai loại ngày*
+- 🥄 **Bữa ăn** có đồng hồ đếm ngược 45 phút. Nếu đã bật đồng hồ mà hết giờ thì bữa đó không được sao.
 - 📋 **Việc ba mẹ giao thêm**: hôm nào có việc (phơi đồ, gấp đồ…), ba mẹ vào Góc ba mẹ bấm “Giao hôm nay”. Việc hiện trong Bé Tự Lập đến hết ngày.
-- 🏫 **Ngày đi học và ngày nghỉ**: mặc định đi học từ thứ Hai đến thứ Sáu (ba mẹ đổi được). Ngày nghỉ thì các việc sáng và tối tạm ẩn. Nếu hôm nay bé nghỉ đột xuất (lễ, ốm…), ba mẹ bấm “Ngày nghỉ” trong Góc ba mẹ; chỉ áp dụng cho hôm đó.
+- 🏫 **Đổi loại ngày**: nếu hôm nay bé nghỉ đột xuất (lễ, ốm…), ba mẹ bấm “Ngày nghỉ” trong Góc ba mẹ để chuyển sang lịch ngày nghỉ; chỉ áp dụng cho hôm đó. Ba mẹ cũng chọn được những ngày nào trong tuần là ngày đi học.
 - 🌟 **Tập thêm cho quen tay** (không tính sao): mặc quần áo, mang giày dép, xếp quần áo, trò dọn đồ chơi, rửa tay 8 bước, đánh răng 2 phút.
 
-**📝 Bài tập hôm nay**: mỗi ngày ứng dụng chọn sẵn 3 bài (một bài viết, một bài về số, một bài khám phá), đổi theo ngày. Chỉ những bài này mới được sao.
+**📝 Bài tập hôm nay**: mỗi ngày ứng dụng chọn sẵn một số bài, đổi theo ngày và xoay vòng qua ba nhóm (viết, số, khám phá). Chỉ những bài này mới được sao.
+- Ngày đi học có 3 bài. Ngày nghỉ có gấp đôi, tức 6 bài.
 - Một bài viết = tô đạt 3 chữ. Một bài đố = trả lời đủ 5 câu.
 - Chơi thêm ngoài bài tập thì không tính sao, nên sao không bị “lạm phát”.
-- Ba mẹ chỉnh được số bài mỗi ngày (0–5) và bật, tắt từng loại bài (ví dụ tắt phép nhân, phép chia nếu bé chưa học tới).
+- Ba mẹ chỉnh được số bài mỗi ngày (0–5), hệ số ngày nghỉ (1, 2 hoặc 3 lần) và bật, tắt từng loại bài.
+
+Có 14 loại bài tập:
+
+| Nhóm | Bài tập | Bé làm gì |
+|---|---|---|
+| Viết | Tô chữ thường | Tô đạt 3 chữ thường, ví dụ a, ă, â |
+| Viết | Tô chữ hoa | Tô đạt 3 chữ hoa |
+| Viết | Tô chữ số | Tô đạt 3 chữ số |
+| Số | Đếm và chọn | Đếm đồ vật rồi chọn số đúng, 5 câu |
+| Số | Nhiều hơn, ít hơn | Chọn bên có nhiều hơn hoặc ít hơn, 5 câu |
+| Số | Tìm số | Chạm vào bong bóng có số được đọc, 5 câu |
+| Số | Phép cộng | Cộng bằng hình, 5 câu |
+| Số | Phép trừ | Trừ bằng hình, 5 câu |
+| Số | Phép nhân | Đếm các nhóm bằng nhau, 5 câu |
+| Số | Phép chia | Chia đều cho các bạn, 5 câu |
+| Khám phá | Đố các ngày trong tuần | Trước, sau một ngày là ngày nào, 5 câu |
+| Khám phá | Đố các tháng trong năm | Trước, sau một tháng là tháng nào, 5 câu |
+| Khám phá | Đố ngày hay đêm | Việc này vào ban ngày hay ban đêm, 5 câu |
+| Khám phá | Đố trái hay phải | Bên trái hay bên phải, 5 câu |
 
 **✏️ Tập Viết**
 - Tiếng Việt: 29 chữ thường, 29 chữ hoa (gồm ă, â, đ, ê, ô, ơ, ư). Tiếng Anh: 26 chữ thường, 26 chữ hoa. Cả hai đều có 10 chữ số. Chữ hiện trên nền giấy ô ly với nét chấm để bé tô.
@@ -79,16 +108,23 @@ Luật nhận sao mặc định (ba mẹ chỉnh được từng mục, từ 0 �
 
 | Bé làm gì | Sao |
 |---|---|
-| 👧 Ngày đi học: tự làm xong 1 việc (sáng hoặc tối) | +1 ⭐ |
-| 🏅 Làm hết 5 việc của 1 buổi | +1 ⭐ thưởng |
+| 👧 Tự làm xong 1 việc trong ngày | +1 ⭐ |
+| 🥄 Tự xúc ăn hết 1 bữa trong 45 phút | +3 ⭐ |
+| 🏅 Làm hết việc của 1 buổi | +1 ⭐ thưởng |
 | 👕 Ba mẹ nhờ: phơi đồ | +2 ⭐ |
 | 🧺 Ba mẹ nhờ: gấp đồ | +2 ⭐ |
 | 📝 Làm xong 1 bài tập hôm nay | +1 ⭐ |
 | 🎓 Làm hết bài tập hôm nay | +1 ⭐ thưởng |
 
-- Một ngày đi học hoàn hảo: 10 việc + 2 lần thưởng = **12 ⭐**, tức **60 ⭐** một tuần 5 ngày đi học.
-- Bài tập: tối đa **4 ⭐** mỗi ngày (3 bài + 1 thưởng), tức 28 ⭐ một tuần. Một tuần hoàn hảo là 88 ⭐, chưa tính việc ba mẹ giao thêm.
-- Góc ba mẹ tự tính lại các con số này khi ba mẹ đổi luật, và ước tính mỗi món quà cần bao nhiêu tuần.
+Với luật mặc định:
+
+| | Tự lập | Bài tập | Tổng |
+|---|---|---|---|
+| Một ngày đi học hoàn hảo | 14 ⭐ | 4 ⭐ (3 bài + thưởng) | 18 ⭐ |
+| Một ngày nghỉ hoàn hảo | 20 ⭐ | 7 ⭐ (6 bài + thưởng) | 27 ⭐ |
+| Một tuần hoàn hảo (5 ngày đi học, 2 ngày nghỉ) | 110 ⭐ | 34 ⭐ | 144 ⭐ |
+
+- Chưa tính việc ba mẹ giao thêm. Góc ba mẹ tự tính lại các con số này khi ba mẹ đổi luật, và ước tính mỗi món quà cần bao nhiêu tuần.
 - Mục **Đổi quà** cho bé thấy còn thiếu bao nhiêu sao cho từng món quà, kèm bảng “Làm gì thì được sao?”.
 - Khi đủ sao, bé bấm **Đổi quà**, ba mẹ giữ nút 2 giây để đồng ý rồi sao mới bị trừ. Quà đã đổi được lưu lại.
 - Ba mẹ có thể **thưởng thêm** hoặc **trừ bớt** sao bằng tay.

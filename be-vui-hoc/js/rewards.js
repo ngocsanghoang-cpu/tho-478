@@ -2,9 +2,9 @@
 import { register, go, h, say, overlay, confetti, updateStars, holdToActivate } from './ui.js';
 import { sfx } from './sound.js';
 import { store, redeem } from './store.js';
-import { choreName } from './selfcare.js';
+import { choreName, maxSelfcare } from './selfcare.js';
+import { exerciseCount, maxHomework } from './homework.js';
 import { L } from './i18n.js';
-import { ROUTINES } from './selfcare.js';
 
 const THEME = 'var(--yellow)';
 
@@ -20,19 +20,20 @@ export function rewardName(r) {
 export function ruleRows() {
   const r = store.data.rules;
   return [
-    ['task', '👧', L('Ngày đi học: tự làm xong 1 việc (sáng hoặc tối)', 'School day: do 1 job by yourself (morning or evening)'), r.task],
-    ['routine', '🏅', L('Làm hết 5 việc của 1 buổi', 'Finish all 5 jobs of the morning or the evening'), r.routine],
+    ['task', '👧', L('Tự làm xong 1 việc trong ngày', 'Do 1 daily job by yourself'), r.task],
+    ['meal', '🥄', L('Tự xúc ăn hết 1 bữa trong 45 phút', 'Feed yourself and finish a meal in 45 minutes'), r.meal],
+    ['routine', '🏅', L('Làm hết việc của 1 buổi', 'Finish all the jobs of one part of the day'), r.routine],
     ['exercise', '📝', L('Làm xong 1 bài tập hôm nay', "Finish 1 of today's exercises"), r.exercise],
     ['allDone', '🎓', L('Làm hết bài tập hôm nay', "Finish all of today's exercises"), r.allDone],
   ];
 }
 
-/** Số sao tự lập tối đa mỗi ngày theo luật hiện tại. */
-export function maxSelfcarePerDay() {
-  const r = store.data.rules;
-  const R = ROUTINES();
-  return Object.values(R).reduce((sum, x) => sum + x.tasks.length * r.task + r.routine, 0);
+/** Số sao tối đa trong một tuần hoàn hảo (tự lập + bài tập), chưa tính việc ba mẹ giao thêm. */
+export function maxPerWeek() {
+  const nSchool = store.data.schoolDays.length;
+  return (maxSelfcare('school') + maxHomework(true)) * nSchool + (maxSelfcare('off') + maxHomework(false)) * (7 - nSchool);
 }
+
 register('rewards', {
   title: () => L('Đổi quà', 'Rewards'), parent: 'home', theme: THEME,
   render(root) {
@@ -59,10 +60,11 @@ register('rewards', {
     });
 
     const choreRows = d.chores.filter((c) => c.stars > 0).map((c) => [c.id, c.emoji, L(`Ba mẹ nhờ: ${choreName(c)}`, `When Mom or Dad asks: ${choreName(c)}`), c.stars]);
-    const allRules = [...ruleRows().slice(0, 2), ...choreRows, ...ruleRows().slice(2)].filter((x) => x[3] > 0);
+    const allRules = [...ruleRows().slice(0, 3), ...choreRows, ...ruleRows().slice(3)].filter((x) => x[3] > 0);
     const rules = allRules.map(([, emo, text, n]) =>
       h('li', null, h('span', { class: 'rule-emo', text: emo }), h('span', { class: 'rule-text', text }), h('b', { text: `+${n} ⭐` })));
-    const hwNote = L(`Mỗi ngày có ${d.hw.count} bài tập. Chơi thêm ngoài bài tập thì không tính sao.`, `There are ${d.hw.count} exercises each day. Extra play earns no stars.`);
+    const hwNote = L(`Ngày đi học có ${exerciseCount(true)} bài tập, ngày nghỉ có ${exerciseCount(false)} bài. Chơi thêm ngoài bài tập thì không tính sao.`,
+      `School days have ${exerciseCount(true)} exercises, days off have ${exerciseCount(false)}. Extra play earns no stars.`);
     const readRules = () => say(allRules.map(([, , text, n]) => L(`${text}: được ${n} sao.`, `${text}: ${n} ${n === 1 ? 'star' : 'stars'}.`)).join(' ') + ' ' + hwNote);
 
     root.append(h('div', { class: 'menu' },

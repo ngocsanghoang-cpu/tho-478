@@ -1,10 +1,10 @@
 // GÓC BA MẸ – ngôn ngữ, giọng đọc, tên bé, giờ nghỉ, xem tiến độ
 import { register, go, h, say, updateStars } from './ui.js';
 import { store, resetProgress, unlockedCount, STICKERS, adjustStars, todaysAsks, toggleAsk, isSchoolDay, setTodaySchool } from './store.js';
-import { EXERCISES, exerciseName, maxHomeworkPerDay, TRACE_PER_EXERCISE } from './homework.js';
-import { rewardName, ruleRows, maxSelfcarePerDay } from './rewards.js';
+import { EXERCISES, exerciseName, exerciseCount, maxHomework, TRACE_PER_EXERCISE } from './homework.js';
+import { rewardName, ruleRows, maxPerWeek } from './rewards.js';
 import { L, lang, setLang } from './i18n.js';
-import { ROUTINES, routineCount, choreName } from './selfcare.js';
+import { ROUTINES, routineCount, choreName, maxSelfcare } from './selfcare.js';
 import { SETS, starsOf } from './writing.js';
 import { getVoices, langVoices, voiceGender, voiceAdvice, onVoicesChanged, configureSpeech, currentVoice } from './speech.js';
 import { setSoundEnabled } from './sound.js';
@@ -94,13 +94,12 @@ register('parents', {
     const sumBox = h('p', { class: 'warn' });
     const balance = h('b');
     const drawSummary = () => {
-      const self = maxSelfcarePerDay();
-      const hw = maxHomeworkPerDay();
       const days = d.schoolDays.length;
+      const [s1, h1, s2, h2] = [maxSelfcare('school'), maxHomework(true), maxSelfcare('off'), maxHomework(false)];
       balance.textContent = `${d.stars} ⭐`;
       sumBox.textContent = L(
-        `Với luật này: một ngày đi học hoàn hảo được ${self} ⭐ từ việc tự lập (${self} × ${days} ngày = ${self * days} ⭐ mỗi tuần). Bài tập cho thêm tối đa ${hw} ⭐ mỗi ngày (${hw * 7} ⭐ mỗi tuần). Tổng một tuần hoàn hảo: ${self * days + hw * 7} ⭐, chưa tính việc ba mẹ giao thêm.`,
-        `With these rules: a perfect school day earns ${self} ⭐ from own jobs (${self} × ${days} days = ${self * days} ⭐ a week). Exercises add up to ${hw} ⭐ a day (${hw * 7} ⭐ a week). A perfect week: ${self * days + hw * 7} ⭐, not counting extra jobs you assign.`);
+        `Với luật này: một ngày đi học hoàn hảo được ${s1 + h1} ⭐ (tự lập ${s1} + bài tập ${h1}). Một ngày nghỉ hoàn hảo được ${s2 + h2} ⭐ (tự lập ${s2} + bài tập ${h2}). Một tuần hoàn hảo (${days} ngày đi học, ${7 - days} ngày nghỉ): ${maxPerWeek()} ⭐, chưa tính việc ba mẹ giao thêm.`,
+        `With these rules: a perfect school day earns ${s1 + h1} ⭐ (own jobs ${s1} + exercises ${h1}). A perfect day off earns ${s2 + h2} ⭐ (own jobs ${s2} + exercises ${h2}). A perfect week (${days} school days, ${7 - days} days off): ${maxPerWeek()} ⭐, not counting extra jobs you assign.`);
     };
     const drawGifts = () => {
       giftBox.innerHTML = '';
@@ -115,7 +114,7 @@ register('parents', {
         const del = h('button', { class: 'btn ghost small', onClick: () => {
           if (confirm(L('Xoá món quà này?', 'Delete this reward?'))) { d.rewards.splice(i, 1); store.save(); drawGifts(); }
         } }, '🗑️');
-        const week = maxSelfcarePerDay() * d.schoolDays.length + maxHomeworkPerDay() * 7;
+        const week = maxPerWeek();
         const days = week > 0 ? L(`≈ ${(r.cost / week).toFixed(1).replace('.0', '')} tuần hoàn hảo`, `≈ ${(r.cost / week).toFixed(1).replace('.0', '')} perfect weeks`) : '';
         giftBox.append(h('div', { class: 'gift-row' }, emo, name, cost, h('span', { text: '⭐' }), del, h('span', { class: 'gift-est', text: days })));
       });
@@ -155,7 +154,7 @@ register('parents', {
       todayChips.innerHTML = '';
       const school = isSchoolDay();
       [[true, L('🏫 Ngày đi học', '🏫 School day')], [false, L('🎈 Ngày nghỉ', '🎈 Day off')]].forEach(([v, label]) =>
-        todayChips.append(h('button', { class: 'chip big' + (school === v ? ' on' : ''), onClick: () => { setTodaySchool(v); drawToday(); } }, label)));
+        todayChips.append(h('button', { class: 'chip big' + (school === v ? ' on' : ''), onClick: () => { setTodaySchool(v); go('parents'); } }, label)));
     };
     drawToday();
 
@@ -164,6 +163,10 @@ register('parents', {
     [0, 1, 2, 3, 4, 5].forEach((v) => hwCount.append(h('option', { value: v }, v ? L(`${v} bài`, `${v}`) : L('Không có bài tập', 'None'))));
     hwCount.value = String(d.hw.count);
     hwCount.addEventListener('change', () => { d.hw.count = +hwCount.value; store.save(); drawSummary(); drawGifts(); });
+    const hwMult = h('select');
+    [1, 2, 3].forEach((v) => hwMult.append(h('option', { value: v }, v === 1 ? L('Bằng ngày đi học', 'Same as school days') : L(`Gấp ${v} lần`, `${v} times as many`))));
+    hwMult.value = String(d.hw.offMult || 2);
+    hwMult.addEventListener('change', () => { d.hw.offMult = +hwMult.value; store.save(); drawSummary(); drawGifts(); });
     const hwTypes = h('div', { class: 'chips' });
     const drawTypes = () => {
       hwTypes.innerHTML = '';
@@ -222,8 +225,8 @@ register('parents', {
       h('div', { class: 'box' },
         h('h3', { text: L('📅 Hôm nay', '📅 Today') }),
         todayChips,
-        h('p', { style: { ...muted, marginTop: '10px' }, text: L('Nếu hôm nay bé được nghỉ (lễ, ốm…), ba mẹ bấm “Ngày nghỉ”: các việc sáng và tối của ngày đi học sẽ tạm ẩn. Chỉ áp dụng cho hôm nay, mai tự trở về lịch tuần.',
-          'If there is no school today (holiday, sick day…), tap “Day off”: the school-day morning and evening jobs are hidden. This applies to today only; tomorrow follows the weekly schedule again.') })),
+        h('p', { style: { ...muted, marginTop: '10px' }, text: L('Nếu hôm nay bé được nghỉ (lễ, ốm…), ba mẹ bấm “Ngày nghỉ”: app chuyển sang lịch ngày nghỉ (3 bữa ăn, 3 cữ sữa, gấp đôi bài tập). Chỉ áp dụng cho hôm nay, mai tự trở về lịch tuần.',
+          'If there is no school today (holiday, sick day…), tap “Day off”: the app switches to the day-off schedule (3 meals, 3 milk times, twice the exercises). This applies to today only; tomorrow follows the weekly schedule again.') })),
 
       h('div', { class: 'box' },
         h('h3', { text: L('📋 Giao việc thêm hôm nay', '📋 Assign extra jobs today') }),
@@ -239,12 +242,14 @@ register('parents', {
 
       h('div', { class: 'box' },
         h('h3', { text: L('⭐ Luật nhận sao', '⭐ Star rules') }),
-        h('div', { class: 'rule-row' }, h('span', { class: 'rule-emo', text: '🏫' }), h('span', { class: 'rule-text', text: L('Ngày đi học (việc sáng và tối chỉ có vào các ngày này)', 'School days (morning and evening jobs only appear on these days)') })),
+        h('div', { class: 'rule-row' }, h('span', { class: 'rule-emo', text: '🏫' }), h('span', { class: 'rule-text', text: L('Ngày đi học trong tuần (các ngày còn lại dùng lịch ngày nghỉ)', 'School days of the week (other days use the day-off schedule)') })),
         dayChips,
         rulesBox,
         h('div', { class: 'rule-row' }, h('span', { class: 'rule-emo', text: '📝' }),
-          h('span', { class: 'rule-text', text: L(`Số bài tập mỗi ngày (1 bài = trả lời đủ 5 câu, hoặc tô đạt ${TRACE_PER_EXERCISE} chữ). Chơi thêm ngoài bài tập không tính sao.`,
+          h('span', { class: 'rule-text', text: L(`Số bài tập mỗi ngày đi học (1 bài = trả lời đủ 5 câu, hoặc tô đạt ${TRACE_PER_EXERCISE} chữ). Chơi thêm ngoài bài tập không tính sao.`,
             `Exercises per day (1 exercise = answer all 5 questions, or trace ${TRACE_PER_EXERCISE} well). Extra play earns no stars.`) }), hwCount),
+        h('div', { class: 'rule-row' }, h('span', { class: 'rule-emo', text: '🎈' }),
+          h('span', { class: 'rule-text', text: L('Số bài tập vào ngày nghỉ', 'Exercises on days off') }), hwMult),
         h('p', { style: muted, text: L('Các loại bài được đưa vào bài tập (bấm để bật hoặc tắt):', 'Exercise types to include (tap to turn on or off):') }),
         hwTypes,
         sumBox,
@@ -281,7 +286,7 @@ register('parents', {
           stat(d.stats.math || 0, L('🧮 Phép tính đúng', '🧮 Math answers')),
           stat(d.stats.explore || 0, L('🌈 Câu khám phá đúng', '🌈 Explore answers')),
           stat(d.stats.selfcare, L('👧 Việc tự lập', '👧 Jobs done')),
-          stat(`${d.homework && d.homework.date ? d.homework.done.length : 0}/${d.hw.count}`, L('📝 Bài tập hôm nay', "📝 Today's exercises")),
+          stat(`${d.homework && d.homework.date ? d.homework.done.length : 0}/${exerciseCount()}`, L('📝 Bài tập hôm nay', "📝 Today's exercises")),
           ...Object.keys(ROUTINES()).map((k) => stat(`${routineCount(k)}/${ROUTINES()[k].tasks.length}`, `${ROUTINES()[k].emoji} ${ROUTINES()[k].title} ${L('hôm nay', 'today')}`)))),
 
       h('div', { class: 'box' },

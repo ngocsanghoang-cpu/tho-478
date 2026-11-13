@@ -90,8 +90,8 @@ register('home', {
         h('span', { class: 'wave', text: '👋' }),
         h('div', null,
           h('h2', { text: `${greeting()}${name ? ', ' + name : ''}!` }),
-          h('p', { text: !isSchoolDay() ? L('Hôm nay là ngày nghỉ 🎈', 'Today is a day off 🎈')
-            : L(`Ngày đi học: ${R.emoji} việc ${R.title.toLowerCase()} ${done}/${total}`, `School day: ${R.emoji} ${R.title.toLowerCase()} jobs ${done}/${total}`) }))),
+          h('p', { text: (isSchoolDay() ? L('🏫 Ngày đi học', '🏫 School day') : L('🎈 Ngày nghỉ', '🎈 Day off'))
+            + L(` · ${R.emoji} việc ${R.title.toLowerCase()} ${done}/${total}`, ` · ${R.emoji} ${R.title.toLowerCase()} jobs ${done}/${total}`) }))),
       h('div', { class: 'cards home-cards' },
         menuCard({ emoji: '👧', label: L('Bé Tự Lập', 'I Can Do It'), sub: L('Tự làm việc của mình', 'Doing things by myself'), color: 'pink', onClick: () => go('selfcare') }),
         menuCard({ emoji: '📝', label: L('Bài tập hôm nay', "Today's exercises"), sub: hwSub, color: 'red', badge: hw.total && hw.done < hw.total ? `+⭐` : null, onClick: () => go('homework') }),

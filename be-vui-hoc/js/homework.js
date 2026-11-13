@@ -2,7 +2,7 @@
 // Nhờ vậy việc học có thưởng rõ ràng mà sao không bị "lạm phát": chơi thêm bao nhiêu cũng không thêm sao.
 import { register, go, h, say, giveStars } from './ui.js';
 import { sfx } from './sound.js';
-import { store, todayKey } from './store.js';
+import { store, todayKey, isSchoolDay } from './store.js';
 import { L } from './i18n.js';
 import { SETS } from './writing.js';
 
@@ -41,6 +41,13 @@ function state() {
   return store.data.homework;
 }
 
+/** Số bài tập của một ngày: ngày nghỉ nhiều hơn ngày đi học (mặc định gấp đôi). */
+export function exerciseCount(school = isSchoolDay()) {
+  const hw = store.data.hw;
+  const enabled = EXERCISES.filter((x) => !hw.off.includes(x.id)).length;
+  return Math.min(enabled, hw.count * (school ? 1 : Math.max(1, +hw.offMult || 1)));
+}
+
 /**
  * Danh sách bài tập hôm nay: chọn xoay vòng theo ngày từ các loại ba mẹ bật,
  * lần lượt qua 3 nhóm (viết, số, khám phá) để ngày nào cũng đa dạng.
@@ -51,7 +58,8 @@ export function todaysExercises() {
   const day = dayIndex();
   const cats = ['write', 'number', 'explore'];
   const picked = [];
-  for (let k = 0; picked.length < Math.min(hw.count, enabled.length) && k < 40; k++) {
+  const want = exerciseCount();
+  for (let k = 0; picked.length < want && k < 60; k++) {
     const list = enabled.filter((x) => x.cat === cats[k % 3] && !picked.includes(x));
     if (!list.length) continue;
     picked.push(list[(day + Math.floor(k / 3)) % list.length]);
@@ -75,10 +83,10 @@ export function homeworkProgress() {
   return { done: list.filter((x) => x.done).length, total: list.length };
 }
 
-/** Số sao tối đa mỗi ngày từ bài tập. */
-export function maxHomeworkPerDay() {
+/** Số sao tối đa từ bài tập trong một ngày đi học (school = true) hoặc ngày nghỉ (false). */
+export function maxHomework(school) {
   const r = store.data.rules;
-  const n = Math.min(store.data.hw.count, EXERCISES.filter((x) => !store.data.hw.off.includes(x.id)).length);
+  const n = exerciseCount(school);
   return n ? n * r.exercise + r.allDone : 0;
 }
 
