@@ -52,9 +52,11 @@ const DEFAULTS = {
   applied: { date: '', ids: [] }, // các lần thưởng/trừ sao từ điện thoại ba mẹ đã áp dụng
   // Quà do ba mẹ đặt. key: quà mẫu có tên theo ngôn ngữ; name: tên ba mẹ tự đặt
   rewards: [
-    { id: 'r1', emoji: '🎡', key: 'park', name: '', cost: 100 },
-    { id: 'r2', emoji: '🧸', key: 'toy', name: '', cost: 150 },
+    { id: 'r1', emoji: '🍦', key: 'icecream', name: '', cost: 30 },
+    { id: 'r2', emoji: '🎡', key: 'park', name: '', cost: 60 },
+    { id: 'r3', emoji: '👗', key: 'dress', name: '', cost: 200 },
   ],
+  rewardsV: 2, // phiên bản danh sách quà mẫu
   redeemed: [], // quà đã đổi: { emoji, name, cost, date }
   rate: 0.9,
   voices: { vi: '', en: '' }, // giọng đọc ba mẹ tự chọn cho từng ngôn ngữ ('' = tự động)
@@ -82,6 +84,13 @@ function load() {
     // Bản có giờ chơi 10 phút: bài tập phải vừa trong một lần mở khoá (8 phút) và mỗi ngày 1 bài.
     if (p.hwV !== 2 && p.hw) { p.hw.count = 1; p.hw.minutes = 8; }
     p.hwV = 2;
+    // Quà mẫu mới (ăn kem 30, khu vui chơi 60, váy mới 200): chỉ thay khi máy vẫn đang giữ nguyên quà mẫu cũ.
+    if (p.rewardsV !== 2 && Array.isArray(p.rewards)) {
+      const old = p.rewards.length === 2 && p.rewards[0].key === 'park' && p.rewards[0].cost === 100 && !p.rewards[0].name
+        && p.rewards[1].key === 'toy' && p.rewards[1].cost === 150 && !p.rewards[1].name;
+      if (old) delete p.rewards;
+    }
+    p.rewardsV = 2;
     return {
       ...d, ...p, voices,
       earned: p.earned == null ? (p.stars || 0) : p.earned,

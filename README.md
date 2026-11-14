@@ -198,7 +198,9 @@ Với luật mặc định:
 | Một tuần hoàn hảo (5 ngày đi học, 2 ngày nghỉ) | 110 ⭐ | 16 ⭐ | 126 ⭐ |
 
 - Chưa tính việc ba mẹ giao thêm. Góc ba mẹ tự tính lại các con số này khi ba mẹ đổi luật, và ước tính mỗi món quà cần bao nhiêu tuần.
-- Mục **Đổi quà** cho bé thấy còn thiếu bao nhiêu sao cho từng món quà, kèm bảng “Làm gì thì được sao?”.
+- Quà mẫu: 🍦 ăn kem 30 ⭐, 🎡 đi khu vui chơi 60 ⭐, 👗 mua váy mới 200 ⭐. Ba mẹ sửa, thêm, xoá được ở *For parents → Rewards*.
+- Mỗi lần bé bấm **Rewards** ở màn hình chính, một hộp bật lên hiện **3 món quà gần nhất** với số sao bé đang có: mỗi món cần bao nhiêu sao, còn thiếu bao nhiêu, kèm thanh tiến độ. Bạn Thỏ đọc to. Món nào đủ sao thì có nút **Get it**.
+- Nút **See all** mở danh sách đầy đủ, kèm bảng “Làm gì thì được sao?” và các quà đã đổi.
 - Khi đủ sao, bé bấm **Đổi quà**, ba mẹ giữ nút 2 giây để đồng ý rồi sao mới bị trừ. Quà đã đổi được lưu lại.
 - Ba mẹ có thể **thưởng thêm** hoặc **trừ bớt** sao bằng tay.
 - Khi tô chữ, bông hoa 🌸 (1–3) là điểm tô đẹp, khác với ngôi sao ⭐ dùng để đổi quà.

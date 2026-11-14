@@ -10,7 +10,7 @@ import './writing.js';
 import './counting.js';
 import './math.js';
 import './explore.js';
-import './rewards.js';
+import { showRewardsPopup } from './rewards.js';
 import { homeworkProgress } from './homework.js';
 import './parents.js';
 import { isPlaying, readyTickets } from './playtime.js';
@@ -143,7 +143,7 @@ register('home', {
       h('div', { class: 'timeline' + (cols.length >= 3 ? ' compact' : ''), style: { '--cols': cols.length } }, cols, extra),
       h('div', { class: 'dock' },
         h('button', { class: 'dock-btn', onClick: () => { sfx.tap(); go('games'); } }, h('span', { text: '🎮' }), h('b', { text: L('Chơi', 'Play') }), h('i', { text: playState })),
-        h('button', { class: 'dock-btn', onClick: () => { sfx.tap(); go('rewards'); } }, h('span', { text: goal ? goal.emoji : '🎁' }), h('b', { text: L('Đổi quà', 'Rewards') }),
+        h('button', { class: 'dock-btn', onClick: () => { sfx.tap(); showRewardsPopup(); } }, h('span', { text: goal ? goal.emoji : '🎁' }), h('b', { text: L('Đổi quà', 'Rewards') }),
           goal && stars < goal.cost ? h('i', { text: L(`còn ${goal.cost - stars}⭐`, `${goal.cost - stars}⭐ to go`) }) : goal ? h('i', { text: '🎉' }) : null),
         parentsBtn)));
 

@@ -11,7 +11,9 @@ const THEME = 'var(--yellow)';
 /** Tên quà: tên ba mẹ đặt, hoặc tên mẫu theo ngôn ngữ. */
 export function rewardName(r) {
   if (r.name && r.name.trim()) return r.name.trim();
-  if (r.key === 'park') return L('Đi khu vui chơi cuối tuần', 'A weekend trip to the playground');
+  if (r.key === 'icecream') return L('Ăn kem', 'Ice cream');
+  if (r.key === 'park') return L('Đi khu vui chơi', 'A trip to the playground');
+  if (r.key === 'dress') return L('Mua váy mới', 'A new dress');
   if (r.key === 'toy') return L('Mua một món đồ chơi', 'A new toy');
   return L('Quà', 'Reward');
 }
@@ -93,32 +95,78 @@ register('rewards', {
     if (ready) say(L(`Con có ${stars} sao. Con đã đủ sao để đổi quà: ${rewardName(ready)}!`, `You have ${stars} stars. That is enough for a reward: ${rewardName(ready)}!`));
     else if (next) say(L(`Con có ${stars} sao. Còn ${next.cost - stars} sao nữa là con đổi được quà: ${rewardName(next)}.`, `You have ${stars} stars. Only ${next.cost - stars} more for a reward: ${rewardName(next)}.`));
     else say(L(`Con có ${stars} sao.`, `You have ${stars} stars.`));
-
-    /** Hỏi ba mẹ xác nhận (giữ nút 2 giây) rồi mới trừ sao. */
-    function askRedeem(r) {
-      const name = rewardName(r);
-      overlay((close) => {
-        const ok = h('button', { class: 'btn big green hold-ring' }, L('👨‍👩‍👧 Ba mẹ giữ 2 giây để đồng ý', '👨‍👩‍👧 Parents: hold 2 seconds to agree'));
-        holdToActivate(ok, 2000, () => {
-          if (!redeem(r, name)) { close(); return; }
-          close(true);
-        }, () => say(L('Ba mẹ giữ nút này hai giây để đồng ý đổi quà nhé.', 'Mom or Dad, hold this button for two seconds to agree.')));
-        return [
-          h('div', { class: 'emo', text: r.emoji }),
-          h('h2', { text: name }),
-          h('p', { text: L(`Đổi quà này sẽ dùng ${r.cost} ⭐. Con gọi ba mẹ nhé!`, `This reward uses ${r.cost} ⭐. Call Mom or Dad!`) }),
-          h('div', { class: 'row', style: { flexDirection: 'column', alignItems: 'center' } }, ok,
-            h('button', { class: 'btn ghost', onClick: () => close() }, L('Để sau', 'Not now'))),
-        ];
-      }, () => say(L(`Con muốn đổi quà: ${name}. Con gọi ba mẹ đến xem nhé!`, `You want this reward: ${name}. Call Mom or Dad to come and see!`)))
-        .then((done) => {
-          if (!done) return;
-          updateStars(true);
-          go('rewards');
-          confetti(70);
-          sfx.fanfare();
-          say(L(`Chúc mừng con! Con đã đổi được quà: ${name}. Con giỏi lắm!`, `Congratulations! You got your reward: ${name}. You worked so hard!`));
-        });
-    }
   },
 });
+
+/** Hỏi ba mẹ xác nhận (giữ nút 2 giây) rồi mới trừ sao. Xong thì mở màn Đổi quà. */
+export function askRedeem(r) {
+  const name = rewardName(r);
+  overlay((close) => {
+    const ok = h('button', { class: 'btn big green hold-ring' }, L('👨‍👩‍👧 Ba mẹ giữ 2 giây để đồng ý', '👨‍👩‍👧 Parents: hold 2 seconds to agree'));
+    holdToActivate(ok, 2000, () => {
+      if (!redeem(r, name)) { close(); return; }
+      close(true);
+    }, () => say(L('Ba mẹ giữ nút này hai giây để đồng ý đổi quà nhé.', 'Mom or Dad, hold this button for two seconds to agree.')));
+    return [
+      h('div', { class: 'emo', text: r.emoji }),
+      h('h2', { text: name }),
+      h('p', { text: L(`Đổi quà này sẽ dùng ${r.cost} ⭐. Con gọi ba mẹ nhé!`, `This reward uses ${r.cost} ⭐. Call Mom or Dad!`) }),
+      h('div', { class: 'row', style: { flexDirection: 'column', alignItems: 'center' } }, ok,
+        h('button', { class: 'btn ghost', onClick: () => close() }, L('Để sau', 'Not now'))),
+    ];
+  }, () => say(L(`Con muốn đổi quà: ${name}. Con gọi ba mẹ đến xem nhé!`, `You want this reward: ${name}. Call Mom or Dad to come and see!`)))
+    .then((done) => {
+      if (!done) return;
+      updateStars(true);
+      go('rewards');
+      confetti(70);
+      sfx.fanfare();
+      say(L(`Chúc mừng con! Con đã đổi được quà: ${name}. Con giỏi lắm!`, `Congratulations! You got your reward: ${name}. You worked so hard!`));
+    });
+}
+
+/** Ba món quà gần nhất với số sao bé đang có (món còn thiếu ít sao nhất xếp trước), hiện theo giá tăng dần. */
+export function nearestRewards(n = 3) {
+  const stars = store.data.stars;
+  return store.data.rewards.filter((r) => r.cost > 0)
+    .sort((a, b) => Math.max(0, a.cost - stars) - Math.max(0, b.cost - stars) || a.cost - b.cost)
+    .slice(0, n)
+    .sort((a, b) => a.cost - b.cost);
+}
+
+/** Hộp bật lên mỗi lần bé bấm Rewards: 3 món quà gần nhất, số sao cần và còn thiếu bao nhiêu. */
+export function showRewardsPopup() {
+  const stars = store.data.stars;
+  const list = nearestRewards(3);
+  if (!list.length) { go('rewards'); return; }
+  const lines = list.map((r) => {
+    const name = rewardName(r);
+    const missing = r.cost - stars;
+    return missing <= 0
+      ? L(`${name}: ${r.cost} sao, con đã đủ sao rồi!`, `${name}: ${r.cost} stars. You have enough!`)
+      : L(`${name}: ${r.cost} sao, còn thiếu ${missing} sao.`, `${name}: ${r.cost} stars. ${missing} more to go.`);
+  });
+  overlay((close) => [
+    h('h2', { text: L('🎁 Quà của con', '🎁 My rewards') }),
+    h('p', { text: L(`Con đang có ${stars} ⭐`, `You have ${stars} ⭐`) }),
+    h('div', { class: 'rewards pop' }, list.map((r) => {
+      const enough = stars >= r.cost;
+      const bar = h('i');
+      requestAnimationFrame(() => { bar.style.width = Math.min(100, 100 * stars / r.cost) + '%'; });
+      return h('div', { class: 'reward' + (enough ? ' ready' : '') },
+        h('div', { class: 'r-emo', text: r.emoji }),
+        h('div', { class: 'r-main' },
+          h('div', { class: 'r-name', text: rewardName(r) }),
+          h('div', { class: 'progress-bar' }, bar),
+          h('div', { class: 'r-sub', text: enough ? L(`${r.cost} ⭐ · đủ sao rồi!`, `${r.cost} ⭐ · you have enough!`) : L(`${r.cost} ⭐ · còn thiếu ${r.cost - stars} ⭐`, `${r.cost} ⭐ · ${r.cost - stars} ⭐ to go`) })),
+        enough ? h('button', { class: 'btn pink pulse', onClick: () => close(r) }, L('🎉 Đổi quà', '🎉 Get it')) : null);
+    })),
+    h('div', { class: 'row' },
+      h('button', { class: 'btn big green', onClick: () => close() }, L('Dạ! 👍', 'OK! 👍')),
+      h('button', { class: 'btn ghost', onClick: () => close('all') }, L('Xem tất cả', 'See all'))),
+  ], () => say(L(`Con đang có ${stars} sao. `, `You have ${stars} ${stars === 1 ? 'star' : 'stars'}. `) + lines.join(' ')))
+    .then((v) => {
+      if (v === 'all') go('rewards');
+      else if (v && v.cost) askRedeem(v);
+    });
+}

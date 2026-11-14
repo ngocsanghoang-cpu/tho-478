@@ -622,6 +622,12 @@ body[data-screen="splash"] #app { top: 0; }
 .r-sub { font-size: 20px; color: var(--muted); margin: 0; }
 .reward .progress-bar { box-shadow: inset 0 0 0 2px var(--line); }
 .reward .progress-bar > i { background: var(--yellow); }
+.rewards.pop { margin: 14px 0 18px; gap: 12px; text-align: left; }
+.rewards.pop .reward { padding: 12px 16px; gap: 14px; background: var(--bg); box-shadow: none; cursor: default; }
+.rewards.pop .reward.ready { background: #fff1cc; }
+.rewards.pop .r-emo { font-size: 58px; }
+.rewards.pop .r-name { font-size: 24px; }
+.rewards.pop .r-sub { font-size: 18px; }
 .rules-box { margin-bottom: 22px; }
 .timebar { display: flex; align-items: center; gap: 10px; background: #fff; border-radius: 999px; padding: 8px 16px; font-size: 22px; box-shadow: 0 4px 0 var(--line); min-width: 260px; }
 .timebar .progress-bar { flex: 1; height: 16px; box-shadow: inset 0 0 0 2px var(--line); }
