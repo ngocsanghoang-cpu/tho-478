@@ -30,7 +30,8 @@ const DEFAULTS = {
   },
   // Bài tập hôm nay: count = số bài mỗi ngày đi học; offMult = ngày nghỉ nhân mấy lần;
   // minutes = số phút bé phải làm cho mỗi bài; off = các loại bài ba mẹ tắt
-  hw: { count: 3, offMult: 2, minutes: 10, off: [] },
+  hw: { count: 1, offMult: 2, minutes: 8, off: [] },
+  hwV: 2, // phiên bản cài đặt bài tập (bản 2: bài tập nằm trong giờ chơi nên ngắn hơn và ít hơn)
   homework: { date: '', done: [], prog: {}, time: {}, bonus: false }, // tiến độ bài tập của hôm nay
   schoolDays: [1, 2, 3, 4, 5],   // ngày đi học (0 = Chủ Nhật … 6 = Thứ Bảy): việc sáng/tối chỉ tính vào các ngày này
   // Việc ba mẹ giao thêm khi có (phơi đồ, gấp đồ…). key: việc mẫu có tên theo ngôn ngữ
@@ -40,11 +41,22 @@ const DEFAULTS = {
   ],
   asks: { date: '', ids: [] },   // việc thêm ba mẹ giao trong hôm nay
   dayType: { date: '', school: true }, // ba mẹ đổi riêng hôm nay thành ngày nghỉ / ngày đi học
+  // Việc bé đã tích hôm nay và kết quả ba mẹ xác nhận: key -> { s: 'pending' | 'ok' | 'no', at, paid }
+  ticks: { date: '', items: {} },
+  // Giờ chơi: mỗi buổi được ba mẹ xác nhận xong hết việc thì có 1 vé chơi. tickets[buổi] = 'ready' | 'used'
+  play: { date: '', tickets: {}, bonus: {}, until: 0 },
+  playMinutes: 10, // mỗi vé chơi được bao nhiêu phút
+  deadlines: {},   // mốc giờ ba mẹ đặt cho từng buổi: "loại ngày/buổi" -> "HH:MM" (phải xong trước giờ này)
+  // Đồng bộ với điện thoại ba mẹ (Firebase Realtime Database): url = địa chỉ cơ sở dữ liệu, code = mã gia đình
+  sync: { url: '', code: '' },
+  applied: { date: '', ids: [] }, // các lần thưởng/trừ sao từ điện thoại ba mẹ đã áp dụng
   // Quà do ba mẹ đặt. key: quà mẫu có tên theo ngôn ngữ; name: tên ba mẹ tự đặt
   rewards: [
-    { id: 'r1', emoji: '🎡', key: 'park', name: '', cost: 100 },
-    { id: 'r2', emoji: '🧸', key: 'toy', name: '', cost: 150 },
+    { id: 'r1', emoji: '🍦', key: 'icecream', name: '', cost: 30 },
+    { id: 'r2', emoji: '🎡', key: 'park', name: '', cost: 60 },
+    { id: 'r3', emoji: '👗', key: 'dress', name: '', cost: 200 },
   ],
+  rewardsV: 2, // phiên bản danh sách quà mẫu
   redeemed: [], // quà đã đổi: { emoji, name, cost, date }
   rate: 0.9,
   voices: { vi: '', en: '' }, // giọng đọc ba mẹ tự chọn cho từng ngôn ngữ ('' = tự động)
@@ -69,6 +81,16 @@ function load() {
     delete p.voiceURI;
     // Từ bản này ứng dụng dùng tiếng Anh: máy đang lưu lựa chọn cũ được chuyển sang tiếng Anh một lần.
     if (p.langV !== 2) { p.lang = 'en'; p.langV = 2; }
+    // Bản có giờ chơi 10 phút: bài tập phải vừa trong một lần mở khoá (8 phút) và mỗi ngày 1 bài.
+    if (p.hwV !== 2 && p.hw) { p.hw.count = 1; p.hw.minutes = 8; }
+    p.hwV = 2;
+    // Quà mẫu mới (ăn kem 30, khu vui chơi 60, váy mới 200): chỉ thay khi máy vẫn đang giữ nguyên quà mẫu cũ.
+    if (p.rewardsV !== 2 && Array.isArray(p.rewards)) {
+      const old = p.rewards.length === 2 && p.rewards[0].key === 'park' && p.rewards[0].cost === 100 && !p.rewards[0].name
+        && p.rewards[1].key === 'toy' && p.rewards[1].cost === 150 && !p.rewards[1].name;
+      if (old) delete p.rewards;
+    }
+    p.rewardsV = 2;
     return {
       ...d, ...p, voices,
       earned: p.earned == null ? (p.stars || 0) : p.earned,
@@ -76,6 +98,10 @@ function load() {
       hw: { ...d.hw, ...(p.hw || {}), off: (p.hw && Array.isArray(p.hw.off)) ? p.hw.off : [] },
       homework: p.homework && p.homework.date ? { ...d.homework, ...p.homework } : d.homework,
       dayType: p.dayType && p.dayType.date ? p.dayType : d.dayType,
+      ticks: p.ticks && p.ticks.items ? p.ticks : d.ticks,
+      play: p.play && p.play.tickets ? { ...d.play, ...p.play } : d.play,
+      sync: { ...d.sync, ...(p.sync || {}) },
+      applied: p.applied && Array.isArray(p.applied.ids) ? p.applied : d.applied,
       rewards: Array.isArray(p.rewards) ? p.rewards : d.rewards,
       chores: Array.isArray(p.chores) ? p.chores : d.chores,
       schoolDays: Array.isArray(p.schoolDays) ? p.schoolDays : d.schoolDays,
@@ -124,27 +150,21 @@ export function todayKey() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-/** Danh sách việc đã làm hôm nay của một thói quen (sáng/tối). */
-export function routineDone(kind) {
-  if (store.data.routine.date !== todayKey()) {
-    store.data.routine = { date: todayKey(), done: {} };
-    store.save();
-  }
-  const done = store.data.routine.done;
-  return done[kind] || (done[kind] = []);
+/** Các việc bé đã tích hôm nay (tự làm mới khi sang ngày). */
+export function todaysTicks() {
+  if (store.data.ticks.date !== todayKey()) store.data.ticks = { date: todayKey(), items: {} };
+  return store.data.ticks.items;
 }
 
-export function markRoutine(kind, id) {
-  const list = routineDone(kind);
-  if (list.includes(id)) return false;
-  list.push(id);
-  bump('selfcare');
-  return true;
+/** Vé chơi và giờ chơi của hôm nay (tự làm mới khi sang ngày). */
+export function todaysPlay() {
+  if (store.data.play.date !== todayKey()) store.data.play = { date: todayKey(), tickets: {}, bonus: {}, until: 0 };
+  return store.data.play;
 }
 
 export function resetProgress() {
-  const { name, lang, langV, rate, voices, sound, restMinutes, rules, rewards, chores, schoolDays, hw } = store.data;
-  store.data = { ...clone(DEFAULTS), name, lang, langV, rate, voices, sound, restMinutes, rules, rewards, chores, schoolDays, hw };
+  const { name, lang, langV, rate, voices, sound, restMinutes, rules, rewards, chores, schoolDays, hw, playMinutes, sync, deadlines } = store.data;
+  store.data = { ...clone(DEFAULTS), name, lang, langV, rate, voices, sound, restMinutes, rules, rewards, chores, schoolDays, hw, playMinutes, sync, deadlines };
   store.save();
 }
 

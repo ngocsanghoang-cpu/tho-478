@@ -220,7 +220,7 @@ export function openExercise(ex) {
 
 /* ---------------- Màn "Bài tập hôm nay" ---------------- */
 register('homework', {
-  title: () => L('Bài tập hôm nay', "Today's exercises"), parent: 'home', theme: THEME,
+  title: () => L('Bài tập hôm nay', "Today's exercises"), parent: 'games', theme: THEME,
   render(root) {
     const list = todaysExercises();
     const r = store.data.rules;

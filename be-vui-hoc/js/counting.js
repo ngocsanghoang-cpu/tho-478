@@ -10,7 +10,7 @@ const THEME = 'var(--blue)';
 
 /* ---------------- Menu ---------------- */
 register('counting', {
-  title: () => L('Học Đếm', 'Counting'), parent: 'home', theme: THEME,
+  title: () => L('Học Đếm', 'Counting'), parent: 'games', theme: THEME,
   render(root) {
     root.append(h('div', { class: 'menu' },
       h('div', { class: 'menu-head' },
