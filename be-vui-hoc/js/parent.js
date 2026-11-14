@@ -123,7 +123,7 @@ function render() {
         : [h('button', { class: 'btn ghost small', onClick: () => decide([t.key], true) }, L('✅ Đạt', '✅ Yes'))];
     return h('div', { class: 'row' },
       h('span', { class: 'e', text: t.e || '⭐' }),
-      h('span', { class: 't' }, t.t, h('small', { text: big ? `${t.g || ''} · ${L('tích lúc', 'ticked')} ${timeOf(t.key)} · ${starText(t)}` : `${t.a ? t.a + ' · ' : ''}${starText(t)}` })),
+      h('span', { class: 't' }, t.t, h('small', { text: big ? `${t.g || ''} · ${L('tích lúc', 'ticked')} ${timeOf(t.key)} · ${starText(t)}` : starText(t) })),
       big ? null : h('span', { class: `tag ${tag[1]}`, text: tag[0] }),
       actions);
   };

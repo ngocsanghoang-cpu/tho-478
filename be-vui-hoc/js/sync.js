@@ -45,7 +45,7 @@ let lastMeta = '';
 /** Gửi danh sách việc hôm nay + thông tin chung (chỉ gửi khi có thay đổi). */
 async function publish() {
   const tasks = {};
-  todayTaskList().forEach((t) => { tasks[t.key] = { e: t.e, t: t.t, g: t.group, s: t.stars, o: t.order, a: t.at || '' }; });
+  todayTaskList().forEach((t) => { tasks[t.key] = { e: t.e, t: t.t, g: t.group, s: t.stars, o: t.order }; });
   const tj = JSON.stringify(tasks);
   if (tj !== lastTasks) { await req('PUT', `${day()}/tasks`, tasks); lastTasks = tj; }
 

@@ -264,22 +264,23 @@ register('parents', {
     };
     drawChores();
 
-    // Mốc giờ của từng việc (hiện trên trang chính của bé)
+    // Mốc giờ của từng buổi: đến giờ này là mọi việc của buổi phải xong
     const timesBox = h('div');
     const drawTimes = () => {
       timesBox.innerHTML = '';
       [['school', L('🏫 Ngày đi học', '🏫 School day')], ['off', L('🎈 Ngày nghỉ', '🎈 Day off')]].forEach(([type, label]) => {
         timesBox.append(h('p', { style: { margin: '14px 0 4px', fontSize: '20px' }, text: label }));
-        Object.entries(scheduleFor(type)).forEach(([kind, R]) => R.tasks.forEach((t) => {
-          const input = h('input', { type: 'time', class: 'cost time', value: t.at });
+        Object.entries(scheduleFor(type)).forEach(([kind, R]) => {
+          const input = h('input', { type: 'time', class: 'cost time', value: R.by });
           input.addEventListener('change', () => {
             if (!input.value) return;
-            d.times[`${type}/${kind}/${t.id}`] = input.value;
+            d.deadlines[`${type}/${kind}`] = input.value;
             store.save(); drawTimes();
           });
           timesBox.append(h('div', { class: 'rule-row' },
-            h('span', { class: 'rule-emo', text: t.e }), h('span', { class: 'rule-text', text: `${R.emoji} ${t.t}` }), input));
-        }));
+            h('span', { class: 'rule-emo', text: R.emoji }),
+            h('span', { class: 'rule-text', text: L(`${R.title}: ${R.tasks.length} việc phải xong trước`, `${R.title}: ${R.tasks.length} jobs done by`) }), input));
+        });
       });
     };
     drawTimes();
@@ -335,8 +336,8 @@ register('parents', {
         choreBox),
 
       h('div', { class: 'box' },
-        h('h3', { text: L('⏰ Mốc giờ các việc', '⏰ Job times') }),
-        h('p', { style: muted, text: L('Mốc giờ hiện cạnh từng việc trên trang chính của bé. Việc trong mỗi buổi được xếp theo giờ.', "Each time shows next to its job on your child's home screen. Jobs in each session are sorted by time.") }),
+        h('h3', { text: L('⏰ Mốc giờ của từng buổi', '⏰ Session deadlines') }),
+        h('p', { style: muted, text: L('Đến mốc giờ là mọi việc của buổi đó phải xong. Quá giờ thì bé không tự tích được nữa; ba mẹ vẫn có thể bấm Đạt cho bé nếu thấy hợp lý.', 'Every job of a session must be done by its deadline. After that your child can no longer tick the jobs; you can still tap Yes yourself if you think it is fair.') }),
         timesBox),
 
       h('div', { class: 'box' },

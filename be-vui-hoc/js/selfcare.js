@@ -43,7 +43,7 @@ const SCHEDULES = byLang(() => {
       : L(['Ngồi ngay ngắn vào bàn ăn', 'Tự xúc ăn gọn gàng', 'Ăn hết phần của mình'],
         ['Sit up straight at the table', 'Feed yourself neatly', 'Finish your whole meal']) });
   // Cữ sữa 200 ml
-  const milk = (id, vi, en) => ({ id, e: '🥛', short: L('Tự uống sữa (200 ml)', 'Drink my milk (200 ml)'), t: vi ? L(`Uống sữa lúc ${vi} (200 ml)`, `Drink milk at ${en} (200 ml)`) : L('Tự uống sữa (200 ml)', 'Drink my milk (200 ml)'),
+  const milk = (id, vi, en, shortVi, shortEn) => ({ id, e: '🥛', short: shortVi ? L(`Uống sữa lúc ${shortVi}`, `Drink milk at ${shortEn}`) : L('Tự uống sữa (200 ml)', 'Drink my milk (200 ml)'), t: vi ? L(`Uống sữa lúc ${vi} (200 ml)`, `Drink milk at ${en} (200 ml)`) : L('Tự uống sữa (200 ml)', 'Drink my milk (200 ml)'),
     say: vi ? L(`${vi} là giờ uống sữa. Con tự uống sữa nhé.`, `${en} is milk time. Drink your milk all by yourself.`) : L('Con tự uống sữa nhé.', 'Drink your milk all by yourself.'),
     goal: L('uống hết 200 ml sữa', 'all 200 ml of milk finished'),
     steps: L(['Tự cầm ly hoặc hộp sữa', 'Uống hết sữa', 'Bỏ vỏ hộp vào thùng rác hoặc mang ly ra bồn rửa'],
@@ -96,57 +96,61 @@ const SCHEDULES = byLang(() => {
     off: {
       morning: { ...M,
         intro: L('Chào buổi sáng! Hôm nay là ngày nghỉ. Mình cùng tự làm các việc buổi sáng nhé.', "Good morning! Today is a day off. Let's do our morning jobs all by ourselves."),
-        tasks: [toilet(), face(), teeth(), meal('breakfast', 'ăn sáng', 'breakfast', false), milk('milk10', '10 giờ sáng', '10 in the morning')] },
+        tasks: [toilet(), face(), teeth(), meal('breakfast', 'ăn sáng', 'breakfast', false), milk('milk10', '10 giờ sáng', '10 in the morning', '10 giờ', '10 AM')] },
       afternoon: { ...A,
         intro: L('Buổi trưa rồi! Con tự ăn trưa, đến bốn giờ chiều thì uống sữa nhé.', "It's midday! Feed yourself at lunch, and drink your milk at four o'clock."),
-        tasks: [meal('lunch', 'ăn trưa', 'lunch'), milk('milk16', '4 giờ chiều', '4 in the afternoon')] },
+        tasks: [meal('lunch', 'ăn trưa', 'lunch'), milk('milk16', '4 giờ chiều', '4 in the afternoon', '4 giờ chiều', '4 PM')] },
       evening: { ...E,
         intro: L('Buổi tối rồi! Mình cùng tự làm các việc buổi tối nhé.', "It's evening! Let's do our evening jobs."),
-        tasks: [meal('dinner', 'ăn tối', 'dinner'), toys(), milk('milk20', '8 giờ tối', '8 in the evening'), teeth()] },
+        tasks: [meal('dinner', 'ăn tối', 'dinner'), toys(), milk('milk20', '8 giờ tối', '8 in the evening', '8 giờ tối', '8 PM'), teeth()] },
     },
   };
 });
 
 export const dayType = () => (isSchoolDay() ? 'school' : 'off');
 
-// Mốc giờ mặc định của từng việc ("loại ngày/buổi/việc" -> "HH:MM"). Ba mẹ đổi được trong Góc ba mẹ.
-export const DEFAULT_TIMES = {
-  'school/morning/toilet': '06:30', 'school/morning/face': '06:40', 'school/morning/clothes': '06:50',
-  'school/morning/medicine': '07:00', 'school/morning/shoes': '07:10',
-  'school/evening/home': '17:00', 'school/evening/eat': '18:00', 'school/evening/milk': '19:00',
-  'school/evening/toys': '19:30', 'school/evening/bed': '20:30',
-  'off/morning/toilet': '07:00', 'off/morning/face': '07:10', 'off/morning/teeth': '07:20',
-  'off/morning/breakfast': '07:30', 'off/morning/milk10': '10:00',
-  'off/afternoon/lunch': '11:30', 'off/afternoon/milk16': '16:00',
-  'off/evening/dinner': '18:00', 'off/evening/toys': '19:00', 'off/evening/milk20': '20:00', 'off/evening/teeth': '20:15',
+// Mốc giờ tính theo BUỔI: đến giờ này là mọi việc của buổi phải xong ("loại ngày/buổi" -> "HH:MM").
+// Ba mẹ đổi được trong Góc ba mẹ.
+export const DEFAULT_DEADLINES = {
+  'school/morning': '07:30', // ngày đi học: 7 giờ 30 sáng phải xong hết
+  'school/evening': '20:30', // ngày đi học: 8 giờ 30 tối phải xong hết
+  'off/morning': '10:00',    // ngày nghỉ: 10 giờ là xong tới cữ sữa buổi sáng
+  'off/afternoon': '16:30',  // ngày nghỉ: sau cữ sữa 4 giờ chiều
+  'off/evening': '21:30',    // ngày nghỉ: 9 giờ 30 tối phải xong hết
 };
-/** Mốc giờ "HH:MM" của một việc: giờ ba mẹ đặt, hoặc giờ mặc định. */
-export function taskTime(type, kind, id) {
-  const key = `${type}/${kind}/${id}`;
-  const v = (store.data.times || {})[key];
-  return /^\d{2}:\d{2}$/.test(v || '') ? v : (DEFAULT_TIMES[key] || '');
+/** Mốc giờ "HH:MM" của một buổi: giờ ba mẹ đặt, hoặc giờ mặc định. */
+export function deadlineOf(type, kind) {
+  const key = `${type}/${kind}`;
+  const v = (store.data.deadlines || {})[key];
+  return /^\d{2}:\d{2}$/.test(v || '') ? v : (DEFAULT_DEADLINES[key] || '');
 }
 /** "HH:MM" -> số phút tính từ nửa đêm. */
 export const toMinutes = (hm) => (hm ? (+hm.slice(0, 2)) * 60 + (+hm.slice(3, 5)) : 0);
-/** "HH:MM" -> chữ hiển thị và đọc theo ngôn ngữ ("6:30 AM" / "06:30"). */
+/** "HH:MM" -> chữ hiển thị và đọc theo ngôn ngữ ("7:30 AM" / "07:30"). */
 export function timeLabel(hm) {
   if (!hm) return '';
   const h24 = +hm.slice(0, 2), m = hm.slice(3, 5);
   return L(hm, `${h24 % 12 || 12}:${m} ${h24 < 12 ? 'AM' : 'PM'}`);
 }
 
-/** Lịch của một loại ngày ('school' | 'off'): mỗi việc có thêm mốc giờ `at`, xếp theo giờ trong từng buổi. */
+/** Lịch của một loại ngày ('school' | 'off'): mỗi buổi có thêm mốc giờ `by` (phải xong trước giờ này). */
 export function scheduleFor(type) {
   const out = {};
-  for (const [kind, R] of Object.entries(SCHEDULES()[type])) {
-    const tasks = R.tasks.map((t) => ({ ...t, at: taskTime(type, kind, t.id) }));
-    tasks.sort((a, b) => toMinutes(a.at) - toMinutes(b.at));
-    out[kind] = { ...R, tasks };
-  }
+  for (const [kind, R] of Object.entries(SCHEDULES()[type])) out[kind] = { ...R, by: deadlineOf(type, kind) };
   return out;
 }
 /** Lịch của hôm nay (ngày đi học hoặc ngày nghỉ). */
 export const ROUTINES = () => scheduleFor(dayType());
+
+/** Số phút còn lại tới mốc giờ của một buổi hôm nay (âm nếu đã quá giờ). */
+export function minutesLeft(kind) {
+  const R = ROUTINES()[kind];
+  if (!R || !R.by) return Infinity;
+  const d = new Date();
+  return toMinutes(R.by) - (d.getHours() * 60 + d.getMinutes());
+}
+/** true nếu buổi này đã quá mốc giờ: bé không tự tích việc được nữa (ba mẹ vẫn xác nhận tay được). */
+export const sessionOver = (kind) => kind !== 'chore' && minutesLeft(kind) <= 0;
 
 // Việc đã làm được lưu riêng cho từng loại ngày, để ba mẹ đổi loại ngày giữa chừng không bị lẫn.
 export const dk = (kind) => (kind === 'chore' || isSchoolDay() ? kind : `off-${kind}`);
@@ -413,6 +417,7 @@ register('routine', {
 /** Bé tích một việc đã làm. Sao chỉ được cộng sau khi ba mẹ xác nhận (xem approve.js). */
 function completeTask(kind, id) {
   const st = tickStatus(kind, id);
+  if (sessionOver(kind) && st !== 'ok' && st !== 'pending') { go('home'); return; } // quá giờ của buổi: không tích được
   if (st !== 'ok' && st !== 'pending') markTicked(kind, id);
   toast('⏳');
   go('home');
@@ -438,7 +443,15 @@ register('task', {
       doneBtn.classList.remove('pulse');
       doneBtn.textContent = st === 'ok' ? L('✅ Ba mẹ đã xác nhận', '✅ Checked by Mom and Dad') : L('⏳ Đang chờ ba mẹ kiểm tra', '⏳ Waiting for Mom or Dad');
     }
-    const note = st === 'no' ? L('Ba mẹ thấy việc này chưa đạt. Con làm lại cho tốt rồi bấm nút nhé!', 'Mom and Dad say this one is not done yet. Do it again, then tap the button!') : '';
+    const late = sessionOver(kind) && st !== 'ok' && st !== 'pending';
+    if (late) {
+      doneBtn.disabled = true;
+      doneBtn.classList.remove('pulse');
+      doneBtn.textContent = L('⌛ Đã quá giờ của buổi này', "⌛ Time's up for this session");
+    }
+    const byText = kind === 'chore' ? '' : timeLabel(ROUTINES()[kind].by);
+    const note = late ? L(`Đã quá ${byText} rồi nên con không tự tích việc này được nữa. Con nói với ba mẹ nhé.`, `It is past ${byText}, so you cannot tick this job anymore. Please tell Mom or Dad.`)
+      : st === 'no' ? L('Ba mẹ thấy việc này chưa đạt. Con làm lại cho tốt rồi bấm nút nhé!', 'Mom and Dad say this one is not done yet. Do it again, then tap the button!') : '';
     const goalText = t.goal ? L(`Đạt khi: ${t.goal}`, `Done well means: ${t.goal}`) : '';
 
     // Đồng hồ đếm ngược cho việc có giờ quy định
@@ -498,7 +511,7 @@ register('task', {
       h('div', { class: 'emo', text: t.e }),
       h('h2', { text: t.t }),
       (t.stars || (kind !== 'chore' && taskStars(t) > 1)) ? h('p', { class: 'task-stars', text: `+${t.stars || taskStars(t)} ⭐` }) : null,
-      note ? h('p', { class: 'goal redo-note', text: '↩️ ' + note }) : null,
+      note ? h('p', { class: 'goal redo-note', text: (late ? '⌛ ' : '↩️ ') + note }) : null,
       goalText ? h('p', { class: 'goal', text: '🎯 ' + goalText }) : null,
       clock,
       items.length ? h('ol', { class: 'steps' }, items) : null,

@@ -5,7 +5,7 @@ import { unlockAudio, setSoundEnabled, sfx } from './sound.js';
 import { store, STICKERS, STARS_PER_STICKER, unlockedCount, isSchoolDay } from './store.js';
 import { L, lang } from './i18n.js';
 import { numWord } from './vi.js';
-import { ROUTINES, routineCount, mealTimerRunning, tickStatus, taskStars, todaysChores, timeLabel, toMinutes } from './selfcare.js';
+import { ROUTINES, routineCount, mealTimerRunning, tickStatus, taskStars, todaysChores, timeLabel, sessionOver, minutesLeft } from './selfcare.js';
 import './writing.js';
 import './counting.js';
 import './math.js';
@@ -74,45 +74,45 @@ register('home', {
   render(root, { first } = {}) {
     const name = (store.data.name || '').trim();
     const now = new Date();
-    const nowMin = now.getHours() * 60 + now.getMinutes();
     const sky = skyNow();
     const school = isSchoolDay();
     const weekday = WEEKDAYS()[now.getDay()];
     const dateText = L(`Ngày ${now.getDate()} tháng ${now.getMonth() + 1}`, `${MONTH_NAMES[now.getMonth()]} ${now.getDate()}`);
 
-    // Việc hôm nay, xếp theo buổi và theo giờ. Việc đầu tiên chưa tích là việc "bây giờ / tiếp theo".
+    // Việc hôm nay chia theo buổi. Mỗi buổi có một mốc giờ: đến giờ đó là mọi việc của buổi phải xong.
     const sessions = Object.entries(ROUTINES());
-    const flat = sessions.flatMap(([kind, R]) => R.tasks.map((t) => ({ kind, t, st: tickStatus(kind, t.id) })));
-    // Việc "bây giờ / tiếp theo": việc chưa tích đầu tiên tính từ buổi hiện tại trở đi
-    // (buổi sáng đã qua mà còn sót việc thì không kéo bé quay lại, trừ khi phía sau không còn việc nào).
-    const open = (x) => x.st === '' || x.st === 'no';
-    const passed = flat.filter((x) => x.t.at && toMinutes(x.t.at) <= nowMin);
-    const curKind = passed.length ? passed[passed.length - 1].kind : (flat[0] || {}).kind;
-    const from = Math.max(0, flat.findIndex((x) => x.kind === curKind));
-    const next = flat.slice(from).find(open) || flat.find(open);
+    const open = (kind, t) => { const st = tickStatus(kind, t.id); return st === '' || st === 'no'; };
+    // Buổi hiện tại: buổi đầu tiên chưa quá giờ. Việc "bây giờ" là việc chưa tích đầu tiên của buổi đó.
+    const curSession = sessions.find(([kind]) => !sessionOver(kind));
+    const curKind = curSession ? curSession[0] : null;
+    const nextTask = curSession ? curSession[1].tasks.find((t) => open(curKind, t)) : null;
     const STATUS = { ok: '✅', pending: '⏳', no: '↩️', '': '⬜' };
 
     const row = (kind, t, st, stars) => {
-      const isNext = next && next.kind === kind && next.t.id === t.id;
-      const due = isNext && t.at && toMinutes(t.at) <= nowMin;
+      const isNext = kind === curKind && nextTask && nextTask.id === t.id;
+      const missed = kind !== 'chore' && sessionOver(kind) && (st === '' || st === 'no'); // quá giờ của buổi mà chưa làm
       return h('button', {
-        class: 'tl-row' + (st ? ` ${st}` : '') + (isNext ? ' next' : ''),
-        onClick: () => { sfx.tap(); if (t.guide && kind !== 'chore') go('guide', { id: t.guide, kind, task: t.id }); else go('task', { kind, id: t.id }); },
+        class: 'tl-row' + (st ? ` ${st}` : '') + (isNext ? ' next' : '') + (missed ? ' missed' : ''),
+        onClick: () => { sfx.tap(); if (t.guide && kind !== 'chore' && !missed) go('guide', { id: t.guide, kind, task: t.id }); else go('task', { kind, id: t.id }); },
       },
-      h('span', { class: 'tl-time', text: t.at ? timeLabel(t.at) : '•' }),
       h('span', { class: 'tl-emo', text: t.e }),
-      h('span', { class: 'tl-title' },
-        t.at ? h('em', { class: 'tl-time2', text: timeLabel(t.at) }) : null,
-        t.short || t.t, isNext ? h('small', { text: due ? L('Bây giờ', 'Now') : L('Tiếp theo', 'Next') }) : null),
+      h('span', { class: 'tl-title' }, t.short || t.t, isNext ? h('small', { text: L('Bây giờ', 'Now') }) : null),
       stars > 1 ? h('span', { class: 'tl-stars', text: `+${stars}⭐` }) : null,
-      h('span', { class: 'tl-st', text: STATUS[st] || '⬜' }));
+      h('span', { class: 'tl-st', text: missed ? '✖️' : (STATUS[st] || '⬜') }));
     };
 
     const cols = sessions.map(([kind, R]) => {
       const ok = routineCount(kind);
       const done = ok === R.tasks.length;
-      return h('section', { class: 'tl-col' + (done ? ' done' : '') },
-        h('h3', null, `${R.emoji} ${R.title}`, h('span', { text: done ? L('✅ xong', '✅ done') : `${ok}/${R.tasks.length}` })),
+      const left = minutesLeft(kind);
+      const over = left <= 0;
+      const chip = done ? L('✅ xong', '✅ done')
+        : over ? L(`⌛ hết giờ (${timeLabel(R.by)})`, `⌛ time's up (${timeLabel(R.by)})`)
+          : L(`⏰ xong trước ${timeLabel(R.by)}`, `⏰ by ${timeLabel(R.by)}`);
+      return h('section', { class: 'tl-col' + (done ? ' done' : '') + (kind === curKind ? ' current' : '') + (over && !done ? ' over' : '') },
+        h('h3', null, `${R.emoji} ${R.title}`,
+          h('span', { class: 'tl-by' + (!done && !over && left <= 15 ? ' soon' : ''), text: chip }),
+          h('span', { text: `${ok}/${R.tasks.length}` })),
         R.tasks.map((t) => row(kind, t, tickStatus(kind, t.id), taskStars(t))));
     });
     const chores = todaysChores();
@@ -150,12 +150,20 @@ register('home', {
     // Đồng hồ chạy; sang buổi khác thì vẽ lại để đổi nền trời
     const timer = setInterval(() => {
       clock.textContent = clockText();
-      if (skyNow().id !== sky.id) refresh(['home']);
+      // sang buổi khác, hoặc một buổi vừa hết giờ: vẽ lại
+      if (skyNow().id !== sky.id || sessions.map(([kind]) => sessionOver(kind)).join() !== overNow) refresh(['home']);
     }, 20000);
     requestAnimationFrame(() => { const el = root.querySelector('.tl-row.next'); if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' }); });
+    const overNow = sessions.map(([kind]) => sessionOver(kind)).join();
 
-    const nextText = !next ? L('Con đã tích hết việc hôm nay rồi. Giỏi quá!', 'You ticked every job for today. Great job!')
-      : L(`Việc tiếp theo của con${next.t.at ? ` lúc ${timeLabel(next.t.at)}` : ''}: ${next.t.t}.`, `Your next job${next.t.at ? ` at ${timeLabel(next.t.at)}` : ''}: ${next.t.t}.`);
+    let nextText;
+    if (nextTask) {
+      const R = curSession[1];
+      nextText = L(`Con làm xong việc ${R.title.toLowerCase()} trước ${timeLabel(R.by)} nhé. Việc bây giờ: ${nextTask.t}.`,
+        `Finish your ${R.title.toLowerCase()} jobs by ${timeLabel(R.by)}. Your job now: ${nextTask.t}.`);
+    } else if (curSession) {
+      nextText = L(`Con đã tích hết việc ${curSession[1].title.toLowerCase()} rồi. Con nhờ ba mẹ kiểm tra nhé!`, `You ticked all your ${curSession[1].title.toLowerCase()} jobs. Ask Mom or Dad to check them!`);
+    } else nextText = L('Hôm nay hết giờ làm việc rồi. Chúc con ngủ ngon!', 'The jobs are finished for today. Good night!');
     if (first) say(L(`${greeting()}${name ? ' ' + name : ''}! Hôm nay là ${weekday}. ${nextText}`, `${greeting()}${name ? ', ' + name : ''}! Today is ${weekday}. ${nextText}`));
     else say(nextText);
     return () => clearInterval(timer);

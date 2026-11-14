@@ -557,7 +557,15 @@ body[data-screen="splash"] #app { top: 0; }
 .tl-col { background: rgba(255,255,255,.88); border-radius: 26px; padding: 12px; box-shadow: 0 6px 0 rgba(0,0,0,.08); display: flex; flex-direction: column; gap: 8px; }
 .tl-col.done { background: rgba(220,255,246,.92); }
 .tl-col h3 { margin: 2px 6px 4px; font-size: 24px; font-weight: 900; display: flex; justify-content: space-between; align-items: center; }
+.tl-col h3 { gap: 10px; }
 .tl-col h3 span { font-size: 18px; color: var(--muted); }
+.tl-col h3 .tl-by { margin-left: auto; background: #efe6ff; color: var(--purple-d); border-radius: 999px; padding: 3px 12px; font-size: 17px; white-space: nowrap; }
+.tl-col h3 .tl-by.soon { background: var(--pink); color: #fff; animation: pulse 1.2s ease-in-out infinite; }
+.tl-col.done h3 .tl-by { background: #b9f3e3; color: #137a6f; }
+.tl-col.over h3 .tl-by { background: #e9e4dc; color: var(--muted); }
+.tl-col.current { box-shadow: 0 0 0 4px #fff, 0 6px 0 rgba(0,0,0,.08); }
+.tl-row.missed { background: #f1ece4; }
+.tl-row.missed .tl-title { opacity: .55; }
 .tl-row {
   display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: none; cursor: pointer; font-family: inherit; color: inherit;
   background: #fff; border-radius: 18px; padding: 10px 12px; box-shadow: 0 3px 0 var(--line); min-height: 62px; transition: transform .08s;
@@ -574,8 +582,6 @@ body[data-screen="splash"] #app { top: 0; }
 .tl-wide { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px; }
 .tl-wide .tl-time { display: none; }
 /* Ngày nghỉ có 3 buổi: cột hẹp hơn nên mốc giờ nằm ngay trên tên việc */
-.timeline.compact .tl-time { display: none; }
-.timeline.compact .tl-time2 { display: block; }
 .timeline.compact .tl-row { padding: 8px 10px; gap: 8px; min-height: 58px; }
 .timeline.compact .tl-title { font-size: 18px; }
 .timeline.compact .tl-emo { font-size: 30px; }
@@ -598,8 +604,6 @@ body[data-screen="splash"] #app { top: 0; }
 .dock-btn.hold-ring::after { border-radius: 0; height: 6px; }
 @media (max-width: 900px) {
   .timeline, .timeline.compact { grid-template-columns: 1fr; }
-  .timeline.compact .tl-time { display: block; }
-  .timeline.compact .tl-time2 { display: none; }
   .home-day h1 { font-size: 48px; }
   .home-orb { font-size: 64px; }
   .home-clock { font-size: 30px; }

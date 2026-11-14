@@ -27,27 +27,24 @@ Phần mô tả dưới đây dùng tên tiếng Việt của các mục cho d�
 Màn hình chính chỉ có lịch của ngày hôm nay:
 - **Thứ trong tuần** viết lớn, kèm ngày tháng, loại ngày (ngày đi học hoặc ngày nghỉ) và đồng hồ.
 - **Nền trời đổi theo buổi**: sáng (5–11 giờ), trưa (11–14 giờ), chiều (14–18 giờ), tối (sau 18 giờ, nền đêm có trăng sao).
-- **Các việc cần làm và mốc giờ**, chia cột theo buổi và xếp theo giờ. Mỗi việc hiện giờ, hình, tên, số sao (nếu hơn 1) và trạng thái: ⬜ chưa làm, ⏳ chờ ba mẹ, ✅ ba mẹ đã xác nhận, ↩️ làm lại.
-- Việc tiếp theo được viền hồng, ghi “Now” (đã tới giờ) hoặc “Next” (chưa tới giờ). Bạn Thỏ đọc việc này khi bé mở ứng dụng.
+- **Các việc cần làm, chia cột theo buổi.** Mỗi việc hiện hình, tên, số sao (nếu hơn 1) và trạng thái: ⬜ chưa làm, ⏳ chờ ba mẹ, ✅ ba mẹ đã xác nhận, ↩️ làm lại, ✖️ quá giờ.
+- **Mốc giờ tính theo buổi**: đầu mỗi cột ghi giờ phải xong hết việc của buổi đó, ví dụ “by 7:30 AM”. Còn 15 phút thì mốc giờ chuyển màu hồng và nhấp nháy.
+- Việc cần làm ngay được viền hồng, ghi “Now”. Bạn Thỏ đọc việc này và mốc giờ khi bé mở ứng dụng.
 - Bé chạm vào một việc để nghe hướng dẫn và bấm “I did it!”.
-- Việc ba mẹ giao thêm trong ngày hiện ở một hàng riêng bên dưới.
+- Việc ba mẹ giao thêm trong ngày hiện ở một hàng riêng bên dưới, không có mốc giờ.
 - Cuối màn hình có ba nút nhỏ: **Play** (khu trò chơi, bị khoá), **Rewards** (đổi quà) và **Parents** (giữ 2 giây).
 
-Mốc giờ mặc định (ba mẹ đổi được ở *For parents → Job times*):
+Mốc giờ mặc định của từng buổi (ba mẹ đổi được ở *For parents → Session deadlines*):
 
-| Ngày đi học | Giờ | Ngày nghỉ | Giờ |
-|---|---|---|---|
-| Đi vệ sinh và làm sạch | 6:30 | Đi vệ sinh và làm sạch | 7:00 |
-| Rửa mặt | 6:40 | Rửa mặt | 7:10 |
-| Cởi đồ ngủ, mặc quần áo mới | 6:50 | Đánh răng | 7:20 |
-| Uống thuốc và 1 ly nước đầy | 7:00 | Tự xúc ăn sáng | 7:30 |
-| Mang tất, mang giày | 7:10 | Uống sữa | 10:00 |
-| Cất giày, bỏ đồ bẩn vào giỏ | 17:00 | Tự xúc ăn trưa | 11:30 |
-| Tự xúc ăn tối | 18:00 | Uống sữa | 16:00 |
-| Uống sữa | 19:00 | Tự xúc ăn tối | 18:00 |
-| Sắp xếp đồ chơi | 19:30 | Sắp xếp đồ chơi | 19:00 |
-| Leo lên giường, tắt đèn, ngủ | 20:30 | Uống sữa | 20:00 |
-| | | Đánh răng | 20:15 |
+| Loại ngày | Buổi | Phải xong trước |
+|---|---|---|
+| Ngày đi học | Sáng (5 việc) | 7:30 |
+| Ngày đi học | Tối (5 việc) | 20:30 |
+| Ngày nghỉ | Sáng (tới cữ sữa buổi sáng) | 10:00 |
+| Ngày nghỉ | Trưa, chiều (ăn trưa, sữa 4 giờ chiều) | 16:30 |
+| Ngày nghỉ | Tối | 21:30 |
+
+**Khi quá mốc giờ:** những việc của buổi đó mà bé chưa tích sẽ chuyển sang ✖️ và bé không tự tích được nữa, nên không được sao của các việc đó, không được sao thưởng của buổi và không được mở khoá chơi. Việc bé đã tích kịp giờ thì ba mẹ xác nhận lúc nào cũng được. Nếu ba mẹ thấy hợp lý, ba mẹ vẫn có thể tự bấm **Yes** cho việc trễ (trên điện thoại, mục Today).
 
 ### Cách hoạt động: bé tích việc, ba mẹ xác nhận, rồi mới được sao và được chơi
 

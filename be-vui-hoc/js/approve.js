@@ -1,7 +1,7 @@
 // BA MẸ XÁC NHẬN – bé tích việc, ba mẹ xác nhận (trên điện thoại hoặc ngay trên iPad) rồi sao mới được cộng.
 // Khi ba mẹ xác nhận hết việc của một buổi: thưởng thêm sao và bé nhận một vé chơi.
 import { store, todaysTicks, todaysPlay, bump, adjustStars } from './store.js';
-import { ROUTINES, todaysChores, taskStars, dk, tickKey } from './selfcare.js';
+import { ROUTINES, todaysChores, taskStars, dk, tickKey, timeLabel } from './selfcare.js';
 import { giveStars, toast, say, updateStars, refresh } from './ui.js';
 import { sfx } from './sound.js';
 import { L } from './i18n.js';
@@ -12,11 +12,11 @@ export function todayTaskList() {
   let order = 0;
   for (const [kind, R] of Object.entries(ROUTINES())) {
     for (const t of R.tasks) {
-      out.push({ key: tickKey(kind, t.id), kind, id: t.id, group: `${R.emoji} ${R.title}`, e: t.e, t: t.t, at: t.at || '', stars: taskStars(t), order: order++ });
+      out.push({ key: tickKey(kind, t.id), kind, id: t.id, group: `${R.emoji} ${R.title}${R.by ? L(` · xong trước ${timeLabel(R.by)}`, ` · by ${timeLabel(R.by)}`) : ''}`, e: t.e, t: t.short || t.t, stars: taskStars(t), order: order++ });
     }
   }
   for (const c of todaysChores()) {
-    out.push({ key: tickKey('chore', c.id), kind: 'chore', id: c.id, at: '', group: L('📋 Việc ba mẹ giao', '📋 Extra jobs'), e: c.e, t: c.t, stars: c.stars, order: order++ });
+    out.push({ key: tickKey('chore', c.id), kind: 'chore', id: c.id, group: L('📋 Việc ba mẹ giao', '📋 Extra jobs'), e: c.e, t: c.t, stars: c.stars, order: order++ });
   }
   return out;
 }
