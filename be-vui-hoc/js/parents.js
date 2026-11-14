@@ -378,7 +378,7 @@ register('parents', {
       h('div', { class: 'box' },
         h('h3', { text: L('⏰ Nhắc nghỉ ngơi', '⏰ Break reminder') }),
         h('div', { class: 'field' }, h('label', { text: L('Nhắc bé nghỉ sau', 'Remind after') }), rest),
-        h('p', { style: muted, text: L('Khi đến giờ, ứng dụng sẽ nhắc bé nghỉ mắt 1 phút rồi mới chơi tiếp.', 'When time is up, the app asks your child to rest her eyes for 1 minute before playing again.') })),
+        h('p', { style: muted, text: L('Chỉ tính thời gian bé chơi trò chơi (cộng dồn qua các lần mở khoá). Đủ số phút này, ứng dụng nhắc bé nghỉ mắt 1 phút rồi mới chơi tiếp. Lúc ứng dụng chỉ mở ở màn hình việc cần làm thì không tính.', 'Only time spent playing games counts (added up across unlocks). After this many minutes, the app asks your child to rest her eyes for 1 minute. Time on the job list does not count.') })),
 
       h('div', { class: 'box' },
         h('h3', { text: L('📈 Tiến độ của bé', '📈 Progress') }),

@@ -21,7 +21,7 @@ initSpeech({ lang: lang(), rate: store.data.rate, voiceURI: store.data.voices[la
 setSoundEnabled(store.data.sound);
 
 const APP_NAME = () => L('Bé Vui Học', 'Happy Learning');
-const APP_VERSION = 17; // tăng cùng với VERSION trong sw.js mỗi lần phát hành; hiện ở góc màn hình đầu để ba mẹ biết máy đang chạy bản nào
+const APP_VERSION = 18; // tăng cùng với VERSION trong sw.js mỗi lần phát hành; hiện ở góc màn hình đầu để ba mẹ biết máy đang chạy bản nào
 
 /* ---------------- Màn chào ---------------- */
 // Màn hình đầu tiên. Lần bấm Start cũng là thao tác cho phép iPad phát tiếng.
@@ -226,11 +226,13 @@ $('stars').addEventListener('click', () => {
   say(L(`Con có ${numWord(n)} ngôi sao.`, `You have ${numWord(n)} ${n === 1 ? 'star' : 'stars'}.`));
 });
 
-/* ---------------- Nhắc nghỉ ngơi ---------------- */
+/* ---------------- Nhắc nghỉ mắt ---------------- */
+// Chỉ đếm thời gian bé thật sự chơi (đang trong giờ chơi đã mở khoá).
+// Lúc ứng dụng chỉ mở ở màn hình việc cần làm (bé đang ăn, đang làm việc…) thì không tính.
 let activeSecs = 0;
 let resting = false;
 setInterval(() => {
-  if (document.hidden || resting || currentScreen() === 'splash' || currentScreen() === 'parents' || mealTimerRunning()) return;
+  if (document.hidden || resting || !isPlaying() || mealTimerRunning()) return;
   const limit = (store.data.restMinutes || 0) * 60;
   if (!limit) return;
   activeSecs++;
