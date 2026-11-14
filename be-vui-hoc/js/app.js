@@ -21,6 +21,7 @@ initSpeech({ lang: lang(), rate: store.data.rate, voiceURI: store.data.voices[la
 setSoundEnabled(store.data.sound);
 
 const APP_NAME = () => L('Bé Vui Học', 'Happy Learning');
+const APP_VERSION = 17; // tăng cùng với VERSION trong sw.js mỗi lần phát hành; hiện ở góc màn hình đầu để ba mẹ biết máy đang chạy bản nào
 
 /* ---------------- Màn chào ---------------- */
 // Màn hình đầu tiên. Lần bấm Start cũng là thao tác cho phép iPad phát tiếng.
@@ -47,7 +48,8 @@ register('splash', {
         onClick: () => { unlockAudio(); go('home', { first: true }); },
       }, L('▶️ Bắt đầu', '▶️ Start')),
       notice,
-      h('p', { class: 'hint', text: L('Nhớ bật âm lượng và tắt chế độ im lặng để nghe bạn Thỏ nhé!', 'Turn the volume up and silent mode off to hear Bunny!') })));
+      h('p', { class: 'hint', text: L('Nhớ bật âm lượng và tắt chế độ im lặng để nghe bạn Thỏ nhé!', 'Turn the volume up and silent mode off to hear Bunny!') }),
+      h('p', { class: 'app-version', text: L(`Phiên bản ${APP_VERSION}`, `Version ${APP_VERSION}`) })));
     return () => { off(); clearTimeout(t); };
   },
 });
@@ -271,7 +273,15 @@ async function restBreak() {
 
 /* ---------------- Chạy ngoại tuyến (Service Worker) ---------------- */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  const hadController = !!navigator.serviceWorker.controller;
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').then((reg) => {
+    // Mỗi lần bé mở lại ứng dụng (kể cả từ Màn hình chính của iPad): hỏi máy chủ xem có bản mới không
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); });
+  }).catch(() => {}));
+  // Có bản mới vừa được cài: nếu bé đang ở màn hình đầu thì tải lại ngay để dùng bản mới
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadController && currentScreen() === 'splash') location.reload();
+  });
 }
 
 updateStars();
