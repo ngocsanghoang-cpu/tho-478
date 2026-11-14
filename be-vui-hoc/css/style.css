@@ -135,6 +135,7 @@ body[data-screen="splash"] #app { top: 0; }
 .lang-card .sub { font-size: 24px; }
 .lang-card.last { animation: pulse 1.4s ease-in-out infinite; }
 .splash .voice-note { max-width: 640px; font-size: 18px; line-height: 1.45; font-weight: 700; text-align: left; }
+.splash .app-version { margin: 6px 0 0; font-size: 15px; color: var(--muted); opacity: .7; }
 .splash .hint { margin-top: 14px; font-size: 18px; color: var(--muted); max-width: 560px; font-weight: 700; }
 
 /* ---------- Menu & thẻ ---------- */
