@@ -76,7 +76,7 @@ export const starsOf = (set, ch) => store.data.letters[`${set}:${ch}`] || 0;
 
 /* ---------------- Danh sách chữ ---------------- */
 register('writing', {
-  title: () => L('Tập Viết', 'Writing'), parent: 'home', theme: THEME,
+  title: () => L('Tập Viết', 'Writing'), parent: 'games', theme: THEME,
   render(root, { set = 'lower' } = {}) {
     const S = SETS()[set];
     const tabs = h('div', { class: 'chips' }, Object.entries(SETS()).map(([k, v]) =>

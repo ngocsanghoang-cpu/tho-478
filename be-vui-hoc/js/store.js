@@ -46,6 +46,7 @@ const DEFAULTS = {
   // Giờ chơi: mỗi buổi được ba mẹ xác nhận xong hết việc thì có 1 vé chơi. tickets[buổi] = 'ready' | 'used'
   play: { date: '', tickets: {}, bonus: {}, until: 0 },
   playMinutes: 10, // mỗi vé chơi được bao nhiêu phút
+  times: {},       // mốc giờ ba mẹ đặt cho từng việc: "loại ngày/buổi/việc" -> "HH:MM"
   // Đồng bộ với điện thoại ba mẹ (Firebase Realtime Database): url = địa chỉ cơ sở dữ liệu, code = mã gia đình
   sync: { url: '', code: '' },
   applied: { date: '', ids: [] }, // các lần thưởng/trừ sao từ điện thoại ba mẹ đã áp dụng
@@ -153,8 +154,8 @@ export function todaysPlay() {
 }
 
 export function resetProgress() {
-  const { name, lang, langV, rate, voices, sound, restMinutes, rules, rewards, chores, schoolDays, hw, playMinutes, sync } = store.data;
-  store.data = { ...clone(DEFAULTS), name, lang, langV, rate, voices, sound, restMinutes, rules, rewards, chores, schoolDays, hw, playMinutes, sync };
+  const { name, lang, langV, rate, voices, sound, restMinutes, rules, rewards, chores, schoolDays, hw, playMinutes, sync, times } = store.data;
+  store.data = { ...clone(DEFAULTS), name, lang, langV, rate, voices, sound, restMinutes, rules, rewards, chores, schoolDays, hw, playMinutes, sync, times };
   store.save();
 }
 

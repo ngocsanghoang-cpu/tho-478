@@ -10,7 +10,7 @@ const COLORS = ['pink', 'orange', 'yellow', 'green', 'blue', 'purple', 'red'];
 
 /* ---------------- Menu ---------------- */
 register('explore', {
-  title: () => L('Khám Phá', 'Explore'), parent: 'home', theme: THEME,
+  title: () => L('Khám Phá', 'Explore'), parent: 'games', theme: THEME,
   render(root) {
     root.append(h('div', { class: 'menu' },
       h('div', { class: 'menu-head' }, h('div', null,

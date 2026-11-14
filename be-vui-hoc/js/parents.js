@@ -4,7 +4,7 @@ import { store, resetProgress, unlockedCount, STICKERS, adjustStars, todaysAsks,
 import { EXERCISES, exerciseName, exerciseCount, maxHomework } from './homework.js';
 import { rewardName, ruleRows, maxPerWeek } from './rewards.js';
 import { L, lang, setLang } from './i18n.js';
-import { ROUTINES, routineCount, choreName, maxSelfcare } from './selfcare.js';
+import { ROUTINES, routineCount, choreName, maxSelfcare, scheduleFor } from './selfcare.js';
 import { SETS, starsOf } from './writing.js';
 import { getVoices, langVoices, voiceGender, voiceAdvice, onVoicesChanged, configureSpeech, currentVoice } from './speech.js';
 import { setSoundEnabled } from './sound.js';
@@ -264,6 +264,26 @@ register('parents', {
     };
     drawChores();
 
+    // Mốc giờ của từng việc (hiện trên trang chính của bé)
+    const timesBox = h('div');
+    const drawTimes = () => {
+      timesBox.innerHTML = '';
+      [['school', L('🏫 Ngày đi học', '🏫 School day')], ['off', L('🎈 Ngày nghỉ', '🎈 Day off')]].forEach(([type, label]) => {
+        timesBox.append(h('p', { style: { margin: '14px 0 4px', fontSize: '20px' }, text: label }));
+        Object.entries(scheduleFor(type)).forEach(([kind, R]) => R.tasks.forEach((t) => {
+          const input = h('input', { type: 'time', class: 'cost time', value: t.at });
+          input.addEventListener('change', () => {
+            if (!input.value) return;
+            d.times[`${type}/${kind}/${t.id}`] = input.value;
+            store.save(); drawTimes();
+          });
+          timesBox.append(h('div', { class: 'rule-row' },
+            h('span', { class: 'rule-emo', text: t.e }), h('span', { class: 'rule-text', text: `${R.emoji} ${t.t}` }), input));
+        }));
+      });
+    };
+    drawTimes();
+
     const adj = h('input', { type: 'number', class: 'cost', min: 1, max: 999, value: 5, inputmode: 'numeric' });
     const adjust = (sign) => { adjustStars(sign * Math.max(1, Math.round(+adj.value) || 1)); updateStars(true); drawSummary(); };
     drawGifts(); drawRules(); drawSummary(); drawCheck(); drawSync(false);
@@ -313,6 +333,11 @@ register('parents', {
         h('p', { style: muted, text: L('Hôm nào có việc (phơi đồ, gấp đồ…), ba mẹ bấm “Giao hôm nay”. Việc sẽ hiện trong Bé Tự Lập của bé đến hết ngày. Bé làm xong thì được số sao ba mẹ đặt.',
           'On days when there is an extra job (hanging or folding laundry…), tap “Assign today”. It appears under I Can Do It until the end of the day and earns the stars you set.') }),
         choreBox),
+
+      h('div', { class: 'box' },
+        h('h3', { text: L('⏰ Mốc giờ các việc', '⏰ Job times') }),
+        h('p', { style: muted, text: L('Mốc giờ hiện cạnh từng việc trên trang chính của bé. Việc trong mỗi buổi được xếp theo giờ.', "Each time shows next to its job on your child's home screen. Jobs in each session are sorted by time.") }),
+        timesBox),
 
       h('div', { class: 'box' },
         h('h3', { text: L('🎁 Quà của bé', '🎁 Rewards') }),

@@ -22,14 +22,41 @@ Repo này có hai ứng dụng web:
 
 Phần mô tả dưới đây dùng tên tiếng Việt của các mục cho dễ đọc; tên tiếng Anh trên màn hình ghi trong ngoặc ở lần đầu nhắc tới: Bé Tự Lập (I Can Do It), Bài tập hôm nay (Today's exercises), Tập Viết (Writing), Học Đếm (Counting), Học Toán (Math), Khám Phá (Explore), Đổi quà (Rewards), Góc ba mẹ (For parents).
 
+### Màn hình chính
+
+Màn hình chính chỉ có lịch của ngày hôm nay:
+- **Thứ trong tuần** viết lớn, kèm ngày tháng, loại ngày (ngày đi học hoặc ngày nghỉ) và đồng hồ.
+- **Nền trời đổi theo buổi**: sáng (5–11 giờ), trưa (11–14 giờ), chiều (14–18 giờ), tối (sau 18 giờ, nền đêm có trăng sao).
+- **Các việc cần làm và mốc giờ**, chia cột theo buổi và xếp theo giờ. Mỗi việc hiện giờ, hình, tên, số sao (nếu hơn 1) và trạng thái: ⬜ chưa làm, ⏳ chờ ba mẹ, ✅ ba mẹ đã xác nhận, ↩️ làm lại.
+- Việc tiếp theo được viền hồng, ghi “Now” (đã tới giờ) hoặc “Next” (chưa tới giờ). Bạn Thỏ đọc việc này khi bé mở ứng dụng.
+- Bé chạm vào một việc để nghe hướng dẫn và bấm “I did it!”.
+- Việc ba mẹ giao thêm trong ngày hiện ở một hàng riêng bên dưới.
+- Cuối màn hình có ba nút nhỏ: **Play** (khu trò chơi, bị khoá), **Rewards** (đổi quà) và **Parents** (giữ 2 giây).
+
+Mốc giờ mặc định (ba mẹ đổi được ở *For parents → Job times*):
+
+| Ngày đi học | Giờ | Ngày nghỉ | Giờ |
+|---|---|---|---|
+| Đi vệ sinh và làm sạch | 6:30 | Đi vệ sinh và làm sạch | 7:00 |
+| Rửa mặt | 6:40 | Rửa mặt | 7:10 |
+| Cởi đồ ngủ, mặc quần áo mới | 6:50 | Đánh răng | 7:20 |
+| Uống thuốc và 1 ly nước đầy | 7:00 | Tự xúc ăn sáng | 7:30 |
+| Mang tất, mang giày | 7:10 | Uống sữa | 10:00 |
+| Cất giày, bỏ đồ bẩn vào giỏ | 17:00 | Tự xúc ăn trưa | 11:30 |
+| Tự xúc ăn tối | 18:00 | Uống sữa | 16:00 |
+| Uống sữa | 19:00 | Tự xúc ăn tối | 18:00 |
+| Sắp xếp đồ chơi | 19:30 | Sắp xếp đồ chơi | 19:00 |
+| Leo lên giường, tắt đèn, ngủ | 20:30 | Uống sữa | 20:00 |
+| | | Đánh răng | 20:15 |
+
 ### Cách hoạt động: bé tích việc, ba mẹ xác nhận, rồi mới được sao và được chơi
 
-1. **Bé tích việc đã làm.** Trong Bé Tự Lập, bé làm xong việc nào thì bấm “I did it!”. Việc chuyển sang trạng thái ⏳ chờ ba mẹ, **chưa có sao**.
+1. **Bé tích việc đã làm.** Trên màn hình chính, bé chạm vào việc vừa làm xong rồi bấm “I did it!”. Việc chuyển sang trạng thái ⏳ chờ ba mẹ, **chưa có sao**.
 2. **Ba mẹ xác nhận thực tế.** Ba mẹ kiểm tra bé đã làm thật chưa rồi bấm **Yes** (đạt) hoặc **Not yet** (chưa đạt), trên điện thoại của ba mẹ hoặc ngay trên iPad (For parents → Check today's jobs).
    - Đạt: bé được sao của việc đó.
    - Chưa đạt: việc hiện ↩️, bé làm lại rồi tích lại.
 3. **Xác nhận hết việc của một buổi** (sáng, trưa chiều, tối): bé được thưởng thêm sao và **một lần mở khoá chơi 10 phút**.
-4. **Trò chơi và bài tập luôn bị khoá** (Today's exercises, Writing, Counting, Math, Explore, trò dọn đồ). Bé chỉ vào được trong 10 phút mở khoá. Trên thanh trên cùng có đồng hồ đếm ngược; còn 1 phút thì bạn Thỏ nhắc; hết giờ thì bé bị đưa về trang chính và mọi thứ khoá lại.
+4. **Trò chơi và bài tập luôn bị khoá**. Tất cả nằm sau nút **Play** ở cuối màn hình chính (Today's exercises, Writing, Counting, Math, Explore, Practice skills). Bé chỉ vào được trong 10 phút mở khoá. Trên thanh trên cùng có đồng hồ đếm ngược; còn 1 phút thì bạn Thỏ nhắc; hết giờ thì bé bị đưa về trang chính và mọi thứ khoá lại.
 5. Vé chơi chỉ dùng trong ngày. Bé có thể bấm “Later” để dành vé và bắt đầu chơi sau.
 
 Ba mẹ chỉnh được số phút mỗi lần mở khoá ở *For parents → Play time* (5–30 phút).

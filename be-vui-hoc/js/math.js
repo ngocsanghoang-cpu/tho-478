@@ -19,7 +19,7 @@ const opName = (op) => L(OPS[op].vi, OPS[op].en);
 
 /* ---------------- Menu ---------------- */
 register('math', {
-  title: () => L('Học Toán', 'Math'), parent: 'home', theme: THEME,
+  title: () => L('Học Toán', 'Math'), parent: 'games', theme: THEME,
   render(root) {
     root.append(h('div', { class: 'menu' },
       h('div', { class: 'menu-head' },

@@ -12,11 +12,11 @@ export function todayTaskList() {
   let order = 0;
   for (const [kind, R] of Object.entries(ROUTINES())) {
     for (const t of R.tasks) {
-      out.push({ key: tickKey(kind, t.id), kind, group: `${R.emoji} ${R.title}`, e: t.e, t: t.t, stars: taskStars(t), order: order++ });
+      out.push({ key: tickKey(kind, t.id), kind, id: t.id, group: `${R.emoji} ${R.title}`, e: t.e, t: t.t, at: t.at || '', stars: taskStars(t), order: order++ });
     }
   }
   for (const c of todaysChores()) {
-    out.push({ key: tickKey('chore', c.id), kind: 'chore', group: L('📋 Việc ba mẹ giao', '📋 Extra jobs'), e: c.e, t: c.t, stars: c.stars, order: order++ });
+    out.push({ key: tickKey('chore', c.id), kind: 'chore', id: c.id, at: '', group: L('📋 Việc ba mẹ giao', '📋 Extra jobs'), e: c.e, t: c.t, stars: c.stars, order: order++ });
   }
   return out;
 }

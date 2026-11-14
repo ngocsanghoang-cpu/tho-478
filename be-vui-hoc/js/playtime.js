@@ -8,7 +8,7 @@ import { onTicket } from './approve.js';
 import { ROUTINES, dk } from './selfcare.js';
 
 // Các màn hình bị khoá (trò chơi + bài tập)
-const LOCKED = new Set(['homework', 'writing', 'trace', 'counting', 'numbers', 'count', 'compare', 'find', 'math', 'op',
+const LOCKED = new Set(['games', 'homework', 'writing', 'trace', 'counting', 'numbers', 'count', 'compare', 'find', 'math', 'op',
   'explore', 'dates', 'datequiz', 'daynight', 'dnquiz', 'leftright', 'lrquiz', 'tidy']);
 
 export const playMinutes = () => Math.max(0.05, +store.data.playMinutes || 10);
@@ -103,12 +103,10 @@ function guard(name, params) {
       ? L(`Con làm hết việc ${which}, rồi nhờ ba mẹ kiểm tra. Sau đó con được chơi ${minsText()} phút!`, `Finish your ${which} jobs and ask Mom or Dad to check them. Then you can play for ${minsText()} minutes!`)
       : L('Hôm nay con đã dùng hết giờ chơi rồi. Mai mình chơi tiếp nhé!', 'You used all your play time for today. See you tomorrow!') }),
     h('div', { class: 'row' },
-      which ? h('button', { class: 'btn big pink', onClick: () => close('jobs') }, L('👧 Xem việc của con', '👧 See my jobs')) : null,
-      h('button', { class: 'btn ghost', onClick: () => close() }, L('Đóng', 'Close'))),
+      h('button', { class: 'btn big pink', onClick: () => close() }, L('Dạ! 👍', 'OK! 👍'))),
   ], () => say(which
     ? L(`Trò chơi đang khoá. Con làm hết việc ${which}, rồi nhờ ba mẹ kiểm tra. Sau đó con được chơi ${minsText()} phút!`, `The games are locked. Finish your ${which} jobs and ask Mom or Dad to check them. Then you can play for ${minsText()} minutes!`)
     : L('Hôm nay con đã dùng hết giờ chơi rồi. Mai mình chơi tiếp nhé!', 'You used all your play time for today. See you tomorrow!')))
-    .then((v) => { if (v === 'jobs') go('selfcare'); });
   return false;
 }
 setGuard(guard);
