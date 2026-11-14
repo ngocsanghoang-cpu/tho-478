@@ -2,7 +2,7 @@
 // Khi có mạng, luôn lấy bản mới nhất từ máy chủ (bản lưu chỉ dùng khi mất mạng hoặc mạng quá chậm),
 // nên mỗi lần phát hành bản mới bé thấy ngay ở lần mở kế tiếp.
 // Nhớ tăng VERSION (và APP_VERSION trong js/app.js) mỗi lần phát hành.
-const VERSION = 'bevuihoc-v17';
+const VERSION = 'bevuihoc-v18';
 const ASSETS = [
   './', 'index.html', 'manifest.webmanifest', 'css/style.css',
   'js/app.js', 'js/ui.js', 'js/speech.js', 'js/sound.js', 'js/store.js', 'js/vi.js', 'js/i18n.js', 'js/play.js', 'js/math.js', 'js/explore.js', 'js/rewards.js', 'js/homework.js', 'js/approve.js', 'js/playtime.js', 'js/sync.js', 'js/parent.js', 'parent.html', 'css/parent.css',
